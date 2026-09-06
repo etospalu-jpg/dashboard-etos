@@ -1,0 +1,4 @@
+const FILE_ID='15TcqNsc3oLqzJxjZ8whV-cgYX00HM2k9';
+function out(res,status,body){res.status(status).setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store');res.end(JSON.stringify(body))}
+function isXlsx(b){return b&&b.length>4&&b[0]===0x50&&b[1]===0x4b}
+module.exports=async function handler(req,res){if(req.method!=='GET')return out(res,405,{success:false});let direct=false,status=null;try{const r=await fetch(`https://drive.usercontent.google.com/download?id=${FILE_ID}&export=download&confirm=t`,{redirect:'follow'});status=r.status;const b=Buffer.from(await r.arrayBuffer());direct=r.ok&&isXlsx(b)}catch{}return out(res,200,{success:true,source:'Palu-IDP KI.xlsx',sourceId:FILE_ID,directDrive:direct,directStatus:status,serviceAccountConfigured:!!String(process.env.GOOGLE_SERVICE_ACCOUNT_JSON||'').trim(),mode:direct?'drive-direct':String(process.env.GOOGLE_SERVICE_ACCOUNT_JSON||'').trim()?'drive-service-account':'verified-cache'})}
