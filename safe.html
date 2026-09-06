@@ -5,41 +5,35 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0b1b15">
   <title>ETOS ID Palu — Awardee Intelligence</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/app.css">
+  <link rel="stylesheet" href="/app-layout.css?v=2">
   <style>
     html,body{margin:0;min-height:100%;background:#edf1ef;font-family:Inter,system-ui,sans-serif}
     #safe-boot{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#edf1ef;color:#15201c}
     #safe-boot .box{width:min(440px,100%);background:#0b1b15;color:white;border-radius:26px;padding:30px;box-shadow:0 24px 70px rgba(8,28,19,.16)}
-    #safe-boot .mark{width:42px;height:42px;border-radius:14px;background:#fff;color:#0b1b15;display:flex;align-items:center;justify-content:center;font-weight:900}
+    #safe-boot .mark{width:116px;height:48px;border-radius:13px;background:#fff;display:flex;align-items:center;justify-content:center;padding:8px 10px;overflow:hidden}
+    #safe-boot .mark img{width:100%;height:100%;object-fit:contain}
     #safe-boot .line{height:2px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin-top:24px}
-    #safe-boot .line:after{content:"";display:block;width:38%;height:100%;background:#cbb07b;animation:boot 1s infinite}
+    #safe-boot .line:after{content:"";display:block;width:38%;height:100%;background:#5cc72a;animation:boot 1s infinite}
     @keyframes boot{from{transform:translateX(-120%)}to{transform:translateX(360%)}}
   </style>
 </head>
 <body>
-<div id="safe-boot"><div class="box"><div class="mark">E</div><div style="margin-top:22px;font:800 22px/1.2 Manrope,Inter,sans-serif">ETOS ID Palu</div><div style="margin-top:7px;font-size:11px;color:rgba(255,255,255,.52);letter-spacing:.08em;text-transform:uppercase">Awardee Development Intelligence</div><div class="line"></div><div id="safe-status" style="margin-top:12px;font-size:11px;color:rgba(255,255,255,.48)">Menyiapkan dashboard…</div></div></div>
+<div id="safe-boot"><div class="box"><div class="mark"><img src="/brand-etos.svg?v=2" alt="ETOS ID"></div><div style="margin-top:22px;font:800 22px/1.2 Manrope,Inter,sans-serif">ETOS ID Palu</div><div style="margin-top:7px;font-size:11px;color:rgba(255,255,255,.52);letter-spacing:.08em;text-transform:uppercase">Awardee Development Intelligence</div><div class="line"></div><div id="safe-status" style="margin-top:12px;font-size:11px;color:rgba(255,255,255,.48)">Menyiapkan dashboard…</div></div></div>
 <div id="safe-error" style="display:none;position:fixed;left:16px;right:16px;bottom:16px;z-index:99999;max-width:760px;margin:auto;background:#7a2f2f;color:#fff;border-radius:14px;padding:12px 14px;font:600 12px/1.5 Inter,system-ui,sans-serif;box-shadow:0 16px 50px rgba(0,0,0,.22)"></div>
 <script>
 (function(){
  const status=document.getElementById('safe-status');
- function errorBox(message){const e=document.getElementById('safe-error');if(e){e.textContent='Dashboard tampil, tetapi ada komponen yang bermasalah: '+message;e.style.display='block'}console.error('[ETOS]',message)}
+ function errorBox(message){const e=document.getElementById('safe-error');if(e){e.textContent='ETOS tampil, tetapi ada komponen yang bermasalah: '+message;e.style.display='block'}console.error('[ETOS]',message)}
  function loadScript(src,optional){return new Promise(resolve=>{const s=document.createElement('script');s.src=src;s.async=false;let done=false;const timer=setTimeout(()=>finish(false),10000);function finish(ok){if(done)return;done=true;clearTimeout(timer);if(!ok&&!optional)errorBox(src+' gagal dimuat');resolve(ok)}s.onload=()=>finish(true);s.onerror=()=>finish(false);document.head.appendChild(s)})}
- async function run(){try{
-   status.textContent='Memuat shell aplikasi…';
-   const r=await fetch('/index.html?source=1',{cache:'no-store'});if(!r.ok)throw new Error('index.html HTTP '+r.status);
-   const html=await r.text(),parsed=new DOMParser().parseFromString(html,'text/html');parsed.body.querySelectorAll('script').forEach(x=>x.remove());
-   document.body.innerHTML=parsed.body.innerHTML+'<div id="safe-error" style="display:none;position:fixed;left:16px;right:16px;bottom:16px;z-index:99999;max-width:760px;margin:auto;background:#7a2f2f;color:#fff;border-radius:14px;padding:12px 14px;font:600 12px/1.5 Inter,system-ui,sans-serif;box-shadow:0 16px 50px rgba(0,0,0,.22)"></div>';
-   window.addEventListener('error',e=>errorBox(e.message||'JavaScript error'));
-   await loadScript('https://cdn.tailwindcss.com',true);
-   if(!window.Chart)await loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js',true);if(!window.Chart)window.Chart=function(){return{destroy:function(){}}};
-   if(!window.lucide)await loadScript('https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js',true);if(!window.lucide)window.lucide={createIcons:function(){}};
-   if(!window.supabase)await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js',true);
-   for(const file of ['/supabase-adapter.js','/app-core.js','/app-public.js','/app-secure.js','/app-admin.js','/app-360.js']){if(!await loadScript(file,false))throw new Error(file+' gagal dimuat')}
-   if(typeof window.boot==='function')await window.boot();else throw new Error('fungsi boot tidak ditemukan');
- }catch(e){errorBox(e&&e.message?e.message:String(e));const app=document.getElementById('main-app');if(app)app.style.display='flex'}}
+ async function libs(){await loadScript('https://cdn.tailwindcss.com',true);if(!window.lucide)await loadScript('https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js',true);if(!window.lucide)window.lucide={createIcons:function(){}};if(!window.supabase)await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js',true)}
+ async function reflectionRoute(){const m=location.pathname.match(/^\/r\/([^/?#]+)/i);if(!m)return false;status.textContent='Menyiapkan refleksi kajian…';await libs();if(!await loadScript('/supabase-adapter.js',false))throw new Error('Supabase adapter gagal dimuat');if(!await loadScript('/app-reflection.js?v=2',false))throw new Error('Modul refleksi gagal dimuat');if(typeof window.bootReflection!=='function')throw new Error('bootReflection tidak ditemukan');await window.bootReflection(decodeURIComponent(m[1]));return true}
+ async function dashboardRoute(){status.textContent='Memuat shell aplikasi…';const r=await fetch('/index.html?source=1',{cache:'no-store'});if(!r.ok)throw new Error('index.html HTTP '+r.status);const html=await r.text(),parsed=new DOMParser().parseFromString(html,'text/html');parsed.body.querySelectorAll('script').forEach(x=>x.remove());document.body.innerHTML=parsed.body.innerHTML+'<div id="safe-error" style="display:none;position:fixed;left:16px;right:16px;bottom:16px;z-index:99999;max-width:760px;margin:auto;background:#7a2f2f;color:#fff;border-radius:14px;padding:12px 14px;font:600 12px/1.5 Inter,system-ui,sans-serif;box-shadow:0 16px 50px rgba(0,0,0,.22)"></div>';window.addEventListener('error',e=>errorBox(e.message||'JavaScript error'));await libs();if(!window.Chart)await loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js',true);if(!window.Chart)window.Chart=function(){return{destroy:function(){}}};const files=['/supabase-adapter.js','/app-core.js','/app-public.js','/app-secure.js','/app-admin.js','/app-360.js','/app-system.js?v=2','/app-branding.js?v=2'];for(const file of files){if(!await loadScript(file,false))throw new Error(file+' gagal dimuat')}if(typeof window.boot==='function')await window.boot();else throw new Error('fungsi boot tidak ditemukan')}
+ async function run(){try{if(await reflectionRoute())return;await dashboardRoute()}catch(e){errorBox(e&&e.message?e.message:String(e));const app=document.getElementById('main-app');if(app)app.style.display='flex'}}
  run();
 })();
 </script>
