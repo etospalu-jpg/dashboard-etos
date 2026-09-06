@@ -2,8 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": false,
   "rewrites": [
-    { "source": "/", "destination": "/safe.html" },
-    { "source": "/r/:code", "destination": "/safe.html" }
+    { "source": "/", "destination": "/production.html" },
+    { "source": "/r/:code", "destination": "/production.html" }
   ],
   "headers": [
     {
@@ -15,7 +15,7 @@
       ]
     },
     {
-      "source": "/safe.html",
+      "source": "/production.html",
       "headers": [
         { "key": "Cache-Control", "value": "no-store, max-age=0" }
       ]
@@ -24,6 +24,12 @@
       "source": "/index.html",
       "headers": [
         { "key": "Cache-Control", "value": "no-store, max-age=0" }
+      ]
+    },
+    {
+      "source": "/favicon.svg",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }
       ]
     }
   ]
