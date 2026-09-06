@@ -37,7 +37,7 @@
    if(!window.Chart)await loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js',true);if(!window.Chart)window.Chart=function(){return{destroy:function(){}}};
    if(!window.lucide)await loadScript('https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js',true);if(!window.lucide)window.lucide={createIcons:function(){}};
    if(!window.supabase)await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js',true);
-   for(const file of ['/supabase-adapter.js','/app-core.js','/app-public.js','/app-secure.js','/app-admin.js']){if(!await loadScript(file,false))throw new Error(file+' gagal dimuat')}
+   for(const file of ['/supabase-adapter.js','/app-core.js','/app-public.js','/app-secure.js','/app-admin.js','/app-360.js']){if(!await loadScript(file,false))throw new Error(file+' gagal dimuat')}
    if(typeof window.boot==='function')await window.boot();else throw new Error('fungsi boot tidak ditemukan');
  }catch(e){errorBox(e&&e.message?e.message:String(e));const app=document.getElementById('main-app');if(app)app.style.display='flex'}}
  run();
