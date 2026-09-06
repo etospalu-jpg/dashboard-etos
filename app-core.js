@@ -1,0 +1,27 @@
+const state={view:'dashboard',auth:false,cache:{},directory:[],academic:[],achievements:[],alumni:[],activeAwardees:[],charts:{},attendanceOptions:null};
+const titles={dashboard:'Dashboard',directory:'Direktori Awardee',alumni:'Tracking Alumni',academic:'Akademik',attendance:'Absensi Pembinaan',coaching:'Coaching & IDP',achievements:'Prestasi',assessment:'Asesmen & Development',mentoring:'Mentoring Command',profile:'Profil Fasilitator'};
+const secureViews=new Set(['attendance','coaching','assessment','mentoring','profile']);
+const ttl=90000;
+const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const num=v=>Number.isFinite(Number(v))?Number(v):0;
+function showLoader(on){document.getElementById('loader').classList.toggle('show',!!on)}
+function toast(msg,type=''){const h=document.getElementById('toast-host'),d=document.createElement('div');d.className='toast '+type;d.textContent=msg;h.appendChild(d);setTimeout(()=>d.remove(),3800)}
+function toggleSidebar(on){document.getElementById('sidebar').classList.toggle('open',on);document.getElementById('mobile-backdrop').classList.toggle('open',on)}
+function openModal(id){document.getElementById(id).classList.add('open');lucide.createIcons()}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+function openLogin(){document.getElementById('pin-message').classList.add('hidden');document.getElementById('pin-input').value='';openModal('login-modal');setTimeout(()=>document.getElementById('pin-input').focus(),80)}
+function closeLogin(){closeModal('login-modal')}
+function closeDrawer(){document.getElementById('awardee-drawer').classList.remove('open')}
+function cacheGet(k){const x=state.cache[k];return x&&Date.now()-x.t<ttl?x.v:null}function cacheSet(k,v){state.cache[k]={t:Date.now(),v};return v}
+async function api(name,params,force=false){const k=name+JSON.stringify(params||null);if(!force){const c=cacheGet(k);if(c)return c}showLoader(true);try{const r=await etosAPI.call(name,params);if(!r||r.success===false)throw new Error(r?.error||'Permintaan gagal');return cacheSet(k,r.data)}finally{showLoader(false)}}
+function destroyChart(id){if(state.charts[id]){state.charts[id].destroy();delete state.charts[id]}}
+function chart(id,config){destroyChart(id);const el=document.getElementById(id);if(!el)return;state.charts[id]=new Chart(el,config)}
+function navActive(view){document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===view));document.getElementById('page-title').textContent=titles[view]||'ETOS Palu'}
+async function goView(view){if(secureViews.has(view)&&!state.auth){openLogin();return}state.view=view;document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById('view-'+view)?.classList.add('active');navActive(view);toggleSidebar(false);await loadView(view)}
+async function loadView(v,force=false){try{if(v==='dashboard')return loadDashboard(force);if(v==='directory')return loadDirectory(force);if(v==='alumni')return loadAlumni(force);if(v==='academic')return loadAcademic(force);if(v==='attendance')return loadAttendance(force);if(v==='coaching')return loadCoaching(force);if(v==='achievements')return loadAchievements(force);if(v==='assessment')return loadAssessment(force);if(v==='mentoring')return loadMentoring(force);if(v==='profile')return loadProfile(force)}catch(e){toast(e.message||String(e),'error')}}
+function refreshCurrent(){Object.keys(state.cache).forEach(k=>delete state.cache[k]);loadView(state.view,true)}
+
+async function checkAuth(){const {data}=await etosAuth.getSession();state.auth=!!data?.session;updateAuthUI()}
+function updateAuthUI(){const mode=document.getElementById('system-mode'),label=document.getElementById('top-auth-label'),text=document.getElementById('sidebar-auth-text'),btn=document.getElementById('sidebar-auth-btn');if(state.auth){mode.textContent='Operasional';mode.className='pill pill-green';label.textContent='Keluar';text.textContent='Session operasional aktif. Modul sensitif dapat diakses.';btn.innerHTML='<i data-lucide="log-out" class="w-4 h-4"></i>Keluar';btn.onclick=logout}else{mode.textContent='Public';mode.className='pill pill-gray';label.textContent='PIN Akses';text.textContent='Mode publik aktif. Masukkan PIN untuk modul operasional.';btn.innerHTML='<i data-lucide="key-round" class="w-4 h-4"></i>Masuk dengan PIN';btn.onclick=openLogin}document.getElementById('top-auth-btn').onclick=state.auth?logout:openLogin;lucide.createIcons()}
+async function submitPin(e){e.preventDefault();const pin=document.getElementById('pin-input').value,btn=document.getElementById('pin-submit'),msg=document.getElementById('pin-message');btn.disabled=true;btn.textContent='Memverifikasi...';msg.classList.add('hidden');try{const r=await etosAuth.signInPin(pin);if(r.needsConfirmation){msg.textContent=r.message;msg.classList.remove('hidden');toast('Aktivasi pertama dibuat.','warn');return}state.auth=!!r.session;updateAuthUI();closeLogin();toast('Akses operasional dibuka.');await loadView(state.view,true)}catch(err){msg.textContent=err.message||'PIN tidak sesuai.';msg.classList.remove('hidden')}finally{btn.disabled=false;btn.innerHTML='<i data-lucide="shield-check" class="w-4 h-4"></i>Buka Dashboard Operasional';lucide.createIcons()}}
+async function logout(){await etosAuth.signOut();state.auth=false;updateAuthUI();if(secureViews.has(state.view))goView('dashboard');toast('Session operasional ditutup.')}
