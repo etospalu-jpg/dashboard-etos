@@ -54,10 +54,8 @@
     if (!sb) return Promise.resolve({ success: false, error: 'Supabase client tidak tersedia.' });
     return sb.auth.getSession().then(function (res) {
       var token = res && res.data && res.data.session ? res.data.session.access_token : '';
-      if (!token) {
-        return { success: false, error: 'Silakan login sebagai Admin/Fasilitator untuk membuka fitur ini.' };
-      }
-      return fetchJson(FUNCTIONS_URL + '/secure-api', {
+      if (!token) return { success: false, error: 'Silakan login sebagai Admin/Fasilitator untuk membuka fitur ini.' };
+      return fetchJson('/api/secure', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ function: name, params: params == null ? null : params })
@@ -86,9 +84,7 @@
     var params = args && args.length ? args[0] : null;
     if (REFLECTION_FUNCTIONS[name]) return reflectionCall(name, params);
     if (PUBLIC_FUNCTIONS[name]) return publicCall(name, params);
-    if (name === 'logoutAbsensiAdmin' || name === 'logoutFacilitatorAccess') {
-      return Promise.resolve({ success: true });
-    }
+    if (name === 'logoutAbsensiAdmin' || name === 'logoutFacilitatorAccess') return Promise.resolve({ success: true });
     return secureCall(name, params);
   }
 
@@ -129,17 +125,21 @@
     get: function () { return createRunner(); }
   });
 
+  window.etosApi = {
+    call: function (name, params) { return invoke(name, [params]); },
+    publicCall: publicCall,
+    secureCall: secureCall,
+    reflectionCall: reflectionCall
+  };
+
   window.etosAuth = {
     getSession: function () { return sb ? sb.auth.getSession() : Promise.resolve({ data: { session: null } }); },
     signIn: function (email, password) {
       if (!sb) return Promise.reject(new Error('Supabase client tidak tersedia.'));
       return sb.auth.signInWithPassword({ email: email, password: password });
     },
-    signUp: function (email, password, fullName) {
-      if (!sb) return Promise.reject(new Error('Supabase client tidak tersedia.'));
-      return sb.auth.signUp({ email: email, password: password, options: { data: { full_name: fullName || '' } } });
-    },
     signOut: function () { return sb ? sb.auth.signOut() : Promise.resolve(); },
+    onAuthStateChange: function (callback) { return sb ? sb.auth.onAuthStateChange(callback) : null; },
     bootstrapAdmin: function () {
       if (!sb) return Promise.reject(new Error('Supabase client tidak tersedia.'));
       return sb.auth.getSession().then(function (res) {
