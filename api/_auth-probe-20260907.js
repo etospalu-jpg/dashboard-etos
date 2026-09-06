@@ -1,0 +1,6 @@
+const crypto=require('crypto');
+const URL='https://weklmapqizeldfdalbgs.supabase.co';
+const H='60252422ac0b702e289bcc2db13691246baa7f14c9b388d2a63583b05c3f1a94';
+function sha(v){return crypto.createHash('sha256').update(String(v||'')).digest('hex')}
+async function ping(path,key){const r=await fetch(URL+path,{headers:{apikey:key,Authorization:`Bearer ${key}`}});return{status:r.status,ok:r.ok}}
+module.exports=async function(req,res){res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json');if(sha(req.query?.probe)!==H)return res.status(404).end(JSON.stringify({ok:false}));const key=String(process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY||'').trim();const type=key.startsWith('sb_secret_')?'sb_secret':key.startsWith('eyJ')?'legacy_jwt':key?'other':'missing';if(!key)return res.status(200).end(JSON.stringify({env:false,type,auth:null,rest:null}));try{const [auth,rest]=await Promise.all([ping('/auth/v1/admin/users?page=1&per_page=1',key),ping('/rest/v1/profiles?select=id&limit=1',key)]);return res.status(200).end(JSON.stringify({env:true,type,auth,rest}))}catch(e){return res.status(200).end(JSON.stringify({env:true,type,error:'network_or_runtime'}))}}
