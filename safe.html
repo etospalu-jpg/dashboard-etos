@@ -17,64 +17,30 @@
     #safe-boot .line{height:2px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin-top:24px}
     #safe-boot .line:after{content:"";display:block;width:38%;height:100%;background:#cbb07b;animation:boot 1s infinite}
     @keyframes boot{from{transform:translateX(-120%)}to{transform:translateX(360%)}}
-    #safe-error{display:none;position:fixed;left:16px;right:16px;bottom:16px;z-index:99999;max-width:760px;margin:auto;background:#7a2f2f;color:#fff;border-radius:14px;padding:12px 14px;font:600 12px/1.5 Inter,system-ui,sans-serif;box-shadow:0 16px 50px rgba(0,0,0,.22)}
   </style>
 </head>
 <body>
-  <div id="safe-boot"><div class="box"><div class="mark">E</div><div style="margin-top:22px;font:800 22px/1.2 Manrope,Inter,sans-serif">ETOS ID Palu</div><div style="margin-top:7px;font-size:11px;color:rgba(255,255,255,.52);letter-spacing:.08em;text-transform:uppercase">Awardee Development Intelligence</div><div class="line"></div><div id="safe-status" style="margin-top:12px;font-size:11px;color:rgba(255,255,255,.48)">Menyiapkan dashboard…</div></div></div>
-  <div id="safe-error"></div>
+<div id="safe-boot"><div class="box"><div class="mark">E</div><div style="margin-top:22px;font:800 22px/1.2 Manrope,Inter,sans-serif">ETOS ID Palu</div><div style="margin-top:7px;font-size:11px;color:rgba(255,255,255,.52);letter-spacing:.08em;text-transform:uppercase">Awardee Development Intelligence</div><div class="line"></div><div id="safe-status" style="margin-top:12px;font-size:11px;color:rgba(255,255,255,.48)">Menyiapkan dashboard…</div></div></div>
+<div id="safe-error" style="display:none;position:fixed;left:16px;right:16px;bottom:16px;z-index:99999;max-width:760px;margin:auto;background:#7a2f2f;color:#fff;border-radius:14px;padding:12px 14px;font:600 12px/1.5 Inter,system-ui,sans-serif;box-shadow:0 16px 50px rgba(0,0,0,.22)"></div>
 <script>
 (function(){
-  const status=document.getElementById('safe-status');
-  const errBox=document.getElementById('safe-error');
-  function report(message){
-    console.error('[ETOS bootstrap]',message);
-    errBox.textContent='Dashboard berhasil dimuat sebagian, tetapi ada komponen yang bermasalah: '+message;
-    errBox.style.display='block';
-  }
-  function loadScript(src,optional){
-    return new Promise(resolve=>{
-      const s=document.createElement('script');
-      s.src=src;s.async=false;
-      let done=false;
-      const finish=ok=>{if(done)return;done=true;clearTimeout(timer);if(!ok&&!optional)report(src+' gagal dimuat');resolve(ok)};
-      s.onload=()=>finish(true);s.onerror=()=>finish(false);
-      const timer=setTimeout(()=>finish(false),8000);
-      document.head.appendChild(s);
-    });
-  }
-  async function run(){
-    try{
-      status.textContent='Memuat shell aplikasi…';
-      const response=await fetch('/index.html?source=1',{cache:'no-store'});
-      if(!response.ok)throw new Error('index.html HTTP '+response.status);
-      const html=await response.text();
-      const parsed=new DOMParser().parseFromString(html,'text/html');
-      parsed.body.querySelectorAll('script').forEach(x=>x.remove());
-      document.body.innerHTML=parsed.body.innerHTML+'<div id="safe-error"></div>';
-      const newErr=document.getElementById('safe-error');
-      if(newErr){newErr.style.cssText='display:none;position:fixed;left:16px;right:16px;bottom:16px;z-index:99999;max-width:760px;margin:auto;background:#7a2f2f;color:#fff;border-radius:14px;padding:12px 14px;font:600 12px/1.5 Inter,system-ui,sans-serif;box-shadow:0 16px 50px rgba(0,0,0,.22)'}
-      const showErr=message=>{const e=document.getElementById('safe-error');if(e){e.textContent='Dashboard tampil, tetapi ada komponen yang bermasalah: '+message;e.style.display='block'}console.error('[ETOS]',message)};
-      window.addEventListener('error',e=>showErr(e.message||'JavaScript error'));
-
-      await loadScript('https://cdn.tailwindcss.com',true);
-      if(!window.Chart){await loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js',true)}
-      if(!window.Chart){window.Chart=function(){return{destroy:function(){}}}}
-      if(!window.lucide){await loadScript('https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js',true)}
-      if(!window.lucide){window.lucide={createIcons:function(){}}}
-      if(!window.supabase){await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js',true)}
-
-      const files=['/supabase-adapter.js','/app-core.js','/app-public.js','/app-secure.js'];
-      for(const file of files){const ok=await loadScript(file,false);if(!ok)throw new Error(file+' gagal dimuat')}
-      if(typeof window.boot==='function')await window.boot();
-      else throw new Error('fungsi boot tidak ditemukan');
-    }catch(e){
-      report(e&&e.message?e.message:String(e));
-      const app=document.getElementById('main-app');
-      if(app)app.style.display='flex';
-    }
-  }
-  run();
+ const status=document.getElementById('safe-status');
+ function errorBox(message){const e=document.getElementById('safe-error');if(e){e.textContent='Dashboard tampil, tetapi ada komponen yang bermasalah: '+message;e.style.display='block'}console.error('[ETOS]',message)}
+ function loadScript(src,optional){return new Promise(resolve=>{const s=document.createElement('script');s.src=src;s.async=false;let done=false;const timer=setTimeout(()=>finish(false),10000);function finish(ok){if(done)return;done=true;clearTimeout(timer);if(!ok&&!optional)errorBox(src+' gagal dimuat');resolve(ok)}s.onload=()=>finish(true);s.onerror=()=>finish(false);document.head.appendChild(s)})}
+ async function run(){try{
+   status.textContent='Memuat shell aplikasi…';
+   const r=await fetch('/index.html?source=1',{cache:'no-store'});if(!r.ok)throw new Error('index.html HTTP '+r.status);
+   const html=await r.text(),parsed=new DOMParser().parseFromString(html,'text/html');parsed.body.querySelectorAll('script').forEach(x=>x.remove());
+   document.body.innerHTML=parsed.body.innerHTML+'<div id="safe-error" style="display:none;position:fixed;left:16px;right:16px;bottom:16px;z-index:99999;max-width:760px;margin:auto;background:#7a2f2f;color:#fff;border-radius:14px;padding:12px 14px;font:600 12px/1.5 Inter,system-ui,sans-serif;box-shadow:0 16px 50px rgba(0,0,0,.22)"></div>';
+   window.addEventListener('error',e=>errorBox(e.message||'JavaScript error'));
+   await loadScript('https://cdn.tailwindcss.com',true);
+   if(!window.Chart)await loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js',true);if(!window.Chart)window.Chart=function(){return{destroy:function(){}}};
+   if(!window.lucide)await loadScript('https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js',true);if(!window.lucide)window.lucide={createIcons:function(){}};
+   if(!window.supabase)await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js',true);
+   for(const file of ['/supabase-adapter.js','/app-core.js','/app-public.js','/app-secure.js','/app-admin.js']){if(!await loadScript(file,false))throw new Error(file+' gagal dimuat')}
+   if(typeof window.boot==='function')await window.boot();else throw new Error('fungsi boot tidak ditemukan');
+ }catch(e){errorBox(e&&e.message?e.message:String(e));const app=document.getElementById('main-app');if(app)app.style.display='flex'}}
+ run();
 })();
 </script>
 </body>
