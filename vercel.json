@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": true,
+  "cleanUrls": false,
   "rewrites": [
     { "source": "/", "destination": "/safe.html" },
     { "source": "/r/:code", "destination": "/safe.html" }
