@@ -2,7 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/r/:code", "destination": "/index.html" }
+    { "source": "/", "destination": "/safe.html" },
+    { "source": "/r/:code", "destination": "/safe.html" }
   ],
   "headers": [
     {
@@ -10,7 +11,8 @@
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(self)" }
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(self)" },
+        { "key": "Cache-Control", "value": "no-store" }
       ]
     }
   ]
