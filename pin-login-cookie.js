@@ -6,6 +6,7 @@ function out(res,status,body,extra={}){res.statusCode=status;res.setHeader('Cont
 function ip(req){return String(req.headers['x-forwarded-for']||req.headers['x-real-ip']||req.socket?.remoteAddress||'unknown').split(',')[0].trim()}
 function validPin(v){const h=crypto.createHash('sha256').update(String(v||'')).digest('hex');const a=Buffer.from(h,'hex'),b=Buffer.from(PIN_HASH,'hex');return a.length===b.length&&crypto.timingSafeEqual(a,b)}
 module.exports=async function handler(req,res){try{
+ if(!session.originAllowed(req))return out(res,403,{success:false,error:'Origin request tidak diizinkan.'});
  if(req.method==='GET'){const s=session.verify(req);return out(res,200,{success:true,data:{session:s?{role:s.role,scope:s.scope,expires_at:s.exp}:null}})}
  if(req.method==='DELETE'){session.clearCookie(res);return out(res,200,{success:true,data:{session:null}})}
  if(req.method!=='POST')return out(res,405,{success:false,error:'Method not allowed'});
