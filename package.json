@@ -2,6 +2,9 @@
   "name": "etos-id-palu-dashboard",
   "private": true,
   "version": "1.0.0",
+  "scripts": {
+    "vercel-build": "node scripts/probe-supabase.js"
+  },
   "dependencies": {
     "@supabase/supabase-js": "2.115.0"
   }
