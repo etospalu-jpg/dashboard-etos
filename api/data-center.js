@@ -12,6 +12,7 @@ const TABLES={
  assessments:{label:'Asesmen',write:true,create:true,delete:true},
  competencies:{label:'Kompetensi',write:true,create:true,delete:true},
  mentoring_cases:{label:'Mentoring Case',write:true,create:true,delete:true},
+ pdp_records:{label:'PDP Semester',write:true,create:true,delete:true},
  rule_analyses:{label:'Analisis Otomatis',write:false,create:false,delete:false},
  development_periods:{label:'Periode Pembinaan',write:true,create:true,delete:true},
  attendance_sessions:{label:'Sesi Absensi',write:true,create:true,delete:true},
