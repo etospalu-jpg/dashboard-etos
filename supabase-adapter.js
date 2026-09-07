@@ -6,7 +6,30 @@ const FUNCTIONS_URL=PROJECT_URL+'/functions/v1';
 const sb=window.supabase&&window.supabase.createClient?window.supabase.createClient(PROJECT_URL,PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
 window.etosSupabase=sb;
 let snapshotPromise=null;
+let realtimeChannel=null,realtimeTimer=null;
 function signalSource(source){try{window.dispatchEvent(new CustomEvent('etos:data-source',{detail:{source}}))}catch(_){}}
+function realtimeEvent(type,detail){try{window.dispatchEvent(new CustomEvent(type,{detail:detail||{}}))}catch(_){}}
+function startRealtimeSignals(){
+ if(!sb||realtimeChannel)return realtimeChannel;
+ try{
+  realtimeChannel=sb.channel('etos-realtime-signals')
+   .on('postgres_changes',{event:'*',schema:'public',table:'realtime_signals'},payload=>{
+    const row=payload?.new||payload?.old||{},entity=String(row.entity||'').trim();
+    realtimeEvent('etos:realtime-change',{entity,revision:Number(row.revision)||0,changedAt:row.changed_at||null,eventType:payload?.eventType||''});
+    clearTimeout(realtimeTimer);
+    realtimeTimer=setTimeout(()=>{
+     try{
+      const active=String(document.querySelector('.view.active')?.id||'').replace(/^view-/,'');
+      const safe=new Set(['dashboard','directory','alumni','academic','achievements','attendance']);
+      const modalOpen=!!document.querySelector('.modal.open');
+      if(!modalOpen&&safe.has(active)&&typeof window.refreshCurrent==='function')window.refreshCurrent();
+     }catch(_){ }
+    },450);
+   })
+   .subscribe(status=>realtimeEvent('etos:realtime-status',{status:String(status||'')}));
+ }catch(e){console.warn('[ETOS realtime]',e?.message||e);realtimeEvent('etos:realtime-status',{status:'ERROR',error:e?.message||String(e)})}
+ return realtimeChannel;
+}
 async function fetchJson(url,options){try{options=options||{};options.credentials=options.credentials||'include';options.headers=Object.assign({'Content-Type':'application/json','apikey':PUBLISHABLE_KEY},options.headers||{});const response=await fetch(url,options);let body={};try{body=await response.json()}catch(_){}if(!response.ok&&!body.error)body.error='HTTP '+response.status;return body}catch(error){return{success:false,error:error&&error.message?error.message:String(error)}}}
 async function loadSnapshot(){if(snapshotPromise)return snapshotPromise;snapshotPromise=fetch('/public-snapshot.min.json?v=12',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('snapshot HTTP '+r.status);return r.json()});return snapshotPromise}
 function authorityId(x){return String(x?.legacy_id||x?.id_awardee||x?.awardee_id||x?.id||'').toUpperCase()}
@@ -32,4 +55,5 @@ function createRunner(){let successHandler=null,failureHandler=null;const target
 window.google=window.google||{};window.google.script=window.google.script||{};Object.defineProperty(window.google.script,'run',{configurable:true,get(){return createRunner()}});
 window.etosAPI={call,publicCall,secureCall,reflectionCall,snapshotCall};
 window.etosAuth={signInPin,bootstrapAdmin:async()=>null,getSession,signOut,onChange(){return null}};
+if(!/^\/r\//i.test(location.pathname))startRealtimeSignals();
 })();
