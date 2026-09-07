@@ -4,17 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#071b13">
-  <meta name="etos-build" content="20260907-boot-v15">
+  <meta name="etos-build" content="20260907-reliability-v16">
   <title>ETOS ID Palu — Awardee Intelligence</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=15">
-  <link rel="preload" as="image" href="/brand-etos.svg?v=15">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=16">
+  <link rel="preload" as="image" href="/brand-etos.svg?v=16">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/app.css?v=15">
-  <link rel="stylesheet" href="/app-layout.css?v=15">
+  <link rel="stylesheet" href="/app.css?v=16">
+  <link rel="stylesheet" href="/app-layout.css?v=16">
   <style>
     :root{--sidebar-live:286px}
     html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden;background:#f5f7f6;font-family:Inter,system-ui,sans-serif}
@@ -48,7 +48,7 @@
 <body class="etos-booting">
   <div id="boot" role="status" aria-live="polite">
     <div id="boot-card">
-      <img src="/brand-etos.svg?v=15" alt="ETOS ID">
+      <img src="/brand-etos.svg?v=16" alt="ETOS ID">
       <div style="display:flex;align-items:center;gap:9px;margin-top:8px;font:800 12px/1 Manrope,Inter,sans-serif;letter-spacing:.20em"><span style="width:20px;height:2px;background:#5cc72a"></span>PALU</div>
       <div style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-top:8px">Awardee Development Intelligence</div>
       <div id="boot-line"></div>
@@ -61,7 +61,7 @@
   <script>
   (function(){
     'use strict';
-    const V='15';
+    const V='16';
     const status=document.getElementById('boot-status');
     const boot=document.getElementById('boot');
     const errorBox=document.getElementById('boot-error');
@@ -130,7 +130,7 @@
     }
 
     function fail(e){
-      console.error('[ETOS v15 boot]',e);
+      console.error('[ETOS v16 boot]',e);
       setStatus('Dashboard belum dapat dibuka.');
       if(errorBox){errorBox.style.display='block';errorBox.textContent=e?.message||String(e)}
       if(retry)retry.style.display='block';
