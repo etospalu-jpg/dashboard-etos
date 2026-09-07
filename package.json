@@ -2,6 +2,9 @@
   "name": "etos-id-palu-dashboard",
   "private": true,
   "version": "1.0.0",
+  "scripts": {
+    "postinstall": "node scripts/migrate-on-build.js"
+  },
   "dependencies": {
     "@supabase/supabase-js": "2.115.0"
   }
