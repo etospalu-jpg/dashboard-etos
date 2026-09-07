@@ -1,1 +1,1 @@
-module.exports=require('../pin-login-sdk');
+module.exports=require('../pin-login-cookie');
