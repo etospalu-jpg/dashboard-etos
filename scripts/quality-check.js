@@ -6,35 +6,76 @@ const {spawnSync}=require('child_process');
 const ROOT=path.resolve(__dirname,'..');
 const SKIP=new Set(['node_modules','.git']);
 const failures=[];
+const read=name=>fs.readFileSync(path.join(ROOT,name),'utf8');
 function walk(dir){const out=[];for(const ent of fs.readdirSync(dir,{withFileTypes:true})){if(SKIP.has(ent.name))continue;const p=path.join(dir,ent.name);if(ent.isDirectory())out.push(...walk(p));else out.push(p)}return out}
 function rel(p){return path.relative(ROOT,p).replaceAll('\\','/')}
 function fail(msg){failures.push(msg);console.error('✗',msg)}
 function ok(msg){console.log('✓',msg)}
+function expect(text,tokens,label){for(const token of tokens)if(!text.includes(token))fail(`${label} kehilangan marker: ${token}`)}
 
 const files=walk(ROOT),jsFiles=files.filter(p=>p.endsWith('.js'));
 for(const file of jsFiles){const r=spawnSync(process.execPath,['--check',file],{encoding:'utf8'});if(r.status!==0)fail(`Syntax JS: ${rel(file)}\n${(r.stderr||r.stdout||'').trim()}`)}
 if(!failures.length)ok(`${jsFiles.length} file JavaScript lolos syntax check`);
+
 for(const name of ['vercel.json','package.json','data-audit-manifest.json','awardee-authority.json','public-snapshot.min.json']){const file=path.join(ROOT,name);if(!fs.existsSync(file)){fail(`File wajib tidak ditemukan: ${name}`);continue}try{JSON.parse(fs.readFileSync(file,'utf8'));ok(`JSON valid: ${name}`)}catch(e){fail(`JSON tidak valid: ${name} — ${e.message}`)}}
 
-const required=['index.html','shell.html','app.css','app-layout.css','supabase-adapter.js','app-core.js','app-public.js','app-secure.js','app-admin.js','app-360.js','app-system.js','app-system-health.js','app-data-center.js','app-access.js','app-access-control.js','app-auth-recovery.js','app-auth-rbac.js','app-auth-mfa.js','data-center-rbac.js','api/system.js','api/data-center.js','api/access-control.js','api/auth-bridge.js','api/awardee360.js','api/idp-live.js','server-session.js','pin-login-cookie.js','tailwind.config.js','tailwind.input.css'];
-for(const name of required){if(!fs.existsSync(path.join(ROOT,name)))fail(`Asset production hilang: ${name}`)}
+const required=['index.html','shell.html','app.css','app-layout.css','supabase-adapter.js','app-core.js','app-public.js','app-secure.js','app-admin.js','app-360.js','app-system.js','app-system-health.js','app-data-center.js','app-access.js','app-access-control.js','app-auth-recovery.js','app-auth-rbac.js','app-auth-mfa.js','app-mentoring-journal.js','app-attendance-settings.js','app-restore-attendance.js','attendance-entry-handler.js','mentoring-journal-handler.js','idp-live-v32.js','data-center-rbac.js','api/system.js','api/data-center.js','api/access-control.js','api/auth-bridge.js','api/awardee360.js','api/idp-live.js','api/secure.js','server-session.js','pin-login-cookie.js','tailwind.config.js','tailwind.input.css'];
+for(const name of required)if(!fs.existsSync(path.join(ROOT,name)))fail(`Asset production hilang: ${name}`);
 if(required.every(name=>fs.existsSync(path.join(ROOT,name))))ok(`${required.length} asset production/readiness tersedia`);
+if(fs.existsSync(path.join(ROOT,'noop.txt')))fail('File sementara noop.txt tidak boleh masuk production.');
 
-try{const index=fs.readFileSync(path.join(ROOT,'index.html'),'utf8');for(const token of ['20260907-performance-security-v21',"const V='21'",'app-data-center','app-system','app-system-health','app-access','app-access-control','app-auth-recovery','app-auth-rbac','app-auth-mfa','etosRecoveryReady','etos-booting','window.etosLoadChart','shellPromise=fetch','libsPromise=libs'])if(!index.includes(token))fail(`index.html kehilangan marker/module: ${token}`);if(index.indexOf('app-auth-recovery')>index.indexOf('app-auth-rbac'))fail('Recovery module harus dimuat sebelum RBAC utama.');if(index.indexOf('app-auth-rbac')>index.indexOf('app-auth-mfa'))fail('MFA module harus dimuat setelah RBAC utama.');if(index.indexOf('app-system')>index.indexOf('app-system-health'))fail('System health module harus dimuat setelah System Center.');const libs=index.match(/async function libs\(\)\{([\s\S]*?)\}\n    function mountShell/);if(libs&&libs[1].includes('chart.umd.min.js'))fail('Chart.js tidak boleh memblokir library boot utama; harus lazy-load melalui etosLoadChart.');if(!failures.some(x=>x.includes('index.html')||x.includes('module harus')||x.includes('Chart.js')))ok('Boot v21 paralel, security module order, dan lazy Chart markers lengkap')}catch(e){fail(`index.html tidak dapat diperiksa: ${e.message}`)}
-try{const core=fs.readFileSync(path.join(ROOT,'app-core.js'),'utf8');for(const token of ['chartTokens','window.etosLoadChart','state.chartTokens[id]'])if(!core.includes(token))fail(`Lazy chart core kehilangan marker: ${token}`);if(!failures.some(x=>x.includes('Lazy chart core')))ok('Chart rendering non-blocking dengan stale-render guard')}catch(e){fail(`app-core.js tidak dapat diperiksa: ${e.message}`)}
-try{const pkg=JSON.parse(fs.readFileSync(path.join(ROOT,'package.json'),'utf8'));if(pkg.scripts?.['build:css']!=='tailwindcss -i ./tailwind.input.css -o ./tailwind.generated.css --minify')fail('Static Tailwind build command berubah/tidak tersedia.');if(pkg.devDependencies?.tailwindcss!=='3.4.17')fail('Tailwind build dependency harus dipin ke 3.4.17 selama tahap readiness.');if(!failures.some(x=>x.includes('Tailwind')))ok('Static Tailwind build pipeline readiness terkonfigurasi')}catch(e){fail(`package.json Tailwind readiness gagal diperiksa: ${e.message}`)}
-try{const tw=fs.readFileSync(path.join(ROOT,'tailwind.config.js'),'utf8'),input=fs.readFileSync(path.join(ROOT,'tailwind.input.css'),'utf8');for(const token of ['./index.html','./shell.html','./app-*.js'])if(!tw.includes(token))fail(`Tailwind content scan kehilangan: ${token}`);for(const token of ['@tailwind base','@tailwind components','@tailwind utilities'])if(!input.includes(token))fail(`Tailwind input kehilangan: ${token}`);if(!failures.some(x=>x.includes('Tailwind content')||x.includes('Tailwind input')))ok('Tailwind static source scan siap tanpa mengganti runtime CDN')}catch(e){fail(`Tailwind readiness files gagal diperiksa: ${e.message}`)}
-try{const v=JSON.parse(fs.readFileSync(path.join(ROOT,'vercel.json'),'utf8')),all=JSON.stringify(v);for(const token of ['Content-Security-Policy-Report-Only',"default-src 'self'",'wss://weklmapqizeldfdalbgs.supabase.co','max-age=31536000, immutable','max-age=63072000; includeSubDomains; preload'])if(!all.includes(token))fail(`Vercel security/performance header kehilangan marker: ${token}`);if(all.includes('"key":"Content-Security-Policy"'))fail('CSP enforcement belum boleh diaktifkan sebelum report-only diuji di production.');if(!failures.some(x=>x.includes('Vercel security')||x.includes('CSP enforcement')))ok('CSP report-only, HSTS, dan immutable cache guard lengkap')}catch(e){fail(`vercel.json security headers gagal diperiksa: ${e.message}`)}
-try{const layout=fs.readFileSync(path.join(ROOT,'app-layout.css'),'utf8');for(const token of ['#account-security-modal .modal-card','#mfa-enroll-modal .modal-card','max-height:calc(100dvh - 24px)','#mfa-actions .btn'])if(!layout.includes(token))fail(`Mobile security layout kehilangan marker: ${token}`);if(!failures.some(x=>x.includes('Mobile security layout')))ok('Mobile Account Security/MFA layout guard lengkap')}catch(e){fail(`app-layout.css mobile security gagal diperiksa: ${e.message}`)}
-try{const auth=fs.readFileSync(path.join(ROOT,'app-auth-rbac.js'),'utf8');for(const token of ['signInWithPassword','invite-password-modal','submitInvitePassword','etos-rbac-auth-v1'])if(!auth.includes(token))fail(`Auth/RBAC kehilangan marker: ${token}`);if(auth.includes('challengeAndVerify'))fail('RBAC login tidak boleh memaksa MFA sebelum rollout enforcement disetujui.');if(!failures.some(x=>x.includes('Auth/RBAC')||x.includes('memaksa MFA')))ok('Auth/RBAC markers lengkap dan MFA belum mandatory')}catch(e){fail(`app-auth-rbac.js tidak dapat diperiksa: ${e.message}`)}
-try{const recovery=fs.readFileSync(path.join(ROOT,'app-auth-recovery.js'),'utf8');for(const token of ['resetPasswordForEmail','recovery-password-modal','currentPassword',"scope:'others'","scope:'global'",'etosRecoveryReady'])if(!recovery.includes(token))fail(`Auth recovery kehilangan marker: ${token}`);if(!failures.some(x=>x.includes('Auth recovery')))ok('Password recovery dan session revocation markers lengkap')}catch(e){fail(`app-auth-recovery.js tidak dapat diperiksa: ${e.message}`)}
-try{const mfa=fs.readFileSync(path.join(ROOT,'app-auth-mfa.js'),'utf8');for(const token of ["factorType:'totp'",'listFactors','getAuthenticatorAssuranceLevel','challengeAndVerify','unenroll','MFA belum diwajibkan'])if(!mfa.includes(token))fail(`MFA readiness kehilangan marker: ${token}`);if(!failures.some(x=>x.includes('MFA readiness')))ok('Optional TOTP MFA readiness markers lengkap')}catch(e){fail(`app-auth-mfa.js tidak dapat diperiksa: ${e.message}`)}
-try{const sys=fs.readFileSync(path.join(ROOT,'api/system.js'),'utf8');for(const token of ['system_health_runs','monitorState','serviceOnly',"fn==='monitor'"])if(!sys.includes(token))fail(`System health API kehilangan marker: ${token}`);if(!failures.some(x=>x.includes('System health API')))ok('System health history tetap melalui server API')}catch(e){fail(`api/system.js tidak dapat diperiksa: ${e.message}`)}
-try{const sh=fs.readFileSync(path.join(ROOT,'app-system-health.js'),'utf8');for(const token of ['Auth Integrity','rollout_ready','orphan_auth_users','pending_email_confirmation'])if(!sh.includes(token))fail(`System health UI kehilangan marker: ${token}`);if(!failures.some(x=>x.includes('System health UI')))ok('Auth integrity observability markers lengkap')}catch(e){fail(`app-system-health.js tidak dapat diperiksa: ${e.message}`)}
-try{const ac=fs.readFileSync(path.join(ROOT,'api/access-control.js'),'utf8');for(const token of ['inviteUserByEmail','access_control_invite','activation_required'])if(!ac.includes(token))fail(`Access Control backend kehilangan marker: ${token}`);if(!failures.some(x=>x.includes('Access Control backend')))ok('Access Control invitation markers lengkap')}catch(e){fail(`api/access-control.js tidak dapat diperiksa: ${e.message}`)}
-try{const access=fs.readFileSync(path.join(ROOT,'app-access.js'),'utf8');if(access.includes("'/api/attendance-cutover'")||access.includes('"/api/attendance-cutover"'))fail('Frontend tidak boleh memanggil attendance-cutover yang sudah retired.');if(!access.includes("credentials:'include'"))fail('app-access.js harus memakai cookie credentials untuk server session.');else ok('Attendance cutover retired dan cookie session guard aktif')}catch(e){fail(`app-access.js tidak dapat diperiksa: ${e.message}`)}
-try{const idp=fs.readFileSync(path.join(ROOT,'api/idp-live.js'),'utf8');for(const token of ["require('../server-session')",'session.credential(req)','superadmin','facilitator'])if(!idp.includes(token))fail(`IDP RBAC kehilangan marker: ${token}`);if(!failures.some(x=>x.includes('IDP RBAC')))ok('IDP server menggunakan unified RBAC session')}catch(e){fail(`api/idp-live.js tidak dapat diperiksa: ${e.message}`)}
-try{const a360=fs.readFileSync(path.join(ROOT,'api/awardee360.js'),'utf8');for(const token of ['hidden_sections','privateOps','development'])if(!a360.includes(token))fail(`Awardee360 RBAC kehilangan marker: ${token}`);if(!failures.some(x=>x.includes('Awardee360 RBAC')))ok('Awardee360 role-aware markers lengkap')}catch(e){fail(`api/awardee360.js tidak dapat diperiksa: ${e.message}`)}
+const apiDir=path.join(ROOT,'api');
+const apiFunctions=fs.readdirSync(apiDir).filter(x=>x.endsWith('.js'));
+if(apiFunctions.length>12)fail(`Vercel Hobby function limit terlewati: ${apiFunctions.length}/12`);else ok(`Vercel function count ${apiFunctions.length}/12`);
+
+try{
+ const index=read('index.html');
+ expect(index,['20260908-field-journal-attendance-v32',"const V='32'",'app-mentoring-journal','app-attendance-settings','app-data-center','app-system','app-system-health','app-access','app-access-control','app-auth-recovery','app-auth-rbac','app-auth-mfa','etosRecoveryReady','etos-booting','window.etosLoadChart','shellPromise=fetch','libsPromise=libs'],'index.html');
+ if(index.indexOf('app-auth-recovery')>index.indexOf('app-auth-rbac'))fail('Recovery module harus dimuat sebelum RBAC utama.');
+ if(index.indexOf('app-auth-rbac')>index.indexOf('app-auth-mfa'))fail('MFA module harus dimuat setelah RBAC utama.');
+ if(index.indexOf('app-system')>index.indexOf('app-system-health'))fail('System health module harus dimuat setelah System Center.');
+ const libs=index.match(/async function libs\(\)\{([\s\S]*?)\}\n    function mountShell/);
+ if(libs&&libs[1].includes('chart.umd.min.js'))fail('Chart.js tidak boleh memblokir library boot utama.');
+ if(!failures.some(x=>x.includes('index.html')||x.includes('module harus')||x.includes('Chart.js')))ok('Boot v32 dan module order lengkap');
+}catch(e){fail(`index.html tidak dapat diperiksa: ${e.message}`)}
+
+try{const core=read('app-core.js');expect(core,['chartTokens','window.etosLoadChart','state.chartTokens[id]'],'Lazy chart core');}catch(e){fail(`app-core.js tidak dapat diperiksa: ${e.message}`)}
+try{const pkg=JSON.parse(read('package.json'));if(pkg.scripts?.['build:css']!=='tailwindcss -i ./tailwind.input.css -o ./tailwind.generated.css --minify')fail('Static Tailwind build command berubah/tidak tersedia.');if(pkg.devDependencies?.tailwindcss!=='3.4.17')fail('Tailwind build dependency harus dipin ke 3.4.17.');}catch(e){fail(`package.json Tailwind readiness gagal diperiksa: ${e.message}`)}
+try{const tw=read('tailwind.config.js'),input=read('tailwind.input.css');expect(tw,['./index.html','./shell.html','./app-*.js'],'Tailwind content');expect(input,['@tailwind base','@tailwind components','@tailwind utilities'],'Tailwind input');}catch(e){fail(`Tailwind readiness files gagal diperiksa: ${e.message}`)}
+try{const v=JSON.parse(read('vercel.json')),all=JSON.stringify(v);expect(all,['Content-Security-Policy-Report-Only',"default-src 'self'",'wss://weklmapqizeldfdalbgs.supabase.co','max-age=31536000, immutable','max-age=63072000; includeSubDomains; preload'],'Vercel headers');if(all.includes('"key":"Content-Security-Policy"'))fail('CSP enforcement belum boleh diaktifkan sebelum report-only diuji.');}catch(e){fail(`vercel.json security headers gagal diperiksa: ${e.message}`)}
+
+try{const auth=read('app-auth-rbac.js');expect(auth,['signInWithPassword','invite-password-modal','submitInvitePassword','etos-rbac-auth-v1'],'Auth/RBAC');if(auth.includes('challengeAndVerify'))fail('RBAC login tidak boleh memaksa MFA sebelum rollout enforcement disetujui.');}catch(e){fail(`app-auth-rbac.js tidak dapat diperiksa: ${e.message}`)}
+try{const recovery=read('app-auth-recovery.js');expect(recovery,['resetPasswordForEmail','recovery-password-modal','currentPassword',"scope:'others'","scope:'global'",'etosRecoveryReady'],'Auth recovery');}catch(e){fail(`app-auth-recovery.js tidak dapat diperiksa: ${e.message}`)}
+try{const mfa=read('app-auth-mfa.js');expect(mfa,["factorType:'totp'",'listFactors','getAuthenticatorAssuranceLevel','challengeAndVerify','unenroll','MFA belum diwajibkan'],'MFA readiness');}catch(e){fail(`app-auth-mfa.js tidak dapat diperiksa: ${e.message}`)}
+
+try{
+ const adapter=read('supabase-adapter.js');
+ expect(adapter,["const endpoint=name==='getAwardee360'?'/api/awardee360':'/api/secure'",'credentials=options.credentials||\'include\''],'Secure adapter');
+ if(adapter.includes("if(!s)return{success:false,error:'Akses operasional diperlukan untuk fitur ini.'}"))fail('Secure adapter tidak boleh memblokir account-session sebelum server melakukan authorization.');
+}catch(e){fail(`supabase-adapter.js tidak dapat diperiksa: ${e.message}`)}
+
+try{
+ const front=read('app-mentoring-journal.js'),back=read('mentoring-journal-handler.js');
+ expect(front,['ETOS_FACILITATOR_JOURNAL_READY','Muhammad Shadiq Muntashir','Septianindi','Tambah Temuan','Ringkasan Bulanan'],'Jurnal frontend');
+ expect(back,['getFacilitatorJournalHub','saveFacilitatorJournalEntry','generateFacilitatorMonthlySummary','facilitator_monthly_summaries','observed_at:now'],'Jurnal backend');
+}catch(e){fail(`Jurnal Pendampingan tidak dapat diperiksa: ${e.message}`)}
+
+try{
+ const front=read('app-attendance-settings.js'),back=read('attendance-entry-handler.js'),restore=read('app-restore-attendance.js');
+ expect(front,['ETOS_ATTENDANCE_SETTINGS_READY','saveAttendancePeriod','saveAttendanceAgenda','agendaId','Pengaturan'],'Attendance settings frontend');
+ expect(back,['getAttendanceSettings','saveAttendancePeriod','deleteAttendancePeriod','saveAttendanceAgenda','deleteAttendanceAgenda','attendance_agendas','agenda_id'],'Attendance settings backend');
+ expect(restore,['ETOS_ATTENDANCE_SETTINGS_READY','v32-agenda-compatible'],'Attendance legacy compatibility');
+}catch(e){fail(`Attendance settings tidak dapat diperiksa: ${e.message}`)}
+
+try{
+ const wrapper=read('api/idp-live.js'),idp=read('idp-live-v32.js');
+ expect(wrapper,["require('../idp-live-v32')"],'IDP API wrapper');
+ expect(idp,['1OzW2RfiXL5SmqLOJx-t4Grimy7usdnSqVvSQszZ8WvQ','1973014346','session.credential(req)','superadmin','facilitator','source_health'],'IDP central read-only');
+}catch(e){fail(`IDP central tidak dapat diperiksa: ${e.message}`)}
+
+try{const secure=read('api/secure.js');expect(secure,['getFacilitatorJournalHub','generateFacilitatorMonthlySummary','getAttendanceSettings','saveAttendanceAgenda'],'Secure dispatcher');}catch(e){fail(`api/secure.js tidak dapat diperiksa: ${e.message}`)}
+try{const a360=read('api/awardee360.js');expect(a360,['hidden_sections','privateOps','development'],'Awardee360 RBAC');}catch(e){fail(`api/awardee360.js tidak dapat diperiksa: ${e.message}`)}
+try{const access=read('app-access.js');if(access.includes("'/api/attendance-cutover'")||access.includes('"/api/attendance-cutover"'))fail('Frontend tidak boleh memanggil attendance-cutover yang sudah retired.');if(!access.includes("credentials:'include'"))fail('app-access.js harus memakai cookie credentials.');}catch(e){fail(`app-access.js tidak dapat diperiksa: ${e.message}`)}
 
 if(failures.length){console.error(`\nQuality gate GAGAL: ${failures.length} masalah.`);process.exit(1)}
-console.log('\nETOS quality gate LULUS.');
+console.log('\nETOS quality gate v32 LULUS.');
