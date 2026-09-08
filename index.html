@@ -4,18 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#071b13">
-  <meta name="etos-build" content="20260908-supabase-authority-v30">
+  <meta name="etos-build" content="20260908-secure-edge-proxy-v31">
   <title>ETOS ID Palu — Awardee Intelligence</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=30">
-  <link rel="preload" as="image" href="/brand-etos.svg?v=30">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=31">
+  <link rel="preload" as="image" href="/brand-etos.svg?v=31">
   <link rel="preconnect" href="https://weklmapqizeldfdalbgs.supabase.co" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/app.css?v=30">
-  <link rel="stylesheet" href="/app-layout.css?v=30">
+  <link rel="stylesheet" href="/app.css?v=31">
+  <link rel="stylesheet" href="/app-layout.css?v=31">
   <style>
     :root{--sidebar-live:286px}
     html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden;background:#f5f7f6;font-family:Inter,system-ui,sans-serif}
@@ -49,7 +49,7 @@
 <body class="etos-booting">
   <div id="boot" role="status" aria-live="polite">
     <div id="boot-card">
-      <img src="/brand-etos.svg?v=30" alt="ETOS ID">
+      <img src="/brand-etos.svg?v=31" alt="ETOS ID">
       <div style="display:flex;align-items:center;gap:9px;margin-top:8px;font:800 12px/1 Manrope,Inter,sans-serif;letter-spacing:.20em"><span style="width:20px;height:2px;background:#5cc72a"></span>PALU</div>
       <div style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-top:8px">Awardee Development Intelligence</div>
       <div id="boot-line"></div>
@@ -62,12 +62,12 @@
   <script>
   (function(){
     'use strict';
-    const V='30';
+    const V='31';
     const FETCH_TIMEOUT=8000;
     const BOOT_TIMEOUT=18000;
     const CRITICAL=['supabase-adapter','data-authority-2023','app-supabase-authority','app-core','app-public','app-secure','app-media-sync','app-assessment','app-click-guard'];
     const ENHANCEMENTS=['app-admin','app-360','app-system','app-system-health','app-polish','app-audit-ui','app-data-center','app-access-control','app-migration-action','app-access','app-auth-recovery','app-auth-rbac','app-auth-mfa','app-interaction-fix','app-restore-core','app-restore-idp','app-restore-command','app-restore-attendance'];
-    window.ETOS_BOOT_RESILIENCE='v30-supabase-authority';
+    window.ETOS_BOOT_RESILIENCE='v31-secure-edge-proxy';
 
     const status=document.getElementById('boot-status');
     const boot=document.getElementById('boot');
@@ -158,7 +158,7 @@
     }
 
     function fail(e){
-      console.error('[ETOS v30 boot]',e);
+      console.error('[ETOS v31 boot]',e);
       setStatus('Dashboard belum dapat dibuka.');
       if(errorBox){errorBox.style.display='block';errorBox.textContent=(e?.name==='AbortError'?'Koneksi terlalu lama. Muat ulang untuk mencoba lagi.':e?.message||String(e))}
       if(retry)retry.style.display='block';
