@@ -19,7 +19,7 @@ if(!failures.length)ok(`${jsFiles.length} file JavaScript lolos syntax check`);
 
 for(const name of ['vercel.json','package.json','data-audit-manifest.json','awardee-authority.json','public-snapshot.min.json']){const file=path.join(ROOT,name);if(!fs.existsSync(file)){fail(`File wajib tidak ditemukan: ${name}`);continue}try{JSON.parse(fs.readFileSync(file,'utf8'));ok(`JSON valid: ${name}`)}catch(e){fail(`JSON tidak valid: ${name} — ${e.message}`)}}
 
-const required=['index.html','shell.html','app.css','app-layout.css','supabase-adapter.js','app-core.js','app-public.js','app-secure.js','app-admin.js','app-360.js','app-system.js','app-system-health.js','app-data-center.js','app-access.js','app-access-control.js','app-auth-recovery.js','app-auth-rbac.js','app-auth-mfa.js','app-mentoring-journal.js','app-attendance-settings.js','app-restore-attendance.js','attendance-entry-handler.js','mentoring-journal-handler.js','idp-live-v32.js','data-center-rbac.js','api/system.js','api/data-center.js','api/access-control.js','api/auth-bridge.js','api/awardee360.js','api/idp-live.js','api/secure.js','server-session.js','pin-login-cookie.js','tailwind.config.js','tailwind.input.css'];
+const required=['index.html','shell.html','app.css','app-layout.css','supabase-adapter.js','app-core.js','app-public.js','app-secure.js','app-admin.js','app-360.js','app-system.js','app-system-health.js','app-data-center.js','app-access.js','app-access-control.js','app-auth-recovery.js','app-auth-rbac.js','app-auth-mfa.js','app-mentoring-journal.js','app-mentoring-cases.js','app-attendance-settings.js','app-restore-attendance.js','attendance-entry-handler.js','mentoring-journal-handler.js','idp-live-v32.js','data-center-rbac.js','api/system.js','api/data-center.js','api/access-control.js','api/auth-bridge.js','api/awardee360.js','api/idp-live.js','api/secure.js','server-session.js','pin-login-cookie.js','tailwind.config.js','tailwind.input.css'];
 for(const name of required)if(!fs.existsSync(path.join(ROOT,name)))fail(`Asset production hilang: ${name}`);
 if(required.every(name=>fs.existsSync(path.join(ROOT,name))))ok(`${required.length} asset production/readiness tersedia`);
 if(fs.existsSync(path.join(ROOT,'noop.txt')))fail('File sementara noop.txt tidak boleh masuk production.');
@@ -30,13 +30,14 @@ if(apiFunctions.length>12)fail(`Vercel Hobby function limit terlewati: ${apiFunc
 
 try{
  const index=read('index.html');
- expect(index,['20260908-field-journal-attendance-v32',"const V='32'",'app-mentoring-journal','app-attendance-settings','app-data-center','app-system','app-system-health','app-access','app-access-control','app-auth-recovery','app-auth-rbac','app-auth-mfa','etosRecoveryReady','etos-booting','window.etosLoadChart','shellPromise=fetch','libsPromise=libs'],'index.html');
+ expect(index,['20260908-field-journal-attendance-v32',"const V='32'",'app-mentoring-journal','app-mentoring-cases','app-attendance-settings','app-data-center','app-system','app-system-health','app-access','app-access-control','app-auth-recovery','app-auth-rbac','app-auth-mfa','etosRecoveryReady','etos-booting','window.etosLoadChart','shellPromise=fetch','libsPromise=libs'],'index.html');
  if(index.indexOf('app-auth-recovery')>index.indexOf('app-auth-rbac'))fail('Recovery module harus dimuat sebelum RBAC utama.');
  if(index.indexOf('app-auth-rbac')>index.indexOf('app-auth-mfa'))fail('MFA module harus dimuat setelah RBAC utama.');
  if(index.indexOf('app-system')>index.indexOf('app-system-health'))fail('System health module harus dimuat setelah System Center.');
+ if(index.indexOf('app-mentoring-journal')>index.indexOf('app-mentoring-cases'))fail('Case Pendampingan harus dipasang setelah Jurnal Pendampingan agar fitur lama tetap tersedia.');
  const libs=index.match(/async function libs\(\)\{([\s\S]*?)\}\n    function mountShell/);
  if(libs&&libs[1].includes('chart.umd.min.js'))fail('Chart.js tidak boleh memblokir library boot utama.');
- if(!failures.some(x=>x.includes('index.html')||x.includes('module harus')||x.includes('Chart.js')))ok('Boot v32 dan module order lengkap');
+ if(!failures.some(x=>x.includes('index.html')||x.includes('module harus')||x.includes('Case Pendampingan harus')||x.includes('Chart.js')))ok('Boot v32 dan module order lengkap');
 }catch(e){fail(`index.html tidak dapat diperiksa: ${e.message}`)}
 
 try{const core=read('app-core.js');expect(core,['chartTokens','window.etosLoadChart','state.chartTokens[id]'],'Lazy chart core');}catch(e){fail(`app-core.js tidak dapat diperiksa: ${e.message}`)}
@@ -55,10 +56,11 @@ try{
 }catch(e){fail(`supabase-adapter.js tidak dapat diperiksa: ${e.message}`)}
 
 try{
- const front=read('app-mentoring-journal.js'),back=read('mentoring-journal-handler.js');
+ const front=read('app-mentoring-journal.js'),cases=read('app-mentoring-cases.js'),back=read('mentoring-journal-handler.js');
  expect(front,['ETOS_FACILITATOR_JOURNAL_READY','Muhammad Shadiq Muntashir','Septianindi','Tambah Temuan','Ringkasan Bulanan'],'Jurnal frontend');
- expect(back,['getFacilitatorJournalHub','saveFacilitatorJournalEntry','generateFacilitatorMonthlySummary','facilitator_monthly_summaries','observed_at:now'],'Jurnal backend');
-}catch(e){fail(`Jurnal Pendampingan tidak dapat diperiksa: ${e.message}`)}
+ expect(cases,['ETOS_MENTORING_CASES_READY','Case Pendampingan','Riwayat Case','getMentoringCases','getMentoringJournal','saveMentoringJournal'],'Case Pendampingan preserved');
+ expect(back,['getFacilitatorJournalHub','saveFacilitatorJournalEntry','generateFacilitatorMonthlySummary','facilitator_monthly_summaries','observed_at:now','getMentoringJournal','saveMentoringJournal'],'Jurnal backend');
+}catch(e){fail(`Pendampingan/Jurnal tidak dapat diperiksa: ${e.message}`)}
 
 try{
  const front=read('app-attendance-settings.js'),back=read('attendance-entry-handler.js'),restore=read('app-restore-attendance.js');
