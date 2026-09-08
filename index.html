@@ -4,19 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#071b13">
-  <meta name="etos-build" content="20260908-assessment-access-v24">
-  <!-- quality-baseline: 20260908-assessment-access-v24 -->
+  <meta name="etos-build" content="20260908-assessment-edge-v25">
+  <!-- quality-baseline: 20260908-assessment-edge-v25 -->
   <title>ETOS ID Palu — Awardee Intelligence</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=24">
-  <link rel="preload" as="image" href="/brand-etos.svg?v=24">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=25">
+  <link rel="preload" as="image" href="/brand-etos.svg?v=25">
   <link rel="preconnect" href="https://weklmapqizeldfdalbgs.supabase.co" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/app.css?v=24">
-  <link rel="stylesheet" href="/app-layout.css?v=24">
+  <link rel="stylesheet" href="/app.css?v=25">
+  <link rel="stylesheet" href="/app-layout.css?v=25">
   <style>
     :root{--sidebar-live:286px}
     html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden;background:#f5f7f6;font-family:Inter,system-ui,sans-serif}
@@ -50,7 +50,7 @@
 <body class="etos-booting">
   <div id="boot" role="status" aria-live="polite">
     <div id="boot-card">
-      <img src="/brand-etos.svg?v=24" alt="ETOS ID">
+      <img src="/brand-etos.svg?v=25" alt="ETOS ID">
       <div style="display:flex;align-items:center;gap:9px;margin-top:8px;font:800 12px/1 Manrope,Inter,sans-serif;letter-spacing:.20em"><span style="width:20px;height:2px;background:#5cc72a"></span>PALU</div>
       <div style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-top:8px">Awardee Development Intelligence</div>
       <div id="boot-line"></div>
@@ -63,12 +63,12 @@
   <script>
   (function(){
     'use strict';
-    const V='24';
+    const V='25';
     const FETCH_TIMEOUT=8000;
     const BOOT_TIMEOUT=18000;
-    const CRITICAL=['supabase-adapter','data-authority-2023','app-core','app-public','app-secure','app-assessment'];
-    const ENHANCEMENTS=['app-admin','app-360','app-system','app-system-health','app-polish','app-audit-ui','app-media-sync','app-data-center','app-access-control','app-migration-action','app-access','app-auth-recovery','app-auth-rbac','app-auth-mfa'];
-    window.ETOS_BOOT_RESILIENCE='v24-assessment-access';
+    const CRITICAL=['supabase-adapter','data-authority-2023','app-core','app-public','app-secure','app-media-sync','app-assessment'];
+    const ENHANCEMENTS=['app-admin','app-360','app-system','app-system-health','app-polish','app-audit-ui','app-data-center','app-access-control','app-migration-action','app-access','app-auth-recovery','app-auth-rbac','app-auth-mfa'];
+    window.ETOS_BOOT_RESILIENCE='v25-assessment-edge';
     const status=document.getElementById('boot-status');
     const boot=document.getElementById('boot');
     const errorBox=document.getElementById('boot-error');
@@ -92,7 +92,7 @@
     function brand(){const side=document.getElementById('sidebar');if(side&&side.firstElementChild){side.firstElementChild.className='brand-production';side.firstElementChild.innerHTML='<div style="position:relative"><div class="brand-production-card"><img src="/brand-etos.svg?v='+V+'" alt="ETOS ID"></div><div class="etos-location"><span>PALU</span></div><div class="etos-brand-sub">Awardee Development Intelligence</div><button class="mobile-only absolute right-0 top-0 w-9 h-9 rounded-xl bg-white/5 text-white items-center justify-center" onclick="toggleSidebar(false)"><i data-lucide="x" class="w-4 h-4"></i></button></div>'}if(window.lucide)lucide.createIcons()}
     async function waitVisualReady(){setStatus('Merapikan tampilan…');try{if(document.fonts?.ready)await Promise.race([document.fonts.ready,sleep(1000)])}catch(_){}await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))}
     function reveal(){const app=document.getElementById('main-app');if(app){app.style.visibility='visible';app.style.opacity='1';app.removeAttribute('aria-hidden')}document.body.classList.remove('etos-booting');if(boot){boot.classList.add('boot-exit');setTimeout(()=>boot.remove(),240)}}
-    function fail(e){console.error('[ETOS v24 boot]',e);setStatus('Dashboard belum dapat dibuka.');if(errorBox){errorBox.style.display='block';errorBox.textContent=(e?.name==='AbortError'?'Koneksi terlalu lama. Muat ulang untuk mencoba lagi.':e?.message||String(e))}if(retry)retry.style.display='block'}
+    function fail(e){console.error('[ETOS v25 boot]',e);setStatus('Dashboard belum dapat dibuka.');if(errorBox){errorBox.style.display='block';errorBox.textContent=(e?.name==='AbortError'?'Koneksi terlalu lama. Muat ulang untuk mencoba lagi.':e?.message||String(e))}if(retry)retry.style.display='block'}
     async function reflection(){const m=location.pathname.match(/^\/r\/([^/?#]+)/i);if(!m)return false;await libs();setStatus('Membuka form refleksi…');await load('/supabase-adapter.js?v='+V);await load('/app-reflection.js?v='+V);await waitVisualReady();if(typeof window.bootReflection!=='function')throw new Error('Form refleksi tidak tersedia.');await Promise.race([window.bootReflection(decodeURIComponent(m[1])),sleep(BOOT_TIMEOUT).then(()=>{throw new Error('Form refleksi melewati batas waktu.')})]);return true}
     async function loadEnhancements(){
       for(const f of ENHANCEMENTS){
