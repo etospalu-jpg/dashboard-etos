@@ -1,60 +1,41 @@
 {
-  "generated_at": "2026-09-07T06:55:00+08:00",
-  "policy": {
-    "identity": "Master Awardee sheet unless contradicted by explicit individual IDP evidence",
-    "vision": "Individual IDP only; template placeholders are treated as missing",
-    "portfolio": "Only linked artifacts whose identity/content can be associated with the Awardee are active",
-    "academic": "Only real semester numbers 1-14 are treated as semester records",
-    "attendance": "Production cutover starts 2026-09-07; legacy/test attendance is excluded"
+  "generated_at": "2026-09-11T06:37:00+08:00",
+  "policy_version": "supabase-only-v36",
+  "application": "ETOS ID Palu Dashboard",
+  "database_authority": {
+    "provider": "Supabase PostgreSQL",
+    "project_ref": "weklmapqizeldfdalbgs",
+    "rule": "All application data is read from and written to Supabase PostgreSQL."
   },
-  "portfolio": {
-    "AWD-0009": {
-      "status": "quarantined",
-      "reason": "Legacy Portfolio row points to a generic document titled 'Menjadi Manusia Indonesia — Antara Pengetahuan, Nilai, dan Kepedulian'; no Samsudaris-named portfolio/CV file was found in Drive search.",
-      "legacy_id": "PRT-0NaN"
-    },
-    "AWD-0006": {
-      "status": "verified",
-      "legacy_id": "PRT-0001",
-      "cv_url": "https://drive.google.com/file/d/1sFYQkvpymstDeQIaQlsMTbyWpV95pqwG/view?usp=sharing",
-      "evidence_drive_url": "https://drive.google.com/file/d/1fmYGXA3b58kdQuG1J_81w9MTOzXDbqF1/view?usp=drive_link",
-      "contribution": "Dalam Interview Kerja",
-      "reason": "Legacy columns were reversed: 1sFY... is 'CV WAHYU HIDAYAT.pdf'; 1fm... is 'WAHYU HIDAYAT-PITCHING.pdf'."
-    },
-    "AWD-0001": {
-      "status": "verified",
-      "legacy_id": "PRT-0002",
-      "cv_url": "https://drive.google.com/file/d/1Br4kaKSN3vUDHd6-SYL9FLCdGzc_B3IX/view?usp=sharing",
-      "evidence_drive_url": null,
-      "contribution": "Mecanhical Engineer PT. Korea Energy Indonesia",
-      "reason": "Linked file title is 'Bagas Jaya Andika_Palu.pdf'."
-    },
-    "AWD-0004": {
-      "status": "source_only",
-      "legacy_id": "PRT-0003",
-      "cv_url": null,
-      "evidence_drive_url": null,
-      "contribution": "Guru SDIT Bina Insan Palu",
-      "reason": "Contribution exists in master Portfolio sheet but no supporting file is linked."
+  "external_sources": {
+    "idp": {
+      "mode": "live-read-only",
+      "allowed": true,
+      "rule": "IDP is the only external data source. The dashboard may read it live but must not use it as a fallback database or write to the workbook."
     }
   },
-  "academic": {
-    "quarantined_legacy_ids": ["AKD-001", "AKD-002", "AKD-003", "AKD-004", "AKD-005", "AKD-006", "AKD-007"],
-    "reason": "Semester source value is 46235 (Excel date serial for 2026-08-01), not a valid semester number. Values are retained only as migration evidence, not displayed as semester records."
+  "retired_sources": {
+    "awardee_master_spreadsheet_sync": true,
+    "academic_spreadsheet_sync": true,
+    "attendance_spreadsheet_sync": true,
+    "public_snapshot_fallback": true,
+    "idp_snapshot_cache": true,
+    "migration_on_build": true,
+    "manual_spreadsheet_sync": true
   },
-  "legacy_shells": {
-    "organization_rows": 16,
-    "achievement_rows": 11,
-    "coaching_rows": 16,
-    "rule": "Rows containing only generated legacy IDs / Awardee foreign keys and no business content are not transactions."
+  "assessment": {
+    "dashboard_feature": "retired",
+    "database_table": "scheduled_for_drop_in_v36_migration",
+    "separate_assessment_center_project_affected": false
   },
   "attendance": {
-    "source_rows": 0,
-    "cutover_date": "2026-09-07",
-    "rule": "No legacy/test attendance is displayed or counted after cutover."
+    "period_source": "public.development_periods",
+    "agenda_source": "public.attendance_agendas",
+    "session_source": "public.attendance_sessions",
+    "record_source": "public.attendance_records"
   },
-  "period": {
-    "issue": "Form RFK-0001 references PRD-0002 while Periode_Pembinaan source sheet has no data rows.",
-    "rule": "Any compatibility period row in Supabase must be marked legacy compatibility, not treated as a source period."
+  "facilitator_journal": {
+    "entries_source": "public.facilitator_journal_entries",
+    "monthly_summary_source": "public.facilitator_monthly_summaries"
   }
 }
