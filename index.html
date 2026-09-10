@@ -7,8 +7,8 @@
 <script>(function(){'use strict';
 const V='36',DATA_TIMEOUT=12000,BOOT_TIMEOUT=16000;
 const CRITICAL=['supabase-adapter','app-supabase-authority','app-core','app-public','app-secure','app-click-guard'];
-const PRE_REVEAL=['app-system','app-data-center','app-access','app-auth-rbac','app-interaction-fix','app-mentoring-journal','app-attendance-settings','app-polish'];
-const POST_REVEAL=['app-admin','app-access-control','app-auth-recovery','app-auth-mfa','app-mentoring-cases','app-restore-core','app-restore-idp','app-restore-command','app-restore-attendance'];
+const PRE_REVEAL=['app-system','app-data-center','app-admin','app-access','app-auth-rbac','app-interaction-fix','app-mentoring-journal','app-attendance-settings','app-polish'];
+const POST_REVEAL=['app-access-control','app-auth-recovery','app-auth-mfa','app-mentoring-cases','app-restore-core','app-restore-idp','app-restore-command','app-restore-attendance'];
 window.ETOS_BOOT_RESILIENCE='v36-supabase-only';
 const status=document.getElementById('boot-status'),bootEl=document.getElementById('boot'),errorBox=document.getElementById('boot-error'),retry=document.getElementById('boot-retry'),sleep=ms=>new Promise(r=>setTimeout(r,ms)),nativeFetch=window.fetch.bind(window);const setStatus=t=>{if(status)status.textContent=t};retry.onclick=()=>location.reload();
 window.fetch=function(input,init){init=init||{};if(init.signal)return nativeFetch(input,init);const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),DATA_TIMEOUT);return nativeFetch(input,Object.assign({},init,{signal:controller.signal})).catch(err=>{if(controller.signal.aborted){const e=new Error('Koneksi data melewati batas waktu. Silakan coba lagi.');e.name='ETOSTimeoutError';throw e}throw err}).finally(()=>clearTimeout(timer))};
