@@ -3,6 +3,8 @@
 -- Self-contained authorization helpers avoid dependency on older policy helpers.
 
 create schema if not exists private;
+revoke all on schema private from public;
+grant usage on schema private to authenticated, service_role;
 
 create or replace function private.etos_v36_can_development()
 returns boolean
@@ -40,6 +42,8 @@ revoke all on function private.etos_v36_can_development() from public;
 revoke all on function private.etos_v36_can_admin() from public;
 grant execute on function private.etos_v36_can_development() to authenticated;
 grant execute on function private.etos_v36_can_admin() to authenticated;
+grant execute on function private.etos_v36_can_development() to service_role;
+grant execute on function private.etos_v36_can_admin() to service_role;
 
 create table if not exists public.facilitator_journal_entries (
   id uuid primary key default gen_random_uuid(),
@@ -63,6 +67,10 @@ create index if not exists facilitator_journal_facilitator_observed_idx
 
 alter table public.facilitator_journal_entries enable row level security;
 
+revoke all on table public.facilitator_journal_entries from anon, authenticated;
+grant select, insert, update, delete on table public.facilitator_journal_entries to authenticated;
+grant all privileges on table public.facilitator_journal_entries to service_role;
+
 drop policy if exists facilitator_journal_read on public.facilitator_journal_entries;
 create policy facilitator_journal_read on public.facilitator_journal_entries
 for select to authenticated
@@ -84,9 +92,6 @@ create policy facilitator_journal_delete on public.facilitator_journal_entries
 for delete to authenticated
 using ((select private.etos_v36_can_admin()));
 
-grant select, insert, update, delete on public.facilitator_journal_entries to authenticated;
-grant all privileges on public.facilitator_journal_entries to service_role;
-
 create table if not exists public.facilitator_monthly_summaries (
   id uuid primary key default gen_random_uuid(),
   awardee_id uuid not null references public.awardees(id) on delete cascade,
@@ -104,6 +109,10 @@ create index if not exists facilitator_monthly_summary_awardee_month_idx
   on public.facilitator_monthly_summaries(awardee_id, month_start desc);
 
 alter table public.facilitator_monthly_summaries enable row level security;
+
+revoke all on table public.facilitator_monthly_summaries from anon, authenticated;
+grant select, insert, update, delete on table public.facilitator_monthly_summaries to authenticated;
+grant all privileges on table public.facilitator_monthly_summaries to service_role;
 
 drop policy if exists facilitator_monthly_summary_read on public.facilitator_monthly_summaries;
 create policy facilitator_monthly_summary_read on public.facilitator_monthly_summaries
@@ -125,6 +134,3 @@ drop policy if exists facilitator_monthly_summary_delete on public.facilitator_m
 create policy facilitator_monthly_summary_delete on public.facilitator_monthly_summaries
 for delete to authenticated
 using ((select private.etos_v36_can_admin()));
-
-grant select, insert, update, delete on public.facilitator_monthly_summaries to authenticated;
-grant all privileges on public.facilitator_monthly_summaries to service_role;
