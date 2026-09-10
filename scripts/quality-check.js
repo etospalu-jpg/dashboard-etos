@@ -19,7 +19,7 @@ if(!failures.length)ok(`${jsFiles.length} file JavaScript lolos syntax check`);
 
 for(const name of ['vercel.json','package.json','data-audit-manifest.json','awardee-authority.json','public-snapshot.min.json']){const file=path.join(ROOT,name);if(!fs.existsSync(file)){fail(`File wajib tidak ditemukan: ${name}`);continue}try{JSON.parse(fs.readFileSync(file,'utf8'));ok(`JSON valid: ${name}`)}catch(e){fail(`JSON tidak valid: ${name} — ${e.message}`)}}
 
-const required=['index.html','shell.html','app.css','app-layout.css','supabase-adapter.js','app-core.js','app-public.js','app-secure.js','app-admin.js','app-360.js','app-system.js','app-system-health.js','app-data-center.js','app-access.js','app-access-control.js','app-auth-recovery.js','app-auth-rbac.js','app-auth-mfa.js','app-mentoring-journal.js','app-mentoring-cases.js','app-attendance-settings.js','app-restore-attendance.js','attendance-entry-handler.js','mentoring-journal-handler.js','idp-live-v32.js','data-center-rbac.js','api/system.js','api/data-center.js','api/access-control.js','api/auth-bridge.js','api/awardee360.js','api/idp-live.js','api/secure.js','server-session.js','pin-login-cookie.js','tailwind.config.js','tailwind.input.css'];
+const required=['index.html','shell.html','app.css','app-layout.css','supabase-adapter.js','app-core.js','app-public.js','app-secure.js','app-admin.js','app-360.js','app-system.js','app-system-health.js','app-data-center.js','app-access.js','app-access-control.js','app-auth-recovery.js','app-auth-rbac.js','app-auth-mfa.js','app-interaction-fix.js','app-mentoring-journal.js','app-mentoring-cases.js','app-attendance-settings.js','app-restore-attendance.js','attendance-entry-handler.js','mentoring-journal-handler.js','idp-live-v32.js','data-center-rbac.js','api/system.js','api/data-center.js','api/access-control.js','api/auth-bridge.js','api/awardee360.js','api/idp-live.js','api/secure.js','server-session.js','pin-login-cookie.js','tailwind.config.js','tailwind.input.css'];
 for(const name of required)if(!fs.existsSync(path.join(ROOT,name)))fail(`Asset production hilang: ${name}`);
 if(required.every(name=>fs.existsSync(path.join(ROOT,name))))ok(`${required.length} asset production/readiness tersedia`);
 if(fs.existsSync(path.join(ROOT,'noop.txt')))fail('File sementara noop.txt tidak boleh masuk production.');
@@ -30,7 +30,7 @@ if(apiFunctions.length>12)fail(`Vercel Hobby function limit terlewati: ${apiFunc
 
 try{
  const index=read('index.html');
- expect(index,['20260911-runtime-stability-v33',"const V='33'",'app-mentoring-journal','app-mentoring-cases','app-attendance-settings','app-data-center','app-system','app-system-health','app-access','app-access-control','app-auth-recovery','app-auth-rbac','app-auth-mfa','etosRecoveryReady','etos-booting','window.etosLoadChart','shellPromise=fetch','libsPromise=libs'],'index.html');
+ expect(index,['20260911-sidebar-stability-v34',"const V='34'",'app-mentoring-journal','app-mentoring-cases','app-attendance-settings','app-data-center','app-system','app-system-health','app-access','app-access-control','app-auth-recovery','app-auth-rbac','app-auth-mfa','app-interaction-fix','etosRecoveryReady','etos-booting','window.etosLoadChart','shellPromise=fetch','libsPromise=libs'],'index.html');
  if(index.indexOf('app-auth-recovery')>index.indexOf('app-auth-rbac'))fail('Recovery module harus dimuat sebelum RBAC utama.');
  if(index.indexOf('app-auth-rbac')>index.indexOf('app-auth-mfa'))fail('MFA module harus dimuat setelah RBAC utama.');
  if(index.indexOf('app-system')>index.indexOf('app-system-health'))fail('System health module harus dimuat setelah System Center.');
@@ -41,8 +41,15 @@ try{
  if(index.includes('setTimeout(()=>loadEnhancements'))fail('Enhancement tidak boleh dimuat tertunda setelah dashboard direveal.');
  const libs=index.match(/async function libs\(\)\{([\s\S]*?)\}\n    function mountShell/);
  if(libs&&libs[1].includes('chart.umd.min.js'))fail('Chart.js tidak boleh memblokir library boot utama.');
- if(!failures.some(x=>x.includes('index.html')||x.includes('module harus')||x.includes('Case Pendampingan harus')||x.includes('Enhancement')||x.includes('Chart.js')))ok('Boot v33 stability dan module order lengkap');
+ if(!failures.some(x=>x.includes('index.html')||x.includes('module harus')||x.includes('Case Pendampingan harus')||x.includes('Enhancement')||x.includes('Chart.js')))ok('Boot v34 stability dan module order lengkap');
 }catch(e){fail(`index.html tidak dapat diperiksa: ${e.message}`)}
+
+try{
+ const interaction=read('app-interaction-fix.js');
+ expect(interaction,["ETOS_INTERACTION_FIX='v3-sidebar-stability'","assessment:['facilitator','admin','superadmin']","const display=allowed?'':'none'","if(btn.style.display!==display)btn.style.display=display",'mutationTouchesNavigation','const navRoot=document.getElementById(\'sidebar\')||document.body'],'Sidebar stability');
+ if(interaction.includes("btn.style.display=''"))fail('Interaction layer tidak boleh memaksa semua menu sidebar tampil karena bertabrakan dengan RBAC.');
+ if(!failures.some(x=>x.includes('Sidebar')||x.includes('Interaction layer')))ok('Sidebar RBAC rendering stabil');
+}catch(e){fail(`app-interaction-fix.js tidak dapat diperiksa: ${e.message}`)}
 
 try{const core=read('app-core.js');expect(core,['chartTokens','window.etosLoadChart','state.chartTokens[id]'],'Lazy chart core');}catch(e){fail(`app-core.js tidak dapat diperiksa: ${e.message}`)}
 try{const pkg=JSON.parse(read('package.json'));if(pkg.scripts?.['build:css']!=='tailwindcss -i ./tailwind.input.css -o ./tailwind.generated.css --minify')fail('Static Tailwind build command berubah/tidak tersedia.');if(pkg.devDependencies?.tailwindcss!=='3.4.17')fail('Tailwind build dependency harus dipin ke 3.4.17.');}catch(e){fail(`package.json Tailwind readiness gagal diperiksa: ${e.message}`)}
@@ -84,4 +91,4 @@ try{const a360=read('api/awardee360.js');expect(a360,['hidden_sections','private
 try{const access=read('app-access.js');if(access.includes("'/api/attendance-cutover'")||access.includes('"/api/attendance-cutover"'))fail('Frontend tidak boleh memanggil attendance-cutover yang sudah retired.');if(!access.includes("credentials:'include'"))fail('app-access.js harus memakai cookie credentials.');}catch(e){fail(`app-access.js tidak dapat diperiksa: ${e.message}`)}
 
 if(failures.length){console.error(`\nQuality gate GAGAL: ${failures.length} masalah.`);process.exit(1)}
-console.log('\nETOS quality gate v33 LULUS.');
+console.log('\nETOS quality gate v34 LULUS.');
