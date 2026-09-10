@@ -47,6 +47,9 @@ const forbiddenRuntime=[
 for(const file of runtimeJs){const text=fs.readFileSync(file,'utf8');for(const token of forbiddenRuntime)if(text.includes(token))fail(`Runtime ${rel(file)} masih memuat legacy token: ${token}`)}
 if(!failures.some(x=>x.includes('legacy token')))ok('Runtime bebas endpoint Assessment dan spreadsheet-sync legacy');
 
+for(const file of runtimeJs){const name=rel(file),text=fs.readFileSync(file,'utf8');if(text.includes('window.loadView='))fail(`Router harus terpusat di app-core, tetapi ${name} masih menimpa window.loadView`);if(/setTimeout\s*\(\s*activate\s*,/m.test(text))fail(`Late remount terlarang masih ada di ${name}`)}
+if(!failures.some(x=>x.includes('Router harus terpusat')||x.includes('Late remount')))ok('Router terpusat dan tidak ada late remount module');
+
 for(const file of runtimeJs){if(rel(file)==='idp-live-v32.js')continue;const text=fs.readFileSync(file,'utf8');for(const token of ['GOOGLE_SERVICE_ACCOUNT_JSON','sheets.googleapis.com/v4/spreadsheets','oauth2.googleapis.com/token'])if(text.includes(token))fail(`Google Sheet runtime hanya boleh berada di IDP live: ${rel(file)} -> ${token}`)}
 if(!failures.some(x=>x.includes('Google Sheet runtime')))ok('Integrasi Google runtime terisolasi hanya pada IDP live');
 
@@ -69,17 +72,23 @@ try{
 }catch(e){fail(`Shell gagal diperiksa: ${e.message}`)}
 
 try{
- const core=read('app-core.js'),rbac=read('app-auth-rbac.js'),interaction=read('app-interaction-fix.js'),dc=read('app-data-center.js'),admin=read('app-admin.js');
- expect(core,["datacenter:'Data Center'","secureViews=new Set(['attendance','coaching','mentoring','profile','datacenter','settings','system'])","v==='datacenter'",'normalizeAttendanceAgendaControl'],'Core');
+ const core=read('app-core.js'),rbac=read('app-auth-rbac.js'),interaction=read('app-interaction-fix.js'),dc=read('app-data-center.js'),admin=read('app-admin.js'),settings=read('app-attendance-settings.js'),journal=read('app-mentoring-journal.js'),ac=read('app-access-control.js');
+ expect(core,["datacenter:'Data Center'","secureViews=new Set(['attendance','coaching','mentoring','profile','datacenter','settings','system'])","v==='datacenter'","v==='settings'",'window.loadAccessControl','normalizeAttendanceAgendaControl'],'Core');
  for(const token of ["attendance:['operator','facilitator','admin','superadmin']","coaching:['facilitator','admin','superadmin']","mentoring:['facilitator','admin','superadmin']","profile:['facilitator','admin','superadmin']","datacenter:['operator','facilitator','admin','superadmin']","settings:['operator','facilitator','admin','superadmin']","system:['admin','superadmin']"]){if(!rbac.includes(token)||!interaction.includes(token))fail(`RBAC tidak konsisten untuk ${token}`)}
  expect(rbac,['window.ETOSApplyRoleUI=applyRoleUI','const observer=new MutationObserver'],'RBAC sidebar controller');
  expect(interaction,["ETOS_INTERACTION_FIX='v36-single-nav-controller'",'window.ETOSApplyRoleUI'],'Interaction sidebar delegation');
  reject(interaction,['new MutationObserver','const previousUpdate=window.updateAuthUI'],'Interaction sidebar delegation');
- expect(dc,["secureViews.add('datacenter')","b.dataset.view='datacenter'","view-datacenter","window.loadDataCenter=async","goView('datacenter')"],'Data Center');
- reject(dc,["s.id='view-settings'","titles.settings='Pengaturan'",'sinkronisasi'],'Data Center');
+ expect(dc,['ETOS_DATA_CENTER_V36',"secureViews.add('datacenter')","b.dataset.view='datacenter'","view-datacenter","window.loadDataCenter=async","goView?.('datacenter')"],'Data Center');
+ reject(dc,["s.id='view-settings'","titles.settings='Pengaturan'",'sinkronisasi','window.loadView='],'Data Center');
+ expect(settings,["ETOS_ATTENDANCE_SETTINGS_READY='v36'",'window.loadSettings=window.loadAttendanceSettings','localDate()'],'Attendance Settings v36');
+ reject(settings,['window.loadView=','setTimeout(activate'],'Attendance Settings v36');
+ expect(journal,["ETOS_FACILITATOR_JOURNAL_READY='v36'",'function currentMonth()'],'Journal v36');
+ reject(journal,['setTimeout(activate','window.loadView='],'Journal v36');
+ expect(ac,['ETOS_ACCESS_CONTROL_V36','box.style.display=\'none\'','attendance-settings-root','window.loadAccessControl=async'],'Access Control v36');
+ reject(ac,['dc-workspace','window.loadView=','setTimeout(()=>loadAccessControl'],'Access Control v36');
  expect(admin,['ETOS_ADMIN_LAUNCHER_V36','profile-edit-launcher','loadDataCenterTable?.(\'facilitators\')'],'Admin compatibility');
  reject(admin,['/api/manage','b=document.createElement(\'button\')'],'Admin compatibility');
-}catch(e){fail(`RBAC/Data Center gagal diperiksa: ${e.message}`)}
+}catch(e){fail(`RBAC/Data Center/Settings gagal diperiksa: ${e.message}`)}
 
 try{
  const adapter=read('supabase-adapter.js'),authority=read('app-supabase-authority.js'),access=read('app-access.js');
