@@ -2,7 +2,8 @@
 'use strict';
 const PROJECT_URL='https://weklmapqizeldfdalbgs.supabase.co';
 const PUBLISHABLE_KEY='sb_publishable_cFm2Jvj2jvFyKcxbGniVWw_PL2SL7HC';
-const FUNCTIONS_URL=PROJECT_URL+'/functions/v1';
+const PUBLIC_API=PROJECT_URL+'/functions/v1/public-api';
+const REFLECTION_API=PROJECT_URL+'/functions/v1/public-reflection';
 const sb=window.supabase?.createClient?window.supabase.createClient(PROJECT_URL,PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
 window.etosSupabase=sb;
 let realtimeChannel=null,realtimeTimer=null;
@@ -46,11 +47,11 @@ function patchAwardee(x){if(!x||typeof x!=='object')return x;const A=window.ETOS
 function sanitizePayload(v){if(Array.isArray(v)){v.forEach(sanitizePayload);return v}if(!v||typeof v!=='object')return v;if(v.awardee)patchAwardee(v.awardee);patchAwardee(v);for(const k of ['awards','awardees','items','data'])if(v[k]&&v[k]!==v)sanitizePayload(v[k]);return v}
 function sanitizeResult(r){if(r&&r.data!=null)sanitizePayload(r.data);return r}
 async function publicCall(name,params){
- const live=await fetchJson(FUNCTIONS_URL+'/public-api',{method:'POST',body:JSON.stringify({function:name,params:params==null?null:params})});
+ const live=await fetchJson(PUBLIC_API,{method:'POST',body:JSON.stringify({function:name,params:params==null?null:params})});
  if(live?.success!==false&&live?.data!=null){signalSource('supabase');return sanitizeResult(live)}
  return{success:false,error:live?.error||'Data Supabase tidak dapat dibaca saat ini.',source:'supabase'};
 }
-function reflectionCall(name,params){const action=name==='getPublicKajianReflectionForm'?'form':name==='verifyKajianReflectionParticipant'?'verify':'submit';const payload=Object.assign({},params||{},{action});if(name==='getPublicKajianReflectionForm')payload.formToken=params;return fetchJson(FUNCTIONS_URL+'/public-reflection',{method:'POST',body:JSON.stringify(payload)})}
+function reflectionCall(name,params){const action=name==='getPublicKajianReflectionForm'?'form':name==='verifyKajianReflectionParticipant'?'verify':'submit';const payload=Object.assign({},params||{},{action});if(name==='getPublicKajianReflectionForm')payload.formToken=params;return fetchJson(REFLECTION_API,{method:'POST',body:JSON.stringify(payload)})}
 async function secureCall(name,params){const endpoint=name==='getAwardee360'?'/api/awardee360':'/api/secure';return sanitizeResult(await fetchJson(endpoint,{method:'POST',body:JSON.stringify({function:name,params:params==null?null:params})}))}
 const PUBLIC_FUNCTIONS=new Set(['getDashboardStats','getFeaturedAwardees','getAwardeeList','getAlumniList','getAkademikList','getPrestasiList','getOrganisasiList','getAwardeeProfile','getDropdownOptions']);
 const REFLECTION_FUNCTIONS=new Set(['getPublicKajianReflectionForm','verifyKajianReflectionParticipant','submitKajianReflection']);
