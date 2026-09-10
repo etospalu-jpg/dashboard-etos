@@ -72,6 +72,9 @@ try{
  const core=read('app-core.js'),rbac=read('app-auth-rbac.js'),interaction=read('app-interaction-fix.js'),dc=read('app-data-center.js'),admin=read('app-admin.js');
  expect(core,["datacenter:'Data Center'","secureViews=new Set(['attendance','coaching','mentoring','profile','datacenter','settings','system'])","v==='datacenter'",'normalizeAttendanceAgendaControl'],'Core');
  for(const token of ["attendance:['operator','facilitator','admin','superadmin']","coaching:['facilitator','admin','superadmin']","mentoring:['facilitator','admin','superadmin']","profile:['facilitator','admin','superadmin']","datacenter:['operator','facilitator','admin','superadmin']","settings:['operator','facilitator','admin','superadmin']","system:['admin','superadmin']"]){if(!rbac.includes(token)||!interaction.includes(token))fail(`RBAC tidak konsisten untuk ${token}`)}
+ expect(rbac,['window.ETOSApplyRoleUI=applyRoleUI','const observer=new MutationObserver'],'RBAC sidebar controller');
+ expect(interaction,["ETOS_INTERACTION_FIX='v36-single-nav-controller'",'window.ETOSApplyRoleUI'],'Interaction sidebar delegation');
+ reject(interaction,['new MutationObserver','const previousUpdate=window.updateAuthUI'],'Interaction sidebar delegation');
  expect(dc,["secureViews.add('datacenter')","b.dataset.view='datacenter'","view-datacenter","window.loadDataCenter=async","goView('datacenter')"],'Data Center');
  reject(dc,["s.id='view-settings'","titles.settings='Pengaturan'",'sinkronisasi'],'Data Center');
  expect(admin,['ETOS_ADMIN_LAUNCHER_V36','profile-edit-launcher','loadDataCenterTable?.(\'facilitators\')'],'Admin compatibility');
