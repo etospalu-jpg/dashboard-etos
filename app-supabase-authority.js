@@ -13,6 +13,7 @@
   const REFLECTION=new Set([
     'getPublicKajianReflectionForm','verifyKajianReflectionParticipant','submitKajianReflection'
   ]);
+  let publicQueue=[],publicFlushScheduled=false;
 
   async function request(body){
     try{
@@ -29,12 +30,29 @@
     }
   }
 
-  async function publicCall(name,params){
-    const r=await request({action:'public_data',function:name,params:params==null?null:params});
-    if(r?.success!==false){
-      try{window.dispatchEvent(new CustomEvent('etos:data-source',{detail:{source:'supabase'}}))}catch(_){}
+  function signalSupabase(){try{window.dispatchEvent(new CustomEvent('etos:data-source',{detail:{source:'supabase'}}))}catch(_){}}
+  async function flushPublicQueue(){
+    publicFlushScheduled=false;
+    const batch=publicQueue.splice(0);
+    if(!batch.length)return;
+    if(batch.length===1){
+      const x=batch[0],r=await request({action:'public_data',function:x.name,params:x.params});
+      if(r?.success!==false)signalSupabase();x.resolve(r);return;
     }
-    return r;
+    const r=await request({action:'public_batch',calls:batch.map(x=>({function:x.name,params:x.params}))});
+    if(r?.success===false||!Array.isArray(r?.data)){
+      const error={success:false,error:r?.error||'Batch Supabase tidak dapat dibaca saat ini.'};
+      batch.forEach(x=>x.resolve(error));return;
+    }
+    signalSupabase();
+    batch.forEach((x,i)=>x.resolve(r.data[i]||{success:false,error:'Respons batch Supabase tidak lengkap.'}));
+  }
+
+  function publicCall(name,params){
+    return new Promise(resolve=>{
+      publicQueue.push({name,params:params==null?null:params,resolve});
+      if(!publicFlushScheduled){publicFlushScheduled=true;queueMicrotask(flushPublicQueue)}
+    });
   }
 
   async function reflectionCall(name,params){
