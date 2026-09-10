@@ -47,7 +47,7 @@ const forbiddenRuntime=[
 for(const file of runtimeJs){const text=fs.readFileSync(file,'utf8');for(const token of forbiddenRuntime)if(text.includes(token))fail(`Runtime ${rel(file)} masih memuat legacy token: ${token}`)}
 if(!failures.some(x=>x.includes('legacy token')))ok('Runtime bebas endpoint Assessment dan spreadsheet-sync legacy');
 
-for(const file of runtimeJs){const name=rel(file),text=fs.readFileSync(file,'utf8');if(text.includes('window.loadView='))fail(`Router harus terpusat di app-core, tetapi ${name} masih menimpa window.loadView`);if(/setTimeout\s*\(\s*activate\s*,/m.test(text))fail(`Late remount terlarang masih ada di ${name}`)}
+for(const file of runtimeJs){const name=rel(file),text=fs.readFileSync(file,'utf8');if(/window\.loadView\s*=(?!=)/m.test(text))fail(`Router harus terpusat di app-core, tetapi ${name} masih menimpa window.loadView`);if(/setTimeout\s*\(\s*activate\s*,/m.test(text))fail(`Late remount terlarang masih ada di ${name}`)}
 if(!failures.some(x=>x.includes('Router harus terpusat')||x.includes('Late remount')))ok('Router terpusat dan tidak ada late remount module');
 
 for(const file of runtimeJs){if(rel(file)==='idp-live-v32.js')continue;const text=fs.readFileSync(file,'utf8');for(const token of ['GOOGLE_SERVICE_ACCOUNT_JSON','sheets.googleapis.com/v4/spreadsheets','oauth2.googleapis.com/token'])if(text.includes(token))fail(`Google Sheet runtime hanya boleh berada di IDP live: ${rel(file)} -> ${token}`)}
@@ -72,7 +72,7 @@ try{
 }catch(e){fail(`Shell gagal diperiksa: ${e.message}`)}
 
 try{
- const core=read('app-core.js'),rbac=read('app-auth-rbac.js'),interaction=read('app-interaction-fix.js'),dc=read('app-data-center.js'),admin=read('app-admin.js'),settings=read('app-attendance-settings.js'),journal=read('app-mentoring-journal.js'),ac=read('app-access-control.js');
+ const core=read('app-core.js'),rbac=read('app-auth-rbac.js'),interaction=read('app-interaction-fix.js'),dc=read('app-data-center.js'),admin=read('app-admin.js'),settings=read('app-attendance-settings.js'),journal=read('app-mentoring-journal.js'),cases=read('app-mentoring-cases.js'),ac=read('app-access-control.js');
  expect(core,["datacenter:'Data Center'","secureViews=new Set(['attendance','coaching','mentoring','profile','datacenter','settings','system'])","v==='datacenter'","v==='settings'",'window.loadAccessControl','normalizeAttendanceAgendaControl'],'Core');
  for(const token of ["attendance:['operator','facilitator','admin','superadmin']","coaching:['facilitator','admin','superadmin']","mentoring:['facilitator','admin','superadmin']","profile:['facilitator','admin','superadmin']","datacenter:['operator','facilitator','admin','superadmin']","settings:['operator','facilitator','admin','superadmin']","system:['admin','superadmin']"]){if(!rbac.includes(token)||!interaction.includes(token))fail(`RBAC tidak konsisten untuk ${token}`)}
  expect(rbac,['window.ETOSApplyRoleUI=applyRoleUI','const observer=new MutationObserver'],'RBAC sidebar controller');
@@ -84,6 +84,8 @@ try{
  reject(settings,['window.loadView=','setTimeout(activate'],'Attendance Settings v36');
  expect(journal,["ETOS_FACILITATOR_JOURNAL_READY='v36'",'function currentMonth()'],'Journal v36');
  reject(journal,['setTimeout(activate','window.loadView='],'Journal v36');
+ expect(cases,["ETOS_MENTORING_CASES_READY='v36'",'localDate()'],'Mentoring Cases v36');
+ reject(cases,['setTimeout(activate','window.loadView='],'Mentoring Cases v36');
  expect(ac,['ETOS_ACCESS_CONTROL_V36','box.style.display=\'none\'','attendance-settings-root','window.loadAccessControl=async'],'Access Control v36');
  reject(ac,['dc-workspace','window.loadView=','setTimeout(()=>loadAccessControl'],'Access Control v36');
  expect(admin,['ETOS_ADMIN_LAUNCHER_V36','profile-edit-launcher','loadDataCenterTable?.(\'facilitators\')'],'Admin compatibility');
@@ -118,14 +120,16 @@ try{
 }catch(e){fail(`System/Data Center policy gagal diperiksa: ${e.message}`)}
 
 try{
- const sc=read('secure-cookie.js'),a360=read('api/awardee360.js'),rule=read('rule-analysis-handler.js'),command=read('app-restore-command.js'),idp=read('app-restore-idp.js');
+ const sc=read('secure-cookie.js'),a360=read('api/awardee360.js'),rule=read('rule-analysis-handler.js'),command=read('app-restore-command.js'),idp=read('app-restore-idp.js'),restoreCore=read('app-restore-core.js');
  reject(sc,['getFacilitatorAssessmentHub','getFacilitatorAssessmentReport','/rest/v1/assessments'],'Secure API');
  reject(a360,['/assessments?','assessment_completed','idp_snapshots','awardee-authority','data-audit-manifest'],'Awardee360');
  reject(rule,['/rest/v1/assessments','assessment_code'],'Rule analysis');
  reject(command,['getFacilitatorAssessmentHub','<th>Asesmen</th>'],'Command Center');
  expect(a360,["source_policy:'supabase-only'",'hidden_sections'],'Awardee360');
- expect(command,["ETOS_RESTORE_COMMAND='v36-no-assessment'",'Dashboard Supabase tetap berjalan normal tanpa IDP'],'Command Center');
+ expect(command,["ETOS_RESTORE_COMMAND='v36-no-assessment'",'Menunggu data perkembangan','etos:enhancements-ready'],'Command Center');
  expect(idp,["ETOS_RESTORE_IDP='v36-live-only'",'Satu-satunya sumber eksternal aplikasi'],'IDP live UI');
+ expect(restoreCore,["ETOS_RESTORE_CORE='v36'",'repairQueued','requestAnimationFrame'],'Restore core');
+ reject(restoreCore,['setTimeout(()=>R.repairPhotos(),900)'],'Restore core');
 }catch(e){fail(`Assessment removal/IDP isolation gagal diperiksa: ${e.message}`)}
 
 try{
