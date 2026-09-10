@@ -1,25 +1,42 @@
-# ETOS ID Palu Dashboard — Supabase Migration
+# ETOS ID Palu Dashboard
 
-Production migration of the existing ETOS ID Palu dashboard from Google Apps Script / Google Sheets persistence to Supabase PostgreSQL, Auth, RLS, Storage, Realtime, and Edge Functions.
+ETOS ID Palu Dashboard adalah workspace perkembangan Awardee berbasis **Supabase PostgreSQL** dengan frontend di Vercel.
 
-## Architecture
-- Frontend: existing ETOS Tailwind UI, preserved for visual parity
-- Database: Supabase PostgreSQL
-- Authentication: Supabase Auth
-- Authorization: RBAC + Row Level Security
-- Public data API: Supabase Edge Function `public-api`
-- Public Kajian reflection flow: Supabase Edge Function `public-reflection`
-- First admin bootstrap: Supabase Edge Function `bootstrap-admin`
-- Sensitive/admin API: Supabase Edge Function `secure-api`
-- Deployment target: Vercel
+## Arsitektur v36
 
-## Supabase
-Project URL: `https://weklmapqizeldfdalbgs.supabase.co`
+- **Frontend:** ETOS web dashboard di Vercel
+- **Database utama:** Supabase PostgreSQL (`weklmapqizeldfdalbgs`)
+- **Authentication:** Supabase Auth + session operasional Superadmin
+- **Authorization:** RBAC + Row Level Security
+- **Realtime:** Supabase Realtime untuk perubahan data aplikasi
+- **Public data:** Supabase Edge Function `public-api`
+- **Refleksi Kajian:** Supabase Edge Function `public-reflection`
+- **IDP:** live read-only; satu-satunya sumber data eksternal yang diizinkan
 
-The browser uses a Supabase publishable key only. Never place service-role/secret keys in this repository.
+## Kebijakan sumber data
+
+Seluruh data aplikasi selain IDP harus dibaca dan ditulis ke Supabase PostgreSQL. Tidak ada auto-sync spreadsheet, manual spreadsheet sync, snapshot JSON sebagai fallback database, atau migration-on-build.
+
+IDP pusat hanya dibaca secara live dan tidak boleh digunakan sebagai database fallback. Dashboard tidak menulis ke workbook IDP.
+
+## Modul akses
+
+Dashboard, Direktori Awardee, Tracking Alumni, Akademik, dan Prestasi dapat memiliki akses baca sesuai kebijakan aplikasi. Modul operasional berikut berada di balik autentikasi/RBAC:
+
+- Absensi
+- Coaching & IDP
+- Jurnal Pendampingan
+- Profil Fasilitator
+- Data Center
+- System Center
+- Pengaturan
+
+## Data Center dan Pengaturan
+
+**Data Center** adalah workspace CRUD data Supabase sesuai role. **Pengaturan** adalah workspace konfigurasi operasional, termasuk Periode Pembinaan dan Agenda Absensi. Keduanya merupakan view terpisah dan tidak boleh saling menimpa.
 
 ## Deployment
-This is a static application. `vercel.json` provides SPA rewrites and keeps public reflection URLs such as `/r/AD8E9E3D` compatible with the existing UI.
 
-## Migration principle
-The existing interface is preserved first (parity-first migration), while `google.script.run` is replaced by `supabase-adapter.js`. This allows backend migration without changing the visual behavior users already know.
+Perubahan dikerjakan dan diverifikasi di branch terlebih dahulu. Production dipromosikan hanya setelah migration database, quality gate, dan verifikasi runtime selesai.
+
+Jangan menaruh service-role key atau secret server di repository. Browser hanya boleh menggunakan Supabase publishable key.
