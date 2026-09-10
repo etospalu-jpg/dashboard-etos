@@ -2,7 +2,7 @@ const state={view:'dashboard',auth:false,session:null,role:null,afterAuth:null,c
 const titles={dashboard:'Dashboard',directory:'Direktori Awardee',alumni:'Tracking Alumni',academic:'Akademik',attendance:'Absensi Pembinaan',coaching:'Coaching & IDP',achievements:'Prestasi',mentoring:'Jurnal Pendampingan',profile:'Profil Fasilitator',datacenter:'Data Center',settings:'Pengaturan',system:'System Center'};
 const secureViews=new Set(['attendance','coaching','mentoring','profile','datacenter','settings','system']);
 const ttl=90000;
-const esc=v=>String(v??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]));
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=v=>Number.isFinite(Number(v))?Number(v):0;
 function showLoader(on){document.getElementById('loader')?.classList.toggle('show',!!on)}
 function toast(msg,type=''){const h=document.getElementById('toast-host');if(!h)return;const text=String(msg||'Terjadi kesalahan.');if(h.lastElementChild?.textContent===text)return;const d=document.createElement('div');d.className='toast '+type;d.textContent=text;h.appendChild(d);setTimeout(()=>d.remove(),3800)}
