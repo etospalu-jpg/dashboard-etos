@@ -3,12 +3,12 @@
 const PROJECT_URL='https://weklmapqizeldfdalbgs.supabase.co';
 const PUBLISHABLE_KEY='sb_publishable_cFm2Jvj2jvFyKcxbGniVWw_PL2SL7HC';
 const FUNCTIONS_URL=PROJECT_URL+'/functions/v1';
-const sb=window.supabase&&window.supabase.createClient?window.supabase.createClient(PROJECT_URL,PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
+const sb=window.supabase?.createClient?window.supabase.createClient(PROJECT_URL,PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
 window.etosSupabase=sb;
-let snapshotPromise=null;
 let realtimeChannel=null,realtimeTimer=null;
 function signalSource(source){try{window.dispatchEvent(new CustomEvent('etos:data-source',{detail:{source}}))}catch(_){}}
 function realtimeEvent(type,detail){try{window.dispatchEvent(new CustomEvent(type,{detail:detail||{}}))}catch(_){}}
+function friendlyError(error){const m=String(error?.message||error||'');if(error?.name==='AbortError'||error?.name==='TimeoutError'||/aborted|abort|timeout/i.test(m))return'Koneksi data melewati batas waktu. Silakan coba lagi.';return m||'Permintaan data gagal.'}
 function startRealtimeSignals(){
  if(!sb||realtimeChannel)return realtimeChannel;
  try{
@@ -20,39 +20,47 @@ function startRealtimeSignals(){
     realtimeTimer=setTimeout(()=>{
      try{
       const active=String(document.querySelector('.view.active')?.id||'').replace(/^view-/,'');
-      const safe=new Set(['dashboard','directory','alumni','academic','achievements','attendance']);
+      const safe=new Set(['dashboard','directory','alumni','academic','achievements']);
       const modalOpen=!!document.querySelector('.modal.open');
       if(!modalOpen&&safe.has(active)&&typeof window.refreshCurrent==='function')window.refreshCurrent();
-     }catch(_){ }
-    },450);
+     }catch(_){}
+    },650);
    })
    .subscribe(status=>realtimeEvent('etos:realtime-status',{status:String(status||'')}));
- }catch(e){console.warn('[ETOS realtime]',e?.message||e);realtimeEvent('etos:realtime-status',{status:'ERROR',error:e?.message||String(e)})}
+ }catch(e){console.warn('[ETOS realtime]',friendlyError(e));realtimeEvent('etos:realtime-status',{status:'ERROR',error:friendlyError(e)})}
  return realtimeChannel;
 }
-async function fetchJson(url,options){try{options=options||{};options.credentials=options.credentials||'include';options.headers=Object.assign({'Content-Type':'application/json','apikey':PUBLISHABLE_KEY},options.headers||{});const response=await fetch(url,options);let body={};try{body=await response.json()}catch(_){}if(!response.ok&&!body.error)body.error='HTTP '+response.status;return body}catch(error){return{success:false,error:error&&error.message?error.message:String(error)}}}
-async function loadSnapshot(){if(snapshotPromise)return snapshotPromise;snapshotPromise=fetch('/public-snapshot.min.json?v=12',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('snapshot HTTP '+r.status);return r.json()});return snapshotPromise}
+async function fetchJson(url,options){
+ try{
+  options=options||{};
+  options.credentials=options.credentials||'include';
+  options.headers=Object.assign({'Content-Type':'application/json','apikey':PUBLISHABLE_KEY},options.headers||{});
+  const response=await fetch(url,options);let body={};
+  try{body=await response.json()}catch(_){}
+  if(!response.ok&&!body.error)body.error='HTTP '+response.status;
+  return body;
+ }catch(error){return{success:false,error:friendlyError(error)}}
+}
 function authorityId(x){return String(x?.legacy_id||x?.id_awardee||x?.awardee_id||x?.id||'').toUpperCase()}
-function patchAwardee(x){if(!x||typeof x!=='object')return x;const A=window.ETOS_AWARDEE_AUTHORITY||window.ETOS_2023_AUTHORITY||{};const c=A[authorityId(x)];if(!c)return x;x.name=c.name||x.name;x.nama=c.name||x.nama;if(c.jurusan)x.jurusan=c.jurusan;const vision=Object.prototype.hasOwnProperty.call(c,'vision')?c.vision:c.motto;if(vision===null){x.motto=null;x.vision=null}else if(String(vision||'').trim()){x.motto=vision;x.vision=vision}x.profile_source=c.source||x.profile_source;return x}
+function patchAwardee(x){if(!x||typeof x!=='object')return x;const A=window.ETOS_AWARDEE_AUTHORITY||{};const c=A[authorityId(x)];if(!c)return x;x.name=c.name||x.name;x.nama=c.name||x.nama;if(c.jurusan)x.jurusan=c.jurusan;const vision=Object.prototype.hasOwnProperty.call(c,'vision')?c.vision:c.motto;if(vision===null){x.motto=null;x.vision=null}else if(String(vision||'').trim()){x.motto=vision;x.vision=vision}x.profile_source=c.source||x.profile_source;return x}
 function sanitizePayload(v){if(Array.isArray(v)){v.forEach(sanitizePayload);return v}if(!v||typeof v!=='object')return v;if(v.awardee)patchAwardee(v.awardee);patchAwardee(v);for(const k of ['awards','awardees','items','data'])if(v[k]&&v[k]!==v)sanitizePayload(v[k]);return v}
 function sanitizeResult(r){if(r&&r.data!=null)sanitizePayload(r.data);return r}
-function validSemester(v){const n=Number(v);return Number.isInteger(n)&&n>=1&&n<=14}
-function normalizeSnapshot(s){const awards=(s.a||[]).map(x=>patchAwardee({id:x[0],legacy_id:x[0],nama:x[1],name:x[1],kampus:x[2],jurusan:x[3],angkatan:x[4],status:x[5],motto:x[6],foto:x[7],photo_url:x[7]}));const names=new Map(awards.map(x=>[x.id,x.nama]));const academic=(s.k||[]).map(x=>{const raw=String(x[2]??'').trim();const recap=raw==='1-8'||raw==='46235';if(!recap&&!validSemester(raw))return null;return{id:x[0],legacy_id:x[0],awdId:x[1],id_awardee:x[1],nama:names.get(x[1])||'Unknown',semester:recap?'1-8':Number(raw),semester_label:recap?'1-8':String(raw),record_type:recap?'rekap_1_8':'semester',ipk:x[3]}}).filter(Boolean);const achievements=(s.p||[]).map(x=>({id:x[0],awdId:x[1],id_awardee:x[1],nama:names.get(x[1])||'Unknown',prestasi:x[2],achievement_name:x[2],penyelenggara:x[3],tahun:x[4],year:x[4],tingkat:x[5],kategori:x[6]}));const organizations=(s.o||[]).map(x=>({id:x[0],awdId:x[1],id_awardee:x[1],nama:names.get(x[1])||'Unknown',organisasi:x[2],organization_name:x[2],jabatan:x[3],tahun_mulai:x[4],tahun_selesai:x[5],tingkat:x[6]}));return{raw:s,awards,academic,achievements,organizations,names}}
-function avgLatest(n){const active=n.awards.filter(x=>String(x.status).toLowerCase()==='aktif');const vals=[];for(const a of active){const rows=n.academic.filter(x=>x.awdId===a.id&&x.ipk!=null&&!Number.isNaN(Number(x.ipk)));const individual=rows.filter(x=>x.record_type!=='rekap_1_8').sort((x,y)=>Number(x.semester)-Number(y.semester));const chosen=individual.length?individual[individual.length-1]:rows.find(x=>x.record_type==='rekap_1_8');if(chosen&&chosen.ipk!=null)vals.push(Number(chosen.ipk))}return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*100)/100:0}
-async function snapshotCall(name,params){const n=normalizeSnapshot(await loadSnapshot());let data=null;if(name==='getDashboardStats'){data={total:n.awards.length,aktif:n.awards.filter(x=>String(x.status).toLowerCase()==='aktif').length,alumni:n.awards.filter(x=>String(x.status).toLowerCase()==='lulus').length,avgIPK:avgLatest(n)}}else if(name==='getFeaturedAwardees'){data=n.awards.filter(x=>String(x.status).toLowerCase()==='aktif').slice(0,4)}else if(name==='getAwardeeList'){data=n.awards}else if(name==='getAlumniList'){data=n.awards.filter(x=>String(x.status).toLowerCase()==='lulus')}else if(name==='getAkademikList'){data=n.academic}else if(name==='getPrestasiList'){data=n.achievements}else if(name==='getOrganisasiList'){data=n.organizations}else if(name==='getDropdownOptions'){data={angkatan:[...new Set(n.awards.map(x=>x.angkatan).filter(Boolean))].sort(),status:['Aktif','Lulus']}}else if(name==='getAwardeeProfile'){const id=String(typeof params==='string'?params:(params?.id_awardee||params?.id||'')).trim();const a=n.awards.find(x=>x.id===id);if(!a)return{success:false,error:'Awardee tidak ditemukan di snapshot.'};data={awardee:a,akademik:n.academic.filter(x=>x.awdId===id),prestasi:n.achievements.filter(x=>x.awdId===id),organisasi:n.organizations.filter(x=>x.awdId===id)}}else{return{success:false,error:'Fungsi publik tidak tersedia di snapshot.'}}signalSource('snapshot');return sanitizeResult({success:true,data,source:'snapshot-audited',generatedAt:n.raw.g})}
-async function publicCall(name,params){const live=await fetchJson(FUNCTIONS_URL+'/public-api',{method:'POST',body:JSON.stringify({function:name,params:params==null?null:params})});if(live&&live.success!==false&&live.data!=null){signalSource('supabase');return sanitizeResult(live)}try{return await snapshotCall(name,params)}catch(e){return live&&live.error?live:{success:false,error:e&&e.message?e.message:String(e)}}}
+async function publicCall(name,params){
+ const live=await fetchJson(FUNCTIONS_URL+'/public-api',{method:'POST',body:JSON.stringify({function:name,params:params==null?null:params})});
+ if(live?.success!==false&&live?.data!=null){signalSource('supabase');return sanitizeResult(live)}
+ return{success:false,error:live?.error||'Data Supabase tidak dapat dibaca saat ini.',source:'supabase'};
+}
 function reflectionCall(name,params){const action=name==='getPublicKajianReflectionForm'?'form':name==='verifyKajianReflectionParticipant'?'verify':'submit';const payload=Object.assign({},params||{},{action});if(name==='getPublicKajianReflectionForm')payload.formToken=params;return fetchJson(FUNCTIONS_URL+'/public-reflection',{method:'POST',body:JSON.stringify(payload)})}
 async function secureCall(name,params){const endpoint=name==='getAwardee360'?'/api/awardee360':'/api/secure';return sanitizeResult(await fetchJson(endpoint,{method:'POST',body:JSON.stringify({function:name,params:params==null?null:params})}))}
 const PUBLIC_FUNCTIONS=new Set(['getDashboardStats','getFeaturedAwardees','getAwardeeList','getAlumniList','getAkademikList','getPrestasiList','getOrganisasiList','getAwardeeProfile','getDropdownOptions']);
 const REFLECTION_FUNCTIONS=new Set(['getPublicKajianReflectionForm','verifyKajianReflectionParticipant','submitKajianReflection']);
-async function call(name,params){let r;if(REFLECTION_FUNCTIONS.has(name))r=await reflectionCall(name,params);else if(PUBLIC_FUNCTIONS.has(name))r=await publicCall(name,params);else if(name==='logoutAbsensiAdmin'||name==='logoutFacilitatorAccess')r={success:true};else r=await secureCall(name,params);return sanitizeResult(r)}
-async function syncAfterPin(){const r=await fetchJson('/api/system',{method:'POST',body:JSON.stringify({function:'migrate_source'})});window.ETOS_LAST_MIGRATION=r;if(r?.success&&r?.data?.health?.normalizedParity){signalSource('supabase-migrated');try{window.dispatchEvent(new CustomEvent('etos:migration-complete',{detail:r.data}))}catch(_){}}else console.warn('[ETOS migration]',r?.error||r);return r}
-async function signInPin(pin){pin=String(pin||'').trim();if(!/^\d{6}$/.test(pin))throw new Error('PIN harus terdiri dari 6 digit.');const body=await fetchJson('/api/pin-login',{method:'POST',body:JSON.stringify({pin})});if(!body||body.success===false||!body.data?.session){const e=new Error(body?.error||'PIN tidak sesuai.');e.code=body?.code;e.credential_type=body?.credential_type;e.http_status=body?.http_status;throw e}syncAfterPin().catch(e=>console.warn('[ETOS migration]',e));return{session:body.data.session,firstSetup:false}}
+async function call(name,params){if(REFLECTION_FUNCTIONS.has(name))return reflectionCall(name,params);if(PUBLIC_FUNCTIONS.has(name))return publicCall(name,params);if(name==='logoutAbsensiAdmin'||name==='logoutFacilitatorAccess')return{success:true};return secureCall(name,params)}
+async function signInPin(pin){pin=String(pin||'').trim();if(!/^\d{6}$/.test(pin))throw new Error('PIN harus terdiri dari 6 digit.');const body=await fetchJson('/api/pin-login',{method:'POST',body:JSON.stringify({pin})});if(!body||body.success===false||!body.data?.session){const e=new Error(body?.error||'PIN tidak sesuai.');e.code=body?.code;e.credential_type=body?.credential_type;e.http_status=body?.http_status;throw e}return{session:body.data.session,firstSetup:false}}
 async function getSession(){const body=await fetchJson('/api/pin-login',{method:'GET'});return{data:{session:body?.data?.session||null}}}
 async function signOut(){await fetchJson('/api/pin-login',{method:'DELETE'});return{error:null}}
 function createRunner(){let successHandler=null,failureHandler=null;const target={withSuccessHandler(handler){successHandler=handler;return proxy},withFailureHandler(handler){failureHandler=handler;return proxy}};const proxy=new Proxy(target,{get(obj,prop){if(prop in obj)return obj[prop];return function(){const args=Array.prototype.slice.call(arguments);call(String(prop),args.length?args[0]:null).then(result=>{if(successHandler)successHandler(result)}).catch(error=>{if(failureHandler)failureHandler(error);else console.error('[ETOS Supabase Adapter]',prop,error)});return proxy}}});return proxy}
 window.google=window.google||{};window.google.script=window.google.script||{};Object.defineProperty(window.google.script,'run',{configurable:true,get(){return createRunner()}});
-window.etosAPI={call,publicCall,secureCall,reflectionCall,snapshotCall};
+window.etosAPI={call,publicCall,secureCall,reflectionCall};
 window.etosAuth={signInPin,bootstrapAdmin:async()=>null,getSession,signOut,onChange(){return null}};
 if(!/^\/r\//i.test(location.pathname))startRealtimeSignals();
 })();
