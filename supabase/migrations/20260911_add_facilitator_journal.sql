@@ -1,5 +1,45 @@
 -- ETOS ID Palu Dashboard v36
 -- Persistent facilitator field journal + monthly summaries.
+-- Self-contained authorization helpers avoid dependency on older policy helpers.
+
+create schema if not exists private;
+
+create or replace function private.etos_v36_can_development()
+returns boolean
+language sql
+stable
+security definer
+set search_path = pg_catalog, public
+as $$
+  select exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.is_active is true
+      and lower(coalesce(p.role, '')) in ('facilitator','admin','superadmin')
+  );
+$$;
+
+create or replace function private.etos_v36_can_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = pg_catalog, public
+as $$
+  select exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.is_active is true
+      and lower(coalesce(p.role, '')) in ('admin','superadmin')
+  );
+$$;
+
+revoke all on function private.etos_v36_can_development() from public;
+revoke all on function private.etos_v36_can_admin() from public;
+grant execute on function private.etos_v36_can_development() to authenticated;
+grant execute on function private.etos_v36_can_admin() to authenticated;
 
 create table if not exists public.facilitator_journal_entries (
   id uuid primary key default gen_random_uuid(),
@@ -26,23 +66,23 @@ alter table public.facilitator_journal_entries enable row level security;
 drop policy if exists facilitator_journal_read on public.facilitator_journal_entries;
 create policy facilitator_journal_read on public.facilitator_journal_entries
 for select to authenticated
-using ((select private.can_read_development()));
+using ((select private.etos_v36_can_development()));
 
 drop policy if exists facilitator_journal_insert on public.facilitator_journal_entries;
 create policy facilitator_journal_insert on public.facilitator_journal_entries
 for insert to authenticated
-with check ((select private.can_manage_development()));
+with check ((select private.etos_v36_can_development()));
 
 drop policy if exists facilitator_journal_update on public.facilitator_journal_entries;
 create policy facilitator_journal_update on public.facilitator_journal_entries
 for update to authenticated
-using ((select private.can_manage_development()))
-with check ((select private.can_manage_development()));
+using ((select private.etos_v36_can_development()))
+with check ((select private.etos_v36_can_development()));
 
 drop policy if exists facilitator_journal_delete on public.facilitator_journal_entries;
 create policy facilitator_journal_delete on public.facilitator_journal_entries
 for delete to authenticated
-using ((select private.can_admin()));
+using ((select private.etos_v36_can_admin()));
 
 grant select, insert, update, delete on public.facilitator_journal_entries to authenticated;
 grant all privileges on public.facilitator_journal_entries to service_role;
@@ -56,10 +96,8 @@ create table if not exists public.facilitator_monthly_summaries (
   summary jsonb not null default '{}'::jsonb,
   generated_at timestamptz not null default now(),
   generated_by uuid,
-  constraint facilitator_monthly_summary_month_start_check
-    check (extract(day from month_start) = 1),
-  constraint facilitator_monthly_summary_unique
-    unique (awardee_id, month_start, facilitator_scope)
+  constraint facilitator_monthly_summary_month_start_check check (extract(day from month_start) = 1),
+  constraint facilitator_monthly_summary_unique unique (awardee_id, month_start, facilitator_scope)
 );
 
 create index if not exists facilitator_monthly_summary_awardee_month_idx
@@ -70,23 +108,23 @@ alter table public.facilitator_monthly_summaries enable row level security;
 drop policy if exists facilitator_monthly_summary_read on public.facilitator_monthly_summaries;
 create policy facilitator_monthly_summary_read on public.facilitator_monthly_summaries
 for select to authenticated
-using ((select private.can_read_development()));
+using ((select private.etos_v36_can_development()));
 
 drop policy if exists facilitator_monthly_summary_insert on public.facilitator_monthly_summaries;
 create policy facilitator_monthly_summary_insert on public.facilitator_monthly_summaries
 for insert to authenticated
-with check ((select private.can_manage_development()));
+with check ((select private.etos_v36_can_development()));
 
 drop policy if exists facilitator_monthly_summary_update on public.facilitator_monthly_summaries;
 create policy facilitator_monthly_summary_update on public.facilitator_monthly_summaries
 for update to authenticated
-using ((select private.can_manage_development()))
-with check ((select private.can_manage_development()));
+using ((select private.etos_v36_can_development()))
+with check ((select private.etos_v36_can_development()));
 
 drop policy if exists facilitator_monthly_summary_delete on public.facilitator_monthly_summaries;
 create policy facilitator_monthly_summary_delete on public.facilitator_monthly_summaries
 for delete to authenticated
-using ((select private.can_admin()));
+using ((select private.etos_v36_can_admin()));
 
 grant select, insert, update, delete on public.facilitator_monthly_summaries to authenticated;
 grant all privileges on public.facilitator_monthly_summaries to service_role;
