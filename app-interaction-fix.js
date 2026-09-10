@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 if(window.ETOS_INTERACTION_FIX)return;
-window.ETOS_INTERACTION_FIX='v2-stability';
+window.ETOS_INTERACTION_FIX='v3-sidebar-stability';
 
 const VIEW_ROLES={
  dashboard:['public','viewer','operator','facilitator','admin','superadmin'],
@@ -10,7 +10,7 @@ const VIEW_ROLES={
  academic:['public','viewer','operator','facilitator','admin','superadmin'],
  achievements:['public','viewer','operator','facilitator','admin','superadmin'],
  attendance:['public','operator','facilitator','admin','superadmin'],
- assessment:['public','viewer','operator','facilitator','admin','superadmin'],
+ assessment:['facilitator','admin','superadmin'],
  coaching:['facilitator','admin','superadmin'],
  mentoring:['facilitator','admin','superadmin'],
  profile:['facilitator','admin','superadmin'],
@@ -37,13 +37,14 @@ function notify(message,type='warn'){
  if(typeof window.toast==='function')window.toast(message,type);else console.warn('[ETOS interaction]',message);
 }
 function enforceNav(){
+ const role=roleOf();
  document.querySelectorAll('.nav-btn[data-view]').forEach(btn=>{
   const view=btn.dataset.view||'';
-  const role=roleOf();
   const allowed=canView(view,role);
-  btn.style.display='';
+  const display=allowed?'':'none';
+  if(btn.style.display!==display)btn.style.display=display;
   btn.removeAttribute('aria-disabled');
-  btn.title=allowed?'':(role==='public'?'Klik untuk masuk dan membuka fitur ini':`Role ${role} tidak memiliki akses ke modul ini`);
+  btn.title=allowed?'':`Role ${role} tidak memiliki akses ke modul ini`;
   if(view==='assessment')btn.querySelectorAll('.secure-lock').forEach(x=>x.remove());
  });
  const legacy=document.getElementById('data-center-nav');
@@ -165,14 +166,6 @@ window.runRuleAnalysis=async function(id){
  }catch(e){notify(e.message||String(e),'error')}finally{window.showLoader?.(false)}
 };
 
-/*
- * Runtime stability guard.
- * Realtime signals are useful as invalidation hints, but the adapter currently
- * calls refreshCurrent() ~450 ms after every postgres_changes event. If a read
- * or sync creates another signal, the page can enter a render/signal/render loop.
- * Suppress only refreshCurrent calls that occur immediately after a realtime
- * signal. Manual refreshes continue to work once the short guard window passes.
- */
 let lastRealtimeSignalAt=0;
 window.addEventListener('etos:realtime-change',()=>{lastRealtimeSignalAt=Date.now()},{passive:true});
 function installRefreshGuard(){
@@ -204,11 +197,22 @@ function queueRepair(){
  repairQueued=true;
  requestAnimationFrame(()=>{repairQueued=false;repairLegacyActions()});
 }
+function mutationTouchesNavigation(mutations){
+ for(const m of mutations){
+  for(const n of m.addedNodes||[]){
+   if(n?.nodeType!==1)continue;
+   if(n.matches?.('.nav-btn[data-view],.analysis-action,#data-center-nav'))return true;
+   if(n.querySelector?.('.nav-btn[data-view],.analysis-action,#data-center-nav'))return true;
+  }
+ }
+ return false;
+}
 const observer=new MutationObserver(mutations=>{
- if(mutations.some(m=>m.addedNodes&&m.addedNodes.length))queueRepair();
+ if(mutationTouchesNavigation(mutations))queueRepair();
 });
-observer.observe(document.body,{childList:true,subtree:true});
+const navRoot=document.getElementById('sidebar')||document.body;
+observer.observe(navRoot,{childList:true,subtree:true});
 repairLegacyActions();
 setTimeout(rehydrate,80);
-setTimeout(queueRepair,500);
+window.addEventListener('etos:enhancements-ready',queueRepair,{once:true});
 })();
