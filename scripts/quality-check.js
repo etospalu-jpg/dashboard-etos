@@ -30,14 +30,18 @@ if(apiFunctions.length>12)fail(`Vercel Hobby function limit terlewati: ${apiFunc
 
 try{
  const index=read('index.html');
- expect(index,['20260908-field-journal-attendance-v32',"const V='32'",'app-mentoring-journal','app-mentoring-cases','app-attendance-settings','app-data-center','app-system','app-system-health','app-access','app-access-control','app-auth-recovery','app-auth-rbac','app-auth-mfa','etosRecoveryReady','etos-booting','window.etosLoadChart','shellPromise=fetch','libsPromise=libs'],'index.html');
+ expect(index,['20260911-runtime-stability-v33',"const V='33'",'app-mentoring-journal','app-mentoring-cases','app-attendance-settings','app-data-center','app-system','app-system-health','app-access','app-access-control','app-auth-recovery','app-auth-rbac','app-auth-mfa','etosRecoveryReady','etos-booting','window.etosLoadChart','shellPromise=fetch','libsPromise=libs'],'index.html');
  if(index.indexOf('app-auth-recovery')>index.indexOf('app-auth-rbac'))fail('Recovery module harus dimuat sebelum RBAC utama.');
  if(index.indexOf('app-auth-rbac')>index.indexOf('app-auth-mfa'))fail('MFA module harus dimuat setelah RBAC utama.');
  if(index.indexOf('app-system')>index.indexOf('app-system-health'))fail('System health module harus dimuat setelah System Center.');
  if(index.indexOf('app-mentoring-journal')>index.indexOf('app-mentoring-cases'))fail('Case Pendampingan harus dipasang setelah Jurnal Pendampingan agar fitur lama tetap tersedia.');
+ const enhancementsCall=index.lastIndexOf('await loadEnhancements();');
+ const revealCall=index.lastIndexOf('reveal();');
+ if(enhancementsCall<0||revealCall<0||enhancementsCall>revealCall)fail('Enhancement visual harus selesai sebelum dashboard direveal.');
+ if(index.includes('setTimeout(()=>loadEnhancements'))fail('Enhancement tidak boleh dimuat tertunda setelah dashboard direveal.');
  const libs=index.match(/async function libs\(\)\{([\s\S]*?)\}\n    function mountShell/);
  if(libs&&libs[1].includes('chart.umd.min.js'))fail('Chart.js tidak boleh memblokir library boot utama.');
- if(!failures.some(x=>x.includes('index.html')||x.includes('module harus')||x.includes('Case Pendampingan harus')||x.includes('Chart.js')))ok('Boot v32 dan module order lengkap');
+ if(!failures.some(x=>x.includes('index.html')||x.includes('module harus')||x.includes('Case Pendampingan harus')||x.includes('Enhancement')||x.includes('Chart.js')))ok('Boot v33 stability dan module order lengkap');
 }catch(e){fail(`index.html tidak dapat diperiksa: ${e.message}`)}
 
 try{const core=read('app-core.js');expect(core,['chartTokens','window.etosLoadChart','state.chartTokens[id]'],'Lazy chart core');}catch(e){fail(`app-core.js tidak dapat diperiksa: ${e.message}`)}
@@ -80,4 +84,4 @@ try{const a360=read('api/awardee360.js');expect(a360,['hidden_sections','private
 try{const access=read('app-access.js');if(access.includes("'/api/attendance-cutover'")||access.includes('"/api/attendance-cutover"'))fail('Frontend tidak boleh memanggil attendance-cutover yang sudah retired.');if(!access.includes("credentials:'include'"))fail('app-access.js harus memakai cookie credentials.');}catch(e){fail(`app-access.js tidak dapat diperiksa: ${e.message}`)}
 
 if(failures.length){console.error(`\nQuality gate GAGAL: ${failures.length} masalah.`);process.exit(1)}
-console.log('\nETOS quality gate v32 LULUS.');
+console.log('\nETOS quality gate v33 LULUS.');
