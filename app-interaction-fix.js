@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 if(window.ETOS_INTERACTION_FIX)return;
-window.ETOS_INTERACTION_FIX='v1';
+window.ETOS_INTERACTION_FIX='v2-stability';
 
 const VIEW_ROLES={
  dashboard:['public','viewer','operator','facilitator','admin','superadmin'],
@@ -38,10 +38,10 @@ function notify(message,type='warn'){
 }
 function enforceNav(){
  document.querySelectorAll('.nav-btn[data-view]').forEach(btn=>{
-  btn.style.display='';
   const view=btn.dataset.view||'';
   const role=roleOf();
   const allowed=canView(view,role);
+  btn.style.display='';
   btn.removeAttribute('aria-disabled');
   btn.title=allowed?'':(role==='public'?'Klik untuk masuk dan membuka fitur ini':`Role ${role} tidak memiliki akses ke modul ini`);
   if(view==='assessment')btn.querySelectorAll('.secure-lock').forEach(x=>x.remove());
@@ -50,7 +50,8 @@ function enforceNav(){
  if(legacy&&typeof window.openDataCenterHub==='function')legacy.onclick=()=>window.openDataCenterHub();
 }
 async function openView(view,force=false){
- const st=appState();if(!st)return;st.view=view;
+ const st=appState();if(!st)return;
+ st.view=view;
  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
  document.getElementById('view-'+view)?.classList.add('active');
  document.querySelectorAll('.nav-btn[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
@@ -164,13 +165,50 @@ window.runRuleAnalysis=async function(id){
  }catch(e){notify(e.message||String(e),'error')}finally{window.showLoader?.(false)}
 };
 
+/*
+ * Runtime stability guard.
+ * Realtime signals are useful as invalidation hints, but the adapter currently
+ * calls refreshCurrent() ~450 ms after every postgres_changes event. If a read
+ * or sync creates another signal, the page can enter a render/signal/render loop.
+ * Suppress only refreshCurrent calls that occur immediately after a realtime
+ * signal. Manual refreshes continue to work once the short guard window passes.
+ */
+let lastRealtimeSignalAt=0;
+window.addEventListener('etos:realtime-change',()=>{lastRealtimeSignalAt=Date.now()},{passive:true});
+function installRefreshGuard(){
+ const base=window.refreshCurrent;
+ if(typeof base!=='function'||base.__etosRealtimeGuard)return false;
+ function guardedRefreshCurrent(){
+  if(Date.now()-lastRealtimeSignalAt<1400){
+   try{window.dispatchEvent(new CustomEvent('etos:realtime-refresh-suppressed',{detail:{at:Date.now()}}))}catch(_){}
+   return;
+  }
+  return base.apply(this,arguments);
+ }
+ guardedRefreshCurrent.__etosRealtimeGuard=true;
+ guardedRefreshCurrent.__etosOriginal=base;
+ window.refreshCurrent=guardedRefreshCurrent;
+ return true;
+}
+installRefreshGuard();
+setTimeout(installRefreshGuard,50);
+setTimeout(installRefreshGuard,300);
+
 function repairLegacyActions(){
  document.querySelectorAll('.analysis-action').forEach(b=>{if(/Analisis Terbaru/i.test(b.textContent||''))b.title='Muat analisis perkembangan terbaru yang tersimpan'});
  enforceNav();
 }
-const observer=new MutationObserver(()=>repairLegacyActions());
+let repairQueued=false;
+function queueRepair(){
+ if(repairQueued)return;
+ repairQueued=true;
+ requestAnimationFrame(()=>{repairQueued=false;repairLegacyActions()});
+}
+const observer=new MutationObserver(mutations=>{
+ if(mutations.some(m=>m.addedNodes&&m.addedNodes.length))queueRepair();
+});
 observer.observe(document.body,{childList:true,subtree:true});
 repairLegacyActions();
 setTimeout(rehydrate,80);
-setTimeout(repairLegacyActions,500);
+setTimeout(queueRepair,500);
 })();
