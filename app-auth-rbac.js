@@ -18,6 +18,7 @@ const viewRoles={
  coaching:['facilitator','admin','superadmin'],
  mentoring:['facilitator','admin','superadmin'],
  profile:['facilitator','admin','superadmin'],
+ datacenter:['operator','facilitator','admin','superadmin'],
  settings:['operator','facilitator','admin','superadmin'],
  system:['admin','superadmin']
 };
