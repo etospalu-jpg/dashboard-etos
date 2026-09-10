@@ -50,6 +50,7 @@ async function maybeInviteSetup(){if(inviteSetupShown||!inviteFlag())return;ensu
 function roleOf(){if(!state?.auth)return'public';return String(state?.session?.kind==='pin'?'superadmin':state?.session?.role||state?.session?.profile?.role||state?.role||'viewer').toLowerCase()}
 function canView(view){const allowed=viewRoles[view];return !allowed||allowed.includes(roleOf())}
 function applyRoleUI(){const role=roleOf();document.querySelectorAll('.nav-btn[data-view]').forEach(b=>{const show=canView(b.dataset.view);b.style.display=show?'':'none';b.setAttribute('aria-hidden',show?'false':'true')});const ac=document.getElementById('access-control-card');if(ac)ac.style.display=(state?.session?.kind==='pin'||role==='superadmin')?'':'none'}
+window.ETOSApplyRoleUI=applyRoleUI;
 window.checkAuth=async function(){const{data}=await getSession();state.auth=!!data?.session;state.session=data?.session||null;state.role=data?.session?.role||data?.session?.profile?.role||null;window.updateAuthUI?.()};
 const baseUpdate=window.updateAuthUI;
 window.updateAuthUI=function(){if(typeof baseUpdate==='function')baseUpdate();const role=roleOf(),mode=document.getElementById('system-mode'),text=document.getElementById('sidebar-auth-text');if(state.auth){if(mode)mode.textContent=state.session?.kind==='pin'?'Superadmin PIN':(roleNames[role]||role);if(text&&state.session?.kind==='user')text.textContent=`${state.session?.profile?.full_name||state.session?.user?.email||'Akun ETOS'} • ${roleNames[role]||role}`}applyRoleUI();window.lucide?.createIcons?.()};
