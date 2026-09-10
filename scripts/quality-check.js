@@ -56,7 +56,7 @@ if(apiCount>12)fail(`Vercel Hobby function limit terlewati: ${apiCount}/12`);els
 
 try{
  const index=read('index.html');
- expect(index,['20260911-supabase-only-v36',"const V='36'",'PRE_REVEAL','POST_REVEAL','loadPostReveal','requestIdleCallback','ETOSTimeoutError'],'Boot v36');
+ expect(index,['20260911-supabase-only-v36',"const V='36'",'PRE_REVEAL','PRE_REVEAL_OPTIONAL','POST_REVEAL','loadGroup','loadPostReveal','requestIdleCallback','ETOSTimeoutError'],'Boot v36');
  reject(index,['app-assessment','app-migration-action','app-media-sync','app-system-health','app-audit-ui'],'Boot v36');
  const d=index.lastIndexOf('async function dashboard()'),r=index.indexOf('reveal();',d),p=index.indexOf('loadPostReveal()',d);
  if(d<0||r<d||p<r)fail('POST_REVEAL harus dimulai setelah dashboard direveal.');else ok('Boot menunda modul non-kritis sampai setelah reveal');
@@ -121,8 +121,9 @@ try{
 
 try{
  const drop=read('supabase/migrations/20260911_remove_dashboard_assessment.sql'),journal=read('supabase/migrations/20260911_add_facilitator_journal.sql');
- expect(drop,['drop table if exists public.assessments cascade'],'Assessment migration');
- expect(journal,['private.etos_v36_can_development','private.etos_v36_can_admin','security definer','create table if not exists public.facilitator_journal_entries','create table if not exists public.facilitator_monthly_summaries','enable row level security'],'Journal migration');
+ expect(drop,['Intentionally no CASCADE','drop table if exists public.assessments;'],'Assessment migration');
+ reject(drop,['assessments cascade'],'Assessment migration');
+ expect(journal,['revoke all on schema private from public','grant usage on schema private to authenticated, service_role','private.etos_v36_can_development','private.etos_v36_can_admin','security definer','create table if not exists public.facilitator_journal_entries','create table if not exists public.facilitator_monthly_summaries','enable row level security','revoke all on table public.facilitator_journal_entries from anon, authenticated','revoke all on table public.facilitator_monthly_summaries from anon, authenticated'],'Journal migration');
  reject(journal,['private.can_read_development','private.can_manage_development','private.can_admin'],'Journal migration');
 }catch(e){fail(`Migration v36 gagal diperiksa: ${e.message}`)}
 
