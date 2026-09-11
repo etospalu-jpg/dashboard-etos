@@ -26,3 +26,5 @@ jobs:
         run: |
           node scripts/quality-check.js
           node scripts/v36-1-check.js
+      - name: Smoke test verified IDP fallback
+        run: node scripts/idp-fallback-smoke.js
