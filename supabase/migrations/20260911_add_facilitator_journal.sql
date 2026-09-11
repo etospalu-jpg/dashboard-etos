@@ -11,14 +11,14 @@ returns boolean
 language sql
 stable
 security definer
-set search_path = pg_catalog, public
+set search_path = ''
 as $$
   select exists (
     select 1
     from public.profiles p
-    where p.id = auth.uid()
+    where p.id = (select auth.uid())
       and p.is_active is true
-      and lower(coalesce(p.role, '')) in ('facilitator','admin','superadmin')
+      and lower(coalesce(p.role::text, '')) in ('facilitator','admin','superadmin')
   );
 $$;
 
@@ -27,14 +27,14 @@ returns boolean
 language sql
 stable
 security definer
-set search_path = pg_catalog, public
+set search_path = ''
 as $$
   select exists (
     select 1
     from public.profiles p
-    where p.id = auth.uid()
+    where p.id = (select auth.uid())
       and p.is_active is true
-      and lower(coalesce(p.role, '')) in ('admin','superadmin')
+      and lower(coalesce(p.role::text, '')) in ('admin','superadmin')
   );
 $$;
 
@@ -113,6 +113,13 @@ alter table public.facilitator_monthly_summaries enable row level security;
 revoke all on table public.facilitator_monthly_summaries from anon, authenticated;
 grant select, insert, update, delete on table public.facilitator_monthly_summaries to authenticated;
 grant all privileges on table public.facilitator_monthly_summaries to service_role;
+
+-- Remove policy names used by the previous journal migration so no legacy permissive
+-- policy remains active alongside the v36 policy set.
+drop policy if exists facilitator_monthly_read on public.facilitator_monthly_summaries;
+drop policy if exists facilitator_monthly_insert on public.facilitator_monthly_summaries;
+drop policy if exists facilitator_monthly_update on public.facilitator_monthly_summaries;
+drop policy if exists facilitator_monthly_delete on public.facilitator_monthly_summaries;
 
 drop policy if exists facilitator_monthly_summary_read on public.facilitator_monthly_summaries;
 create policy facilitator_monthly_summary_read on public.facilitator_monthly_summaries
