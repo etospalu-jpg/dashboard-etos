@@ -2,7 +2,6 @@ name: ETOS Quality Gate
 
 on:
   push:
-    branches: [main]
   pull_request:
 
 permissions:

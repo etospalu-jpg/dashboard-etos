@@ -1,5 +1,5 @@
 (function(){'use strict';
-if(window.ETOS_RESTORE_CORE)return;window.ETOS_RESTORE_CORE='v27';
+if(window.ETOS_RESTORE_CORE)return;window.ETOS_RESTORE_CORE='v36';
 const R=window.ETOSRestore=window.ETOSRestore||{};
 R.esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 R.state=()=>{try{return typeof state!=='undefined'?state:null}catch(_){return null}};
@@ -17,6 +17,10 @@ function ensurePhotoModal(){if(document.getElementById('rest-photo-modal'))retur
 let photoTarget='';
 window.openRestoredPhoto=function(id){if(!R.canMaster())return R.notify('Perubahan foto tersedia untuk Operator/Admin/Superadmin.','warn');photoTarget=String(id||'');ensurePhotoModal();const a=R.directory().find(x=>String(x.id||x.legacy_id||'')===photoTarget);document.getElementById('rest-photo-url').value=a?.photo_url||a?.foto||'';openModal('rest-photo-modal')};
 window.saveRestoredPhoto=async function(e){e.preventDefault();const btn=document.getElementById('rest-photo-save'),url=document.getElementById('rest-photo-url').value.trim();btn.disabled=true;try{const list=await R.dc('list',{table:'awardees',search:photoTarget,limit:100}),row=(list.rows||[]).find(x=>String(x.legacy_id||x.id||'')===photoTarget);if(!row?.id)throw new Error('Awardee tidak ditemukan.');await R.dc('update',{table:'awardees',id:row.id,data:{photo_url:url}});const a=R.directory().find(x=>String(x.id||x.legacy_id||'')===photoTarget);if(a){a.photo_url=url;a.foto=url}closeModal('rest-photo-modal');R.notify('Foto Awardee berhasil diperbarui.','success');R.repairPhotos();const id=photoTarget;photoTarget='';if(id)await window.openAwardee?.(id)}catch(err){R.notify(err.message||String(err),'error')}finally{btn.disabled=false}};
-const obs=new MutationObserver(ms=>{if(ms.some(x=>x.addedNodes?.length))R.repairPhotos()});obs.observe(document.body,{childList:true,subtree:true});
-setTimeout(()=>R.repairPhotos(),100);setTimeout(()=>R.repairPhotos(),900);
+let repairQueued=false;
+function relevant(node){return node?.nodeType===1&&(node.matches?.('img,.avatar')||node.querySelector?.('img,.avatar'))}
+function queueRepair(){if(repairQueued)return;repairQueued=true;requestAnimationFrame(()=>{repairQueued=false;R.repairPhotos(document)})}
+const obs=new MutationObserver(ms=>{if(ms.some(m=>[...m.addedNodes].some(relevant)))queueRepair()});
+obs.observe(document.body,{childList:true,subtree:true});
+queueRepair();
 })();

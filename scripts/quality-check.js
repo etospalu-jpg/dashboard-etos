@@ -4,94 +4,150 @@ const path=require('path');
 const {spawnSync}=require('child_process');
 
 const ROOT=path.resolve(__dirname,'..');
-const SKIP=new Set(['node_modules','.git']);
+const SKIP_DIRS=new Set(['node_modules','.git']);
 const failures=[];
-const read=name=>fs.readFileSync(path.join(ROOT,name),'utf8');
-function walk(dir){const out=[];for(const ent of fs.readdirSync(dir,{withFileTypes:true})){if(SKIP.has(ent.name))continue;const p=path.join(dir,ent.name);if(ent.isDirectory())out.push(...walk(p));else out.push(p)}return out}
+const read=n=>fs.readFileSync(path.join(ROOT,n),'utf8');
+const exists=n=>fs.existsSync(path.join(ROOT,n));
+function walk(dir){const out=[];for(const ent of fs.readdirSync(dir,{withFileTypes:true})){if(SKIP_DIRS.has(ent.name))continue;const p=path.join(dir,ent.name);if(ent.isDirectory())out.push(...walk(p));else out.push(p)}return out}
 function rel(p){return path.relative(ROOT,p).replaceAll('\\','/')}
-function fail(msg){failures.push(msg);console.error('✗',msg)}
-function ok(msg){console.log('✓',msg)}
-function expect(text,tokens,label){for(const token of tokens)if(!text.includes(token))fail(`${label} kehilangan marker: ${token}`)}
+function fail(m){failures.push(m);console.error('✗',m)}
+function ok(m){console.log('✓',m)}
+function expect(text,tokens,label){for(const t of tokens)if(!text.includes(t))fail(`${label} kehilangan marker: ${t}`)}
+function reject(text,tokens,label){for(const t of tokens)if(text.includes(t))fail(`${label} masih mengandung marker terlarang: ${t}`)}
 
-const files=walk(ROOT),jsFiles=files.filter(p=>p.endsWith('.js'));
+const files=walk(ROOT);
+const jsFiles=files.filter(p=>p.endsWith('.js'));
 for(const file of jsFiles){const r=spawnSync(process.execPath,['--check',file],{encoding:'utf8'});if(r.status!==0)fail(`Syntax JS: ${rel(file)}\n${(r.stderr||r.stdout||'').trim()}`)}
 if(!failures.length)ok(`${jsFiles.length} file JavaScript lolos syntax check`);
 
-for(const name of ['vercel.json','package.json','data-audit-manifest.json','awardee-authority.json','public-snapshot.min.json']){const file=path.join(ROOT,name);if(!fs.existsSync(file)){fail(`File wajib tidak ditemukan: ${name}`);continue}try{JSON.parse(fs.readFileSync(file,'utf8'));ok(`JSON valid: ${name}`)}catch(e){fail(`JSON tidak valid: ${name} — ${e.message}`)}}
+for(const name of ['package.json','vercel.json','data-audit-manifest.json']){try{JSON.parse(read(name));ok(`JSON valid: ${name}`)}catch(e){fail(`JSON invalid/hilang: ${name} — ${e.message}`)}}
 
-const required=['index.html','shell.html','app.css','app-layout.css','supabase-adapter.js','app-core.js','app-public.js','app-secure.js','app-admin.js','app-360.js','app-system.js','app-system-health.js','app-data-center.js','app-access.js','app-access-control.js','app-auth-recovery.js','app-auth-rbac.js','app-auth-mfa.js','app-interaction-fix.js','app-mentoring-journal.js','app-mentoring-cases.js','app-attendance-settings.js','app-restore-attendance.js','attendance-entry-handler.js','mentoring-journal-handler.js','idp-live-v32.js','app-restore-idp.js','app-restore-command.js','data-center-rbac.js','api/system.js','api/data-center.js','api/access-control.js','api/auth-bridge.js','api/awardee360.js','api/idp-live.js','api/secure.js','server-session.js','pin-login-cookie.js','tailwind.config.js','tailwind.input.css'];
-for(const name of required)if(!fs.existsSync(path.join(ROOT,name)))fail(`Asset production hilang: ${name}`);
-if(required.every(name=>fs.existsSync(path.join(ROOT,name))))ok(`${required.length} asset production/readiness tersedia`);
-if(fs.existsSync(path.join(ROOT,'noop.txt')))fail('File sementara noop.txt tidak boleh masuk production.');
+const required=[
+ 'index.html','shell.html','app.css','app-layout.css','supabase-adapter.js','app-supabase-authority.js','app-core.js','app-public.js','app-secure.js','secure-cookie.js',
+ 'app-system.js','app-data-center.js','app-admin.js','app-access.js','app-access-control.js','app-auth-rbac.js','app-interaction-fix.js','app-mentoring-journal.js','app-mentoring-cases.js','app-attendance-settings.js',
+ 'app-restore-core.js','app-restore-idp.js','app-restore-command.js','app-restore-attendance.js','attendance-entry-handler.js','mentoring-journal-handler.js','rule-analysis-handler.js','idp-live-v32.js','data-center-rbac.js',
+ 'api/system.js','api/data-center.js','api/access-control.js','api/auth-bridge.js','api/awardee360.js','api/idp-live.js','api/public-attendance.js','api/secure.js','server-session.js','pin-login-cookie.js',
+ 'supabase/migrations/20260911_remove_dashboard_assessment.sql','supabase/migrations/20260911_add_facilitator_journal.sql'
+];
+for(const name of required)if(!exists(name))fail(`Asset v36 wajib hilang: ${name}`);
+if(required.every(exists))ok(`${required.length} asset v36 tersedia`);
+
+const retired=[
+ 'app-assessment.js','app-360.js','app-migration-action.js','app-media-sync.js','app-system-health.js','app-audit-ui.js','api/media-sync.js','api/attendance-cutover.js','api/sync-academic-2023-cutover.js',
+ 'migration-source-cookie.js','migration-source-v2.js','migration-source.js','scripts/migrate-on-build.js','manage-cookie.js','data-authority-2023.js','public-snapshot.min.json','idp-central-snapshot.json','awardee-authority.json','production.html','safe.html'
+];
+for(const name of retired)if(exists(name))fail(`Legacy/retired file masih ada: ${name}`);
+if(!retired.some(exists))ok('File Assessment, fallback, snapshot, dan spreadsheet migration telah dipensiunkan');
+
+const runtimeJs=jsFiles.filter(p=>rel(p)!=='scripts/quality-check.js');
+const forbiddenRuntime=[
+ '/rest/v1/assessments','getFacilitatorAssessmentHub','getFacilitatorAssessmentReport','assessment_code','app-assessment.js',
+ 'migrate_source','trigger_etos_sheet_sync','syncSourceOnce','public-snapshot.min.json','idp-central-snapshot.json','migration-source-cookie'
+];
+for(const file of runtimeJs){const text=fs.readFileSync(file,'utf8');for(const token of forbiddenRuntime)if(text.includes(token))fail(`Runtime ${rel(file)} masih memuat legacy token: ${token}`)}
+if(!failures.some(x=>x.includes('legacy token')))ok('Runtime bebas endpoint Assessment dan spreadsheet-sync legacy');
+
+for(const file of runtimeJs){const name=rel(file),text=fs.readFileSync(file,'utf8');if(/window\.loadView\s*=(?!=)/m.test(text))fail(`Router harus terpusat di app-core, tetapi ${name} masih menimpa window.loadView`);if(/setTimeout\s*\(\s*activate\s*,/m.test(text))fail(`Late remount terlarang masih ada di ${name}`)}
+if(!failures.some(x=>x.includes('Router harus terpusat')||x.includes('Late remount')))ok('Router terpusat dan tidak ada late remount module');
+
+for(const file of runtimeJs){if(rel(file)==='idp-live-v32.js')continue;const text=fs.readFileSync(file,'utf8');for(const token of ['GOOGLE_SERVICE_ACCOUNT_JSON','sheets.googleapis.com/v4/spreadsheets','oauth2.googleapis.com/token'])if(text.includes(token))fail(`Google Sheet runtime hanya boleh berada di IDP live: ${rel(file)} -> ${token}`)}
+if(!failures.some(x=>x.includes('Google Sheet runtime')))ok('Integrasi Google runtime terisolasi hanya pada IDP live');
 
 const apiDir=path.join(ROOT,'api');
-const apiFunctions=fs.readdirSync(apiDir).filter(x=>x.endsWith('.js'));
-if(apiFunctions.length>12)fail(`Vercel Hobby function limit terlewati: ${apiFunctions.length}/12`);else ok(`Vercel function count ${apiFunctions.length}/12`);
+const apiCount=fs.readdirSync(apiDir).filter(x=>x.endsWith('.js')).length;
+if(apiCount>12)fail(`Vercel Hobby function limit terlewati: ${apiCount}/12`);else ok(`Vercel function count ${apiCount}/12`);
 
 try{
  const index=read('index.html');
- expect(index,['20260911-core-continuation-v35',"const V='35'",'app-mentoring-journal','app-mentoring-cases','app-attendance-settings','app-data-center','app-system','app-system-health','app-access','app-access-control','app-auth-recovery','app-auth-rbac','app-auth-mfa','app-interaction-fix','app-restore-idp','app-restore-command','etosRecoveryReady','etos-booting','window.etosLoadChart','shellPromise=fetch','libsPromise=libs'],'index.html');
- if(index.indexOf('app-auth-recovery')>index.indexOf('app-auth-rbac'))fail('Recovery module harus dimuat sebelum RBAC utama.');
- if(index.indexOf('app-auth-rbac')>index.indexOf('app-auth-mfa'))fail('MFA module harus dimuat setelah RBAC utama.');
- if(index.indexOf('app-system')>index.indexOf('app-system-health'))fail('System health module harus dimuat setelah System Center.');
- if(index.indexOf('app-mentoring-journal')>index.indexOf('app-mentoring-cases'))fail('Case Pendampingan harus dipasang setelah Jurnal Pendampingan agar fitur lama tetap tersedia.');
- const enhancementsCall=index.lastIndexOf('await loadEnhancements();');
- const revealCall=index.lastIndexOf('reveal();');
- if(enhancementsCall<0||revealCall<0||enhancementsCall>revealCall)fail('Enhancement visual harus selesai sebelum dashboard direveal.');
- if(index.includes('setTimeout(()=>loadEnhancements'))fail('Enhancement tidak boleh dimuat tertunda setelah dashboard direveal.');
- const libs=index.match(/async function libs\(\)\{([\s\S]*?)\}\n    function mountShell/);
- if(libs&&libs[1].includes('chart.umd.min.js'))fail('Chart.js tidak boleh memblokir library boot utama.');
- if(!failures.some(x=>x.includes('index.html')||x.includes('module harus')||x.includes('Case Pendampingan harus')||x.includes('Enhancement')||x.includes('Chart.js')))ok('Boot v35 dan module order lengkap');
-}catch(e){fail(`index.html tidak dapat diperiksa: ${e.message}`)}
+ expect(index,['20260911-supabase-only-v36',"const V='36'",'PRE_REVEAL','PRE_REVEAL_OPTIONAL','POST_REVEAL','loadGroup','loadPostReveal','requestIdleCallback','ETOSTimeoutError'],'Boot v36');
+ reject(index,['app-assessment','app-migration-action','app-media-sync','app-system-health','app-audit-ui'],'Boot v36');
+ const d=index.lastIndexOf('async function dashboard()'),r=index.indexOf('reveal();',d),p=index.indexOf('loadPostReveal()',d);
+ if(d<0||r<d||p<r)fail('POST_REVEAL harus dimulai setelah dashboard direveal.');else ok('Boot menunda modul non-kritis sampai setelah reveal');
+}catch(e){fail(`Boot v36 gagal diperiksa: ${e.message}`)}
 
 try{
- const interaction=read('app-interaction-fix.js');
- expect(interaction,["ETOS_INTERACTION_FIX='v3-sidebar-stability'","assessment:['facilitator','admin','superadmin']","const display=allowed?'':'none'","if(btn.style.display!==display)btn.style.display=display",'mutationTouchesNavigation','const navRoot=document.getElementById(\'sidebar\')||document.body'],'Sidebar stability');
- if(interaction.includes("btn.style.display=''"))fail('Interaction layer tidak boleh memaksa semua menu sidebar tampil karena bertabrakan dengan RBAC.');
- if(!failures.some(x=>x.includes('Sidebar')||x.includes('Interaction layer')))ok('Sidebar RBAC rendering stabil');
-}catch(e){fail(`app-interaction-fix.js tidak dapat diperiksa: ${e.message}`)}
-
-try{const core=read('app-core.js');expect(core,['chartTokens','window.etosLoadChart','state.chartTokens[id]'],'Lazy chart core');}catch(e){fail(`app-core.js tidak dapat diperiksa: ${e.message}`)}
-try{const pkg=JSON.parse(read('package.json'));if(pkg.scripts?.['build:css']!=='tailwindcss -i ./tailwind.input.css -o ./tailwind.generated.css --minify')fail('Static Tailwind build command berubah/tidak tersedia.');if(pkg.devDependencies?.tailwindcss!=='3.4.17')fail('Tailwind build dependency harus dipin ke 3.4.17.');}catch(e){fail(`package.json Tailwind readiness gagal diperiksa: ${e.message}`)}
-try{const tw=read('tailwind.config.js'),input=read('tailwind.input.css');expect(tw,['./index.html','./shell.html','./app-*.js'],'Tailwind content');expect(input,['@tailwind base','@tailwind components','@tailwind utilities'],'Tailwind input');}catch(e){fail(`Tailwind readiness files gagal diperiksa: ${e.message}`)}
-try{const v=JSON.parse(read('vercel.json')),all=JSON.stringify(v);expect(all,['Content-Security-Policy-Report-Only',"default-src 'self'",'wss://weklmapqizeldfdalbgs.supabase.co','max-age=31536000, immutable','max-age=63072000; includeSubDomains; preload'],'Vercel headers');if(all.includes('"key":"Content-Security-Policy"'))fail('CSP enforcement belum boleh diaktifkan sebelum report-only diuji.');}catch(e){fail(`vercel.json security headers gagal diperiksa: ${e.message}`)}
-
-try{const auth=read('app-auth-rbac.js');expect(auth,['signInWithPassword','invite-password-modal','submitInvitePassword','etos-rbac-auth-v1'],'Auth/RBAC');if(auth.includes('challengeAndVerify'))fail('RBAC login tidak boleh memaksa MFA sebelum rollout enforcement disetujui.');}catch(e){fail(`app-auth-rbac.js tidak dapat diperiksa: ${e.message}`)}
-try{const recovery=read('app-auth-recovery.js');expect(recovery,['resetPasswordForEmail','recovery-password-modal','currentPassword',"scope:'others'","scope:'global'",'etosRecoveryReady'],'Auth recovery');}catch(e){fail(`app-auth-recovery.js tidak dapat diperiksa: ${e.message}`)}
-try{const mfa=read('app-auth-mfa.js');expect(mfa,["factorType:'totp'",'listFactors','getAuthenticatorAssuranceLevel','challengeAndVerify','unenroll','MFA belum diwajibkan'],'MFA readiness');}catch(e){fail(`app-auth-mfa.js tidak dapat diperiksa: ${e.message}`)}
+ const shell=read('shell.html');
+ reject(shell,['data-view="assessment"','view-assessment','Asesmen & Development'],'Shell');
+ expect(shell,['data-view="attendance"','data-view="coaching"','data-view="mentoring"','data-view="profile"'],'Shell');
+}catch(e){fail(`Shell gagal diperiksa: ${e.message}`)}
 
 try{
- const adapter=read('supabase-adapter.js');
- expect(adapter,["const endpoint=name==='getAwardee360'?'/api/awardee360':'/api/secure'",'credentials=options.credentials||\'include\''],'Secure adapter');
- if(adapter.includes("if(!s)return{success:false,error:'Akses operasional diperlukan untuk fitur ini.'}"))fail('Secure adapter tidak boleh memblokir account-session sebelum server melakukan authorization.');
-}catch(e){fail(`supabase-adapter.js tidak dapat diperiksa: ${e.message}`)}
+ const core=read('app-core.js'),rbac=read('app-auth-rbac.js'),interaction=read('app-interaction-fix.js'),dc=read('app-data-center.js'),admin=read('app-admin.js'),settings=read('app-attendance-settings.js'),journal=read('app-mentoring-journal.js'),cases=read('app-mentoring-cases.js'),ac=read('app-access-control.js');
+ expect(core,["datacenter:'Data Center'","secureViews=new Set(['attendance','coaching','mentoring','profile','datacenter','settings','system'])","v==='datacenter'","v==='settings'",'window.loadAccessControl','normalizeAttendanceAgendaControl'],'Core');
+ for(const token of ["attendance:['operator','facilitator','admin','superadmin']","coaching:['facilitator','admin','superadmin']","mentoring:['facilitator','admin','superadmin']","profile:['facilitator','admin','superadmin']","datacenter:['operator','facilitator','admin','superadmin']","settings:['operator','facilitator','admin','superadmin']","system:['admin','superadmin']"]){if(!rbac.includes(token)||!interaction.includes(token))fail(`RBAC tidak konsisten untuk ${token}`)}
+ expect(rbac,['window.ETOSApplyRoleUI=applyRoleUI','const observer=new MutationObserver'],'RBAC sidebar controller');
+ expect(interaction,["ETOS_INTERACTION_FIX='v36-single-nav-controller'",'window.ETOSApplyRoleUI'],'Interaction sidebar delegation');
+ reject(interaction,['new MutationObserver','const previousUpdate=window.updateAuthUI'],'Interaction sidebar delegation');
+ expect(dc,['ETOS_DATA_CENTER_V36',"secureViews.add('datacenter')","b.dataset.view='datacenter'","view-datacenter","window.loadDataCenter=async","goView?.('datacenter')"],'Data Center');
+ reject(dc,["s.id='view-settings'","titles.settings='Pengaturan'",'sinkronisasi','window.loadView='],'Data Center');
+ expect(settings,["ETOS_ATTENDANCE_SETTINGS_READY='v36'",'window.loadSettings=window.loadAttendanceSettings','localDate()'],'Attendance Settings v36');
+ reject(settings,['window.loadView=','setTimeout(activate'],'Attendance Settings v36');
+ expect(journal,["ETOS_FACILITATOR_JOURNAL_READY='v36'",'function currentMonth()'],'Journal v36');
+ reject(journal,['setTimeout(activate','window.loadView='],'Journal v36');
+ expect(cases,["ETOS_MENTORING_CASES_READY='v36'",'localDate()'],'Mentoring Cases v36');
+ reject(cases,['setTimeout(activate','window.loadView='],'Mentoring Cases v36');
+ expect(ac,['ETOS_ACCESS_CONTROL_V36','box.style.display=\'none\'','attendance-settings-root','window.loadAccessControl=async'],'Access Control v36');
+ reject(ac,['dc-workspace','window.loadView=','setTimeout(()=>loadAccessControl'],'Access Control v36');
+ expect(admin,['ETOS_ADMIN_LAUNCHER_V36','profile-edit-launcher','loadDataCenterTable?.(\'facilitators\')'],'Admin compatibility');
+ reject(admin,['/api/manage','b=document.createElement(\'button\')'],'Admin compatibility');
+}catch(e){fail(`RBAC/Data Center/Settings gagal diperiksa: ${e.message}`)}
 
 try{
- const front=read('app-mentoring-journal.js'),cases=read('app-mentoring-cases.js'),back=read('mentoring-journal-handler.js');
- expect(front,['ETOS_FACILITATOR_JOURNAL_READY','Muhammad Shadiq Muntashir','Septianindi','Tambah Temuan','Ringkasan Bulanan'],'Jurnal frontend');
- expect(cases,['ETOS_MENTORING_CASES_READY','Case Pendampingan','Riwayat Case','getMentoringCases','getMentoringJournal','saveMentoringJournal'],'Case Pendampingan preserved');
- expect(back,['getFacilitatorJournalHub','saveFacilitatorJournalEntry','generateFacilitatorMonthlySummary','facilitator_monthly_summaries','observed_at:now','getMentoringJournal','saveMentoringJournal'],'Jurnal backend');
-}catch(e){fail(`Pendampingan/Jurnal tidak dapat diperiksa: ${e.message}`)}
+ const adapter=read('supabase-adapter.js'),authority=read('app-supabase-authority.js'),access=read('app-access.js');
+ expect(adapter,["source:'supabase'",'/functions/v1/public-api','function secureCall','startRealtimeSignals'],'Supabase adapter');
+ reject(adapter,['snapshotCall','syncAfterPin','migrate_source'],'Supabase adapter');
+ expect(authority,['v36-supabase-only','public_data'],'Supabase authority');
+ reject(authority,['snapshotCall','Snapshot spreadsheet'],'Supabase authority');
+ expect(access,['getIDPOverview','getIDPDetail','/api/idp-live'],'IDP exception');
+ reject(access,['syncSourceOnce','migrate_source','ACADEMIC_RECAP','getAbsensiList'],'IDP exception');
+}catch(e){fail(`Data source policy gagal diperiksa: ${e.message}`)}
 
 try{
- const front=read('app-attendance-settings.js'),back=read('attendance-entry-handler.js'),restore=read('app-restore-attendance.js');
- expect(front,['ETOS_ATTENDANCE_SETTINGS_READY','saveAttendancePeriod','saveAttendanceAgenda','agendaId','Pengaturan'],'Attendance settings frontend');
- expect(back,['getAttendanceSettings','saveAttendancePeriod','deleteAttendancePeriod','saveAttendanceAgenda','deleteAttendanceAgenda','attendance_agendas','agenda_id'],'Attendance settings backend');
- expect(restore,['ETOS_ATTENDANCE_SETTINGS_READY','v32-agenda-compatible'],'Attendance legacy compatibility');
-}catch(e){fail(`Attendance settings tidak dapat diperiksa: ${e.message}`)}
+ const attendance=read('attendance-entry-handler.js'),dispatch=read('api/secure.js'),settings=read('app-attendance-settings.js');
+ expect(attendance,['async function listAttendance','development_periods','choosePeriod','getAbsensiList','getAttendanceSettings','saveAttendancePeriod'],'Attendance backend');
+ expect(dispatch,["'getAbsensiList'",'getAttendanceSettings','saveAttendancePeriod'],'Attendance dispatcher');
+ expect(settings,['Periode pembinaan tersimpan.','loadAttendanceSettings(true)','loadAttendance(true)','attendance-form-agenda'],'Attendance settings');
+}catch(e){fail(`Attendance gagal diperiksa: ${e.message}`)}
 
 try{
- const wrapper=read('api/idp-live.js'),idp=read('idp-live-v32.js'),ui=read('app-restore-idp.js'),command=read('app-restore-command.js');
- expect(wrapper,["require('../idp-live-v32')"],'IDP API wrapper');
- expect(idp,['1OzW2RfiXL5SmqLOJx-t4Grimy7usdnSqVvSQszZ8WvQ','1973014346','session.credential(req)','superadmin','facilitator','source_health',"sourceMode:'sheets-live'",'spreadsheets.readonly','drive.readonly'],'IDP central read-only');
- expect(ui,["ETOS_RESTORE_IDP='v35-sheets-live'","==='sheets-live'",'Live Google Sheets','IDP ETOS Palu — Google Sheet'],'IDP live UI');
- expect(command,["ETOS_RESTORE_COMMAND='v35-sheets-live'","idp.sourceMode==='sheets-live'?'live Google Sheets':'cache'"],'Command Center IDP mode');
- if(ui.includes("sourceMode==='drive-live'")||command.includes("sourceMode==='drive-live'"))fail('UI IDP tidak boleh memakai marker drive-live lama ketika backend mengirim sheets-live.');
-}catch(e){fail(`IDP central tidak dapat diperiksa: ${e.message}`)}
+ const sys=read('api/system.js'),ui=read('app-system.js'),dcRbac=read('data-center-rbac.js');
+ reject(sys,['migrate_source','trigger_etos_sheet_sync','DASHBOARD AWARDEE ETOS ID PALU'],'System API');
+ reject(ui,['Sinkronkan Spreadsheet','runFullMigration','migrate_source'],'System UI');
+ expect(sys,["source:{type:'supabase-postgres'",'IDP pusat merupakan satu-satunya sumber eksternal'],'System API');
+ expect(ui,['Database utama hanya Supabase PostgreSQL','Tidak ada sinkronisasi spreadsheet'],'System UI');
+ reject(dcRbac,["assessments:{",'migration_batches','idp_snapshots'],'Data Center catalog');
+ expect(dcRbac,['attendance_agendas','facilitator_journal_entries','facilitator_monthly_summaries'],'Data Center catalog');
+}catch(e){fail(`System/Data Center policy gagal diperiksa: ${e.message}`)}
 
-try{const secure=read('api/secure.js');expect(secure,['getFacilitatorJournalHub','generateFacilitatorMonthlySummary','getAttendanceSettings','saveAttendanceAgenda'],'Secure dispatcher');}catch(e){fail(`api/secure.js tidak dapat diperiksa: ${e.message}`)}
-try{const a360=read('api/awardee360.js');expect(a360,['hidden_sections','privateOps','development'],'Awardee360 RBAC');}catch(e){fail(`api/awardee360.js tidak dapat diperiksa: ${e.message}`)}
-try{const access=read('app-access.js');if(access.includes("'/api/attendance-cutover'")||access.includes('"/api/attendance-cutover"'))fail('Frontend tidak boleh memanggil attendance-cutover yang sudah retired.');if(!access.includes("credentials:'include'"))fail('app-access.js harus memakai cookie credentials.');}catch(e){fail(`app-access.js tidak dapat diperiksa: ${e.message}`)}
+try{
+ const sc=read('secure-cookie.js'),a360=read('api/awardee360.js'),rule=read('rule-analysis-handler.js'),command=read('app-restore-command.js'),idp=read('app-restore-idp.js'),restoreCore=read('app-restore-core.js');
+ reject(sc,['getFacilitatorAssessmentHub','getFacilitatorAssessmentReport','/rest/v1/assessments'],'Secure API');
+ reject(a360,['/assessments?','assessment_completed','idp_snapshots','awardee-authority','data-audit-manifest'],'Awardee360');
+ reject(rule,['/rest/v1/assessments','assessment_code'],'Rule analysis');
+ reject(command,['getFacilitatorAssessmentHub','<th>Asesmen</th>'],'Command Center');
+ expect(a360,["source_policy:'supabase-only'",'hidden_sections'],'Awardee360');
+ expect(command,["ETOS_RESTORE_COMMAND='v36-no-assessment'",'Menunggu data perkembangan','etos:enhancements-ready'],'Command Center');
+ expect(idp,["ETOS_RESTORE_IDP='v36-live-only'",'Satu-satunya sumber eksternal aplikasi'],'IDP live UI');
+ expect(restoreCore,["ETOS_RESTORE_CORE='v36'",'repairQueued','requestAnimationFrame'],'Restore core');
+ reject(restoreCore,['setTimeout(()=>R.repairPhotos(),900)'],'Restore core');
+}catch(e){fail(`Assessment removal/IDP isolation gagal diperiksa: ${e.message}`)}
+
+try{
+ const drop=read('supabase/migrations/20260911_remove_dashboard_assessment.sql'),journal=read('supabase/migrations/20260911_add_facilitator_journal.sql');
+ expect(drop,['Intentionally no CASCADE','drop table if exists public.assessments;'],'Assessment migration');
+ reject(drop,['assessments cascade'],'Assessment migration');
+ expect(journal,['revoke all on schema private from public','grant usage on schema private to authenticated, service_role','private.etos_v36_can_development','private.etos_v36_can_admin','security definer','create table if not exists public.facilitator_journal_entries','create table if not exists public.facilitator_monthly_summaries','enable row level security','revoke all on table public.facilitator_journal_entries from anon, authenticated','revoke all on table public.facilitator_monthly_summaries from anon, authenticated'],'Journal migration');
+ reject(journal,['private.can_read_development','private.can_manage_development','private.can_admin'],'Journal migration');
+}catch(e){fail(`Migration v36 gagal diperiksa: ${e.message}`)}
+
+try{
+ const manifest=JSON.parse(read('data-audit-manifest.json'));
+ if(manifest.policy_version!=='supabase-only-v36')fail('Manifest authority bukan supabase-only-v36.');
+ if(manifest.database_authority?.project_ref!=='weklmapqizeldfdalbgs')fail('Manifest menunjuk Supabase project yang salah.');
+ if(manifest.external_sources?.idp?.mode!=='live-read-only')fail('IDP harus live-read-only.');
+ if(manifest.assessment?.dashboard_feature!=='retired')fail('Assessment dashboard harus retired.');
+ else ok('Manifest authority v36 konsisten');
+}catch(e){fail(`Manifest v36 gagal diperiksa: ${e.message}`)}
 
 if(failures.length){console.error(`\nQuality gate GAGAL: ${failures.length} masalah.`);process.exit(1)}
-console.log('\nETOS quality gate v35 LULUS.');
+console.log('\nETOS quality gate v36 LULUS.');

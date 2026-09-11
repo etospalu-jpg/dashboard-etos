@@ -1,141 +1,40 @@
 <!doctype html>
-<html lang="id">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0b1b15">
-  <title>ETOS ID Palu — Awardee Intelligence</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/app.css">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{etos:{50:'#e8f1ed',600:'#0f6248',950:'#0b1b15'}}}}}</script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
-</head>
-<body>
-<div id="loader" class="loader-line"></div>
-<div id="toast-host" class="toast-host"></div>
-<div id="mobile-backdrop" class="backdrop" onclick="toggleSidebar(false)"></div>
-
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>ETOS ID Palu — Awardee Intelligence</title></head><body>
+<div id="loader" class="loader-line"></div><div id="toast-host" class="toast-host"></div><div id="mobile-backdrop" class="backdrop" onclick="toggleSidebar(false)"></div>
 <div id="main-app" class="app-shell">
-  <aside id="sidebar" class="sidebar">
-    <div class="px-6 pt-7 pb-6 border-b border-white/5">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-[14px] bg-white text-[#0b1b15] flex items-center justify-center font-black text-sm">E</div>
-        <div class="min-w-0"><div class="font-extrabold tracking-[-.02em] text-[14px]">ETOS ID Palu</div><div class="text-[9px] uppercase tracking-[.18em] text-white/45 mt-1">Awardee Intelligence</div></div>
-        <button class="mobile-only ml-auto w-9 h-9 rounded-xl bg-white/5 items-center justify-center" onclick="toggleSidebar(false)"><i data-lucide="x" class="w-4 h-4"></i></button>
-      </div>
-    </div>
-
-    <nav class="flex-1 overflow-y-auto px-4 py-5 space-y-1">
-      <div class="px-3 pb-2 text-[9px] font-extrabold uppercase tracking-[.16em] text-white/30">Overview</div>
-      <button class="nav-btn active" data-view="dashboard"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard<span class="nav-dot"></span></button>
-      <button class="nav-btn" data-view="directory"><i data-lucide="users" class="w-4 h-4"></i>Direktori Awardee<span class="nav-dot"></span></button>
-      <button class="nav-btn" data-view="alumni"><i data-lucide="graduation-cap" class="w-4 h-4"></i>Tracking Alumni<span class="nav-dot"></span></button>
-      <div class="px-3 pt-6 pb-2 text-[9px] font-extrabold uppercase tracking-[.16em] text-white/30">Development</div>
-      <button class="nav-btn" data-view="academic"><i data-lucide="chart-no-axes-combined" class="w-4 h-4"></i>Akademik<span class="nav-dot"></span></button>
-      <button class="nav-btn" data-view="attendance"><i data-lucide="calendar-check-2" class="w-4 h-4"></i>Absensi<span class="secure-lock">PIN</span><span class="nav-dot"></span></button>
-      <button class="nav-btn" data-view="coaching"><i data-lucide="messages-square" class="w-4 h-4"></i>Coaching & IDP<span class="secure-lock">PIN</span><span class="nav-dot"></span></button>
-      <button class="nav-btn" data-view="achievements"><i data-lucide="trophy" class="w-4 h-4"></i>Prestasi<span class="nav-dot"></span></button>
-      <button class="nav-btn" data-view="assessment"><i data-lucide="scan-heart" class="w-4 h-4"></i>Asesmen & Development<span class="secure-lock">PIN</span><span class="nav-dot"></span></button>
-      <button class="nav-btn" data-view="mentoring"><i data-lucide="radar" class="w-4 h-4"></i>Mentoring Command<span class="secure-lock">PIN</span><span class="nav-dot"></span></button>
-      <div class="px-3 pt-6 pb-2 text-[9px] font-extrabold uppercase tracking-[.16em] text-white/30">System</div>
-      <button class="nav-btn" data-view="profile"><i data-lucide="user-round-cog" class="w-4 h-4"></i>Profil Fasilitator<span class="secure-lock">PIN</span><span class="nav-dot"></span></button>
-    </nav>
-
-    <div class="p-4 border-t border-white/5">
-      <div class="rounded-[18px] border border-white/7 bg-white/[.035] p-4">
-        <div class="flex items-center gap-2"><span class="status-dot"></span><span class="text-[10px] font-bold text-white/85">Supabase Connected</span></div>
-        <p id="sidebar-auth-text" class="text-[10px] leading-5 text-white/40 mt-3">Mode publik aktif. Masukkan PIN untuk modul operasional.</p>
-        <button id="sidebar-auth-btn" onclick="openLogin()" class="btn w-full mt-3 bg-white text-[#0b1b15]"><i data-lucide="key-round" class="w-4 h-4"></i>Masuk dengan PIN</button>
-      </div>
-    </div>
-  </aside>
-
-  <main class="main">
-    <header class="topbar px-5 md:px-8 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <button class="mobile-only w-10 h-10 rounded-xl bg-white border border-[#e3e9e5] items-center justify-center" onclick="toggleSidebar(true)"><i data-lucide="menu" class="w-4 h-4"></i></button>
-        <div><div class="eyebrow">ETOS ID Palu</div><h1 id="page-title" class="section-title text-[18px] mt-1">Dashboard</h1></div>
-      </div>
-      <div class="flex items-center gap-2">
-        <span id="system-mode" class="pill pill-gray hide-mobile">Public</span>
-        <button onclick="refreshCurrent()" class="btn btn-soft hide-mobile"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>Refresh</button>
-        <button id="top-auth-btn" onclick="openLogin()" class="btn btn-primary"><i data-lucide="key-round" class="w-3.5 h-3.5"></i><span id="top-auth-label">PIN Akses</span></button>
-      </div>
-    </header>
-
-    <div class="content-pad p-5 md:p-8 max-w-[1540px] mx-auto">
-      <section id="view-dashboard" class="view active">
-        <div class="hero p-6 md:p-9 mb-5">
-          <div class="relative z-10 max-w-3xl">
-            <div class="text-[10px] uppercase tracking-[.2em] font-extrabold text-[#bba47b]">Executive Development Overview</div>
-            <h2 class="section-title text-[30px] md:text-[42px] leading-[1.05] mt-4">Awardee development,<br><span class="text-white/60">in one intelligent view.</span></h2>
-            <p class="text-[12px] md:text-[13px] text-white/55 leading-6 mt-5 max-w-2xl">Ringkasan perkembangan akademik, pembinaan, asesmen, mentoring, dan capaian Awardee ETOS ID Palu berbasis data terpusat.</p>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-5">
-          <div class="card metric p-5"><div class="eyebrow">Total Awardee</div><div id="stat-total" class="metric-number text-[35px] font-extrabold mt-6">—</div><div class="text-[10px] text-[#87948d] mt-2">seluruh cohort</div></div>
-          <div class="card metric p-5"><div class="eyebrow">Awardee Aktif</div><div id="stat-active" class="metric-number text-[35px] font-extrabold mt-6 text-[#0f6248]">—</div><div class="text-[10px] text-[#87948d] mt-2">dalam pembinaan</div></div>
-          <div class="card metric p-5"><div class="eyebrow">Alumni</div><div id="stat-alumni" class="metric-number text-[35px] font-extrabold mt-6">—</div><div class="text-[10px] text-[#87948d] mt-2">tracking lulusan</div></div>
-          <div class="card metric p-5"><div class="eyebrow">Rata-rata IPK</div><div id="stat-ipk" class="metric-number text-[35px] font-extrabold mt-6">—</div><div class="text-[10px] text-[#87948d] mt-2">rekam akademik</div></div>
-        </div>
-        <div class="grid xl:grid-cols-[1.35fr_.65fr] gap-4 mb-5">
-          <div class="card p-5 md:p-6"><div><div class="eyebrow">Academic Trend</div><h3 class="section-title text-[19px] mt-2">Kinerja akademik lintas semester</h3></div><div class="h-[260px] mt-5"><canvas id="academic-trend-chart"></canvas></div></div>
-          <div class="card p-5 md:p-6"><div class="eyebrow">Cohort Mix</div><h3 class="section-title text-[19px] mt-2">Sebaran angkatan</h3><div class="h-[260px] mt-4"><canvas id="cohort-chart"></canvas></div></div>
-        </div>
-        <div class="grid xl:grid-cols-[1.35fr_.65fr] gap-4">
-          <div class="card p-5 md:p-6"><div class="flex items-center justify-between"><div><div class="eyebrow">Spotlight</div><h3 class="section-title text-[19px] mt-2">Awardee Overview</h3></div><button class="btn btn-ghost" onclick="goView('directory')">Lihat semua<i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i></button></div><div id="featured-grid" class="grid md:grid-cols-2 gap-3 mt-5"></div></div>
-          <div class="card p-5 md:p-6"><div class="eyebrow">System Health</div><h3 class="section-title text-[19px] mt-2">Infrastructure</h3><div class="mt-5 space-y-4 text-[11px]"><div class="flex justify-between"><span class="text-[#819087]">Database</span><b>PostgreSQL</b></div><div class="flex justify-between"><span class="text-[#819087]">Data security</span><b>RLS / RBAC</b></div><div class="flex justify-between"><span class="text-[#819087]">Sync engine</span><b>Realtime</b></div><div class="flex justify-between"><span class="text-[#819087]">Platform</span><b>Supabase</b></div></div></div>
-        </div>
-      </section>
-
-      <section id="view-directory" class="view">
-        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-5"><div><div class="eyebrow">People Directory</div><h2 class="section-title text-[27px] mt-2">Direktori Awardee</h2><p class="text-[11px] text-[#7b8981] mt-2">Akses profil dan Awardee 360 dari satu direktori.</p></div><div class="flex flex-col sm:flex-row gap-2"><input id="directory-search" oninput="renderDirectory()" class="input sm:w-[250px]" placeholder="Cari awardee..."><select id="directory-cohort" onchange="renderDirectory()" class="input select sm:w-[150px]"></select><select id="directory-status" onchange="renderDirectory()" class="input select sm:w-[135px]"><option value="">Semua status</option><option value="aktif">Aktif</option><option value="lulus">Lulus</option></select></div></div>
-        <div class="card table-wrap"><table class="data-table"><thead><tr><th>Awardee</th><th>Kampus & Jurusan</th><th>Angkatan</th><th>Status</th><th></th></tr></thead><tbody id="directory-body"></tbody></table></div>
-      </section>
-
-      <section id="view-alumni" class="view"><div class="mb-5"><div class="eyebrow">Alumni Network</div><h2 class="section-title text-[27px] mt-2">Tracking Alumni</h2><p class="text-[11px] text-[#7b8981] mt-2">Jejak awardee setelah menyelesaikan program.</p></div><div id="alumni-grid" class="grid md:grid-cols-2 xl:grid-cols-3 gap-4"></div></section>
-
-      <section id="view-academic" class="view"><div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5"><div><div class="eyebrow">Performance</div><h2 class="section-title text-[27px] mt-2">Monitoring Akademik</h2></div><select id="academic-cohort" onchange="renderAcademic()" class="input select md:w-[180px]"></select></div><div class="card p-5 md:p-6 mb-4"><div class="h-[250px]"><canvas id="academic-page-chart"></canvas></div></div><div class="card table-wrap"><table class="data-table"><thead><tr><th>Awardee</th><th>Semester</th><th>IPK</th><th>Signal</th></tr></thead><tbody id="academic-body"></tbody></table></div></section>
-
-      <section id="view-attendance" class="view"><div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5"><div><div class="eyebrow">Engagement</div><h2 class="section-title text-[27px] mt-2">Absensi Pembinaan</h2></div><div class="flex gap-2"><select id="attendance-period" onchange="loadAttendance(true)" class="input select min-w-[190px]"></select><button class="btn btn-green" onclick="openAttendanceEntry()"><i data-lucide="plus" class="w-4 h-4"></i>Catat Absensi</button></div></div><div id="attendance-summary" class="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-4"></div><div class="card table-wrap"><table class="data-table"><thead><tr><th>Awardee</th><th>Angkatan</th><th>Hadir</th><th>Izin</th><th>Sakit</th><th>Alpa</th><th>Kehadiran</th></tr></thead><tbody id="attendance-body"></tbody></table></div></section>
-
-      <section id="view-coaching" class="view"><div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5"><div><div class="eyebrow">Development</div><h2 class="section-title text-[27px] mt-2">Coaching & IDP</h2></div><button class="btn btn-green" onclick="openCoachingModal()"><i data-lucide="plus" class="w-4 h-4"></i>Catat Coaching</button></div><div class="grid xl:grid-cols-[1.2fr_.8fr] gap-4"><div class="card table-wrap"><table class="data-table"><thead><tr><th>Awardee</th><th>Tanggal</th><th>Topik</th><th>Solusi</th></tr></thead><tbody id="coaching-body"></tbody></table></div><div class="card p-5"><div class="eyebrow">Individual Development Plan</div><h3 class="section-title text-[18px] mt-2">Koneksi IDP</h3><div id="idp-overview" class="space-y-2 mt-5"></div></div></div></section>
-
-      <section id="view-achievements" class="view"><div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5"><div><div class="eyebrow">Recognition</div><h2 class="section-title text-[27px] mt-2">Prestasi Awardee</h2></div><input id="achievement-search" oninput="renderAchievements()" class="input md:w-[250px]" placeholder="Cari prestasi..."></div><div class="card table-wrap"><table class="data-table"><thead><tr><th>Awardee</th><th>Prestasi</th><th>Tahun</th><th>Tingkat</th></tr></thead><tbody id="achievement-body"></tbody></table></div></section>
-
-      <section id="view-assessment" class="view"><div class="mb-5"><div class="eyebrow">Assessment Intelligence</div><h2 class="section-title text-[27px] mt-2">Asesmen & Development</h2><p class="text-[11px] text-[#7b8981] mt-2">Sinyal asesmen untuk tindak lanjut fasilitator.</p></div><div class="card table-wrap"><table class="data-table"><thead><tr><th>Awardee</th><th>Angkatan</th><th>Selesai</th><th>Check-in</th><th></th></tr></thead><tbody id="assessment-body"></tbody></table></div></section>
-
-      <section id="view-mentoring" class="view"><div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5"><div><div class="eyebrow">Command Center</div><h2 class="section-title text-[27px] mt-2">Mentoring Command</h2></div><button class="btn btn-green" onclick="openCaseModal()"><i data-lucide="plus" class="w-4 h-4"></i>Buat Case</button></div><div id="mentoring-kpis" class="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-4"></div><div class="card table-wrap"><table class="data-table"><thead><tr><th>Awardee</th><th>Case</th><th>Kategori</th><th>Prioritas</th><th>Deadline</th><th>Status</th></tr></thead><tbody id="mentoring-body"></tbody></table></div></section>
-
-      <section id="view-profile" class="view"><div class="mb-5"><div class="eyebrow">Facilitator</div><h2 class="section-title text-[27px] mt-2">Profil Fasilitator</h2></div><div class="grid xl:grid-cols-[.7fr_1.3fr] gap-4"><div class="card p-6"><div class="w-16 h-16 rounded-[20px] bg-[#0b1b15] text-white flex items-center justify-center text-xl font-extrabold">F</div><h3 id="profile-name" class="section-title text-[22px] mt-5">—</h3><div id="profile-region" class="text-[11px] text-[#819087] mt-2">—</div><p id="profile-bio" class="text-[12px] leading-6 text-[#5f6d65] mt-5">—</p></div><div class="card p-6"><div class="eyebrow">Contact</div><div class="grid sm:grid-cols-2 gap-3 mt-5"><div class="card-flat p-4"><div class="text-[9px] uppercase tracking-[.13em] text-[#8b978f] font-bold">Email</div><div id="profile-email" class="text-[12px] font-bold mt-3 break-all">—</div></div><div class="card-flat p-4"><div class="text-[9px] uppercase tracking-[.13em] text-[#8b978f] font-bold">WhatsApp</div><div id="profile-wa" class="text-[12px] font-bold mt-3">—</div></div></div></div></div></section>
-    </div>
-  </main>
-</div>
-
-<div id="login-modal" class="modal">
-  <div class="modal-card p-6 md:p-8 max-w-[430px]">
-    <div class="flex justify-between items-start"><div><div class="eyebrow">Secure Access</div><h2 class="section-title text-[26px] mt-2">Masuk dengan PIN</h2><p class="text-[11px] text-[#77857d] mt-2 leading-5">Akses satu langkah untuk modul operasional ETOS ID Palu.</p></div><button class="btn btn-ghost !p-2" onclick="closeLogin()"><i data-lucide="x" class="w-4 h-4"></i></button></div>
-    <form onsubmit="submitPin(event)" class="mt-7"><label class="text-[10px] font-extrabold uppercase tracking-[.12em] text-[#718078]">PIN Akses</label><input id="pin-input" type="password" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="current-password" class="input pin-input mt-2" placeholder="••••••" required><p id="pin-message" class="hidden text-[11px] text-red-700 mt-3"></p><button id="pin-submit" type="submit" class="btn btn-primary w-full mt-5"><i data-lucide="shield-check" class="w-4 h-4"></i>Buka Dashboard Operasional</button></form>
-    <div class="mt-5 pt-5 border-t border-[#edf1ef] flex items-start gap-2 text-[10px] leading-5 text-[#849189]"><i data-lucide="lock-keyhole" class="w-3.5 h-3.5 mt-0.5"></i><span>Email tidak ditampilkan pada proses masuk. Session operasional tetap menggunakan autentikasi Supabase.</span></div>
-  </div>
-</div>
-
+<aside id="sidebar" class="sidebar">
+ <div class="px-6 pt-7 pb-6 border-b border-white/5"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-[14px] bg-white text-[#0b1b15] flex items-center justify-center font-black text-sm">E</div><div class="min-w-0"><div class="font-extrabold tracking-[-.02em] text-[14px]">ETOS ID Palu</div><div class="text-[9px] uppercase tracking-[.18em] text-white/45 mt-1">Awardee Intelligence</div></div><button class="mobile-only ml-auto w-9 h-9 rounded-xl bg-white/5 items-center justify-center" onclick="toggleSidebar(false)"><i data-lucide="x" class="w-4 h-4"></i></button></div></div>
+ <nav class="flex-1 overflow-y-auto px-4 py-5 space-y-1">
+  <div class="px-3 pb-2 text-[9px] font-extrabold uppercase tracking-[.16em] text-white/30">Overview</div>
+  <button class="nav-btn active" data-view="dashboard"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard<span class="nav-dot"></span></button>
+  <button class="nav-btn" data-view="directory"><i data-lucide="users" class="w-4 h-4"></i>Direktori Awardee<span class="nav-dot"></span></button>
+  <button class="nav-btn" data-view="alumni"><i data-lucide="graduation-cap" class="w-4 h-4"></i>Tracking Alumni<span class="nav-dot"></span></button>
+  <div class="px-3 pt-6 pb-2 text-[9px] font-extrabold uppercase tracking-[.16em] text-white/30">Development</div>
+  <button class="nav-btn" data-view="academic"><i data-lucide="chart-no-axes-combined" class="w-4 h-4"></i>Akademik<span class="nav-dot"></span></button>
+  <button class="nav-btn" data-view="attendance"><i data-lucide="calendar-check-2" class="w-4 h-4"></i>Absensi<span class="nav-dot"></span></button>
+  <button class="nav-btn" data-view="coaching"><i data-lucide="messages-square" class="w-4 h-4"></i>Coaching & IDP<span class="nav-dot"></span></button>
+  <button class="nav-btn" data-view="achievements"><i data-lucide="trophy" class="w-4 h-4"></i>Prestasi<span class="nav-dot"></span></button>
+  <button class="nav-btn" data-view="mentoring"><i data-lucide="notebook-tabs" class="w-4 h-4"></i>Jurnal Pendampingan<span class="nav-dot"></span></button>
+  <div class="px-3 pt-6 pb-2 text-[9px] font-extrabold uppercase tracking-[.16em] text-white/30">System</div>
+  <button class="nav-btn" data-view="profile"><i data-lucide="user-round-cog" class="w-4 h-4"></i>Profil Fasilitator<span class="nav-dot"></span></button>
+ </nav>
+ <div class="p-4 border-t border-white/5"><div class="rounded-[18px] border border-white/7 bg-white/[.035] p-4"><div class="flex items-center gap-2"><span class="status-dot"></span><span class="text-[10px] font-bold text-white/85">Supabase Connected</span></div><p id="sidebar-auth-text" class="text-[10px] leading-5 text-white/40 mt-3">Mode baca publik aktif. Masuk untuk membuka modul operasional.</p><button id="sidebar-auth-btn" onclick="openLogin()" class="btn w-full mt-3 bg-white text-[#0b1b15]"><i data-lucide="log-in" class="w-4 h-4"></i>Buka Akses</button></div></div>
+</aside>
+<main class="main"><header class="topbar px-5 md:px-8 flex items-center justify-between"><div class="flex items-center gap-3"><button class="mobile-only w-10 h-10 rounded-xl bg-white border border-[#e3e9e5] items-center justify-center" onclick="toggleSidebar(true)"><i data-lucide="menu" class="w-4 h-4"></i></button><div><div class="eyebrow">ETOS ID Palu</div><h1 id="page-title" class="section-title text-[18px] mt-1">Dashboard</h1></div></div><div class="flex items-center gap-2"><span id="system-mode" class="pill pill-gray hide-mobile">Public</span><button onclick="refreshCurrent()" class="btn btn-soft hide-mobile"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>Refresh</button><button id="top-auth-btn" onclick="openLogin()" class="btn btn-primary"><i data-lucide="key-round" class="w-3.5 h-3.5"></i><span id="top-auth-label">Akses</span></button></div></header>
+<div class="content-pad p-5 md:p-8 max-w-[1540px] mx-auto">
+<section id="view-dashboard" class="view active"><div class="hero p-6 md:p-9 mb-5"><div class="relative z-10 max-w-3xl"><div class="text-[10px] uppercase tracking-[.2em] font-extrabold text-[#bba47b]">Executive Development Overview</div><h2 class="section-title text-[30px] md:text-[42px] leading-[1.05] mt-4">Awardee development,<br><span class="text-white/60">in one intelligent view.</span></h2><p class="text-[12px] md:text-[13px] text-white/55 leading-6 mt-5 max-w-2xl">Ringkasan perkembangan akademik, pembinaan, mentoring, dan capaian Awardee ETOS ID Palu berbasis Supabase.</p></div></div><div class="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-5"><div class="card metric p-5"><div class="eyebrow">Total Awardee</div><div id="stat-total" class="metric-number text-[35px] font-extrabold mt-6">—</div><div class="text-[10px] text-[#87948d] mt-2">seluruh cohort</div></div><div class="card metric p-5"><div class="eyebrow">Awardee Aktif</div><div id="stat-active" class="metric-number text-[35px] font-extrabold mt-6 text-[#0f6248]">—</div><div class="text-[10px] text-[#87948d] mt-2">dalam pembinaan</div></div><div class="card metric p-5"><div class="eyebrow">Alumni</div><div id="stat-alumni" class="metric-number text-[35px] font-extrabold mt-6">—</div><div class="text-[10px] text-[#87948d] mt-2">tracking lulusan</div></div><div class="card metric p-5"><div class="eyebrow">Rata-rata IPK</div><div id="stat-ipk" class="metric-number text-[35px] font-extrabold mt-6">—</div><div class="text-[10px] text-[#87948d] mt-2">rekam akademik</div></div></div><div class="grid xl:grid-cols-[1.35fr_.65fr] gap-4 mb-5"><div class="card p-5 md:p-6"><div class="eyebrow">Academic Trend</div><h3 class="section-title text-[19px] mt-2">Kinerja akademik lintas semester</h3><div class="h-[260px] mt-5"><canvas id="academic-trend-chart"></canvas></div></div><div class="card p-5 md:p-6"><div class="eyebrow">Cohort Mix</div><h3 class="section-title text-[19px] mt-2">Sebaran angkatan</h3><div class="h-[260px] mt-4"><canvas id="cohort-chart"></canvas></div></div></div><div class="grid xl:grid-cols-[1.35fr_.65fr] gap-4"><div class="card p-5 md:p-6"><div class="flex items-center justify-between"><div><div class="eyebrow">Spotlight</div><h3 class="section-title text-[19px] mt-2">Awardee Overview</h3></div><button class="btn btn-ghost" onclick="goView('directory')">Lihat semua</button></div><div id="featured-grid" class="grid md:grid-cols-2 gap-3 mt-5"></div></div><div class="card p-5 md:p-6"><div class="eyebrow">Infrastructure</div><h3 class="section-title text-[19px] mt-2">Supabase</h3><div class="mt-5 space-y-4 text-[11px]"><div class="flex justify-between"><span class="text-[#819087]">Database</span><b>PostgreSQL</b></div><div class="flex justify-between"><span class="text-[#819087]">Security</span><b>RLS / RBAC</b></div><div class="flex justify-between"><span class="text-[#819087]">Updates</span><b>Realtime</b></div><div class="flex justify-between"><span class="text-[#819087]">IDP</span><b>Live read-only</b></div></div></div></div></section>
+<section id="view-directory" class="view"><div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-5"><div><div class="eyebrow">People Directory</div><h2 class="section-title text-[27px] mt-2">Direktori Awardee</h2></div><div class="flex flex-col sm:flex-row gap-2"><input id="directory-search" oninput="renderDirectory()" class="input sm:w-[250px]" placeholder="Cari awardee..."><select id="directory-cohort" onchange="renderDirectory()" class="input select sm:w-[150px]"></select><select id="directory-status" onchange="renderDirectory()" class="input select sm:w-[135px]"><option value="">Semua status</option><option value="aktif">Aktif</option><option value="lulus">Lulus</option></select></div></div><div class="card table-wrap"><table class="data-table"><thead><tr><th>Awardee</th><th>Kampus & Jurusan</th><th>Angkatan</th><th>Status</th><th></th></tr></thead><tbody id="directory-body"></tbody></table></div></section>
+<section id="view-alumni" class="view"><div class="mb-5"><div class="eyebrow">Alumni Network</div><h2 class="section-title text-[27px] mt-2">Tracking Alumni</h2></div><div id="alumni-grid" class="grid md:grid-cols-2 xl:grid-cols-3 gap-4"></div></section>
+<section id="view-academic" class="view"><div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5"><div><div class="eyebrow">Performance</div><h2 class="section-title text-[27px] mt-2">Monitoring Akademik</h2></div><select id="academic-cohort" onchange="renderAcademic()" class="input select md:w-[180px]"></select></div><div class="card p-5 md:p-6 mb-4"><div class="h-[250px]"><canvas id="academic-page-chart"></canvas></div></div><div class="card table-wrap"><table class="data-table"><thead><tr><th>Awardee</th><th>Semester</th><th>IPK</th><th>Signal</th></tr></thead><tbody id="academic-body"></tbody></table></div></section>
+<section id="view-attendance" class="view"><div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5"><div><div class="eyebrow">Engagement</div><h2 class="section-title text-[27px] mt-2">Absensi Pembinaan</h2></div><div class="flex gap-2"><select id="attendance-period" onchange="loadAttendance(true)" class="input select min-w-[190px]"></select><button class="btn btn-green" onclick="openAttendanceEntry()"><i data-lucide="plus" class="w-4 h-4"></i>Catat Absensi</button></div></div><div id="attendance-summary" class="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-4"></div><div class="card table-wrap"><table class="data-table"><thead><tr><th>Awardee</th><th>Angkatan</th><th>Hadir</th><th>Izin</th><th>Sakit</th><th>Alpa</th><th>Kehadiran</th></tr></thead><tbody id="attendance-body"></tbody></table></div></section>
+<section id="view-coaching" class="view"><div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5"><div><div class="eyebrow">Development</div><h2 class="section-title text-[27px] mt-2">Coaching & IDP</h2></div><button class="btn btn-green" onclick="openCoachingModal()"><i data-lucide="plus" class="w-4 h-4"></i>Catat Coaching</button></div><div class="grid xl:grid-cols-[1.2fr_.8fr] gap-4"><div class="card table-wrap"><table class="data-table"><thead><tr><th>Awardee</th><th>Tanggal</th><th>Topik</th><th>Solusi</th></tr></thead><tbody id="coaching-body"></tbody></table></div><div class="card p-5"><div class="eyebrow">Individual Development Plan</div><h3 class="section-title text-[18px] mt-2">IDP Live</h3><div id="idp-overview" class="space-y-2 mt-5"></div></div></div></section>
+<section id="view-achievements" class="view"><div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5"><div><div class="eyebrow">Recognition</div><h2 class="section-title text-[27px] mt-2">Prestasi Awardee</h2></div><input id="achievement-search" oninput="renderAchievements()" class="input md:w-[250px]" placeholder="Cari prestasi..."></div><div class="card table-wrap"><table class="data-table"><thead><tr><th>Awardee</th><th>Prestasi</th><th>Tahun</th><th>Tingkat</th></tr></thead><tbody id="achievement-body"></tbody></table></div></section>
+<section id="view-mentoring" class="view"><div id="fj-root"></div></section>
+<section id="view-profile" class="view"><div class="flex items-end justify-between mb-5"><div><div class="eyebrow">Facilitator</div><h2 class="section-title text-[27px] mt-2">Profil Fasilitator</h2></div></div><div class="grid xl:grid-cols-[.7fr_1.3fr] gap-4"><div class="card p-6"><div class="w-16 h-16 rounded-[20px] bg-[#0b1b15] text-white flex items-center justify-center text-xl font-extrabold">F</div><h3 id="profile-name" class="section-title text-[22px] mt-5">—</h3><div id="profile-region" class="text-[11px] text-[#819087] mt-2">—</div><p id="profile-bio" class="text-[12px] leading-6 text-[#5f6d65] mt-5">—</p></div><div class="card p-6"><div class="eyebrow">Contact</div><div class="grid sm:grid-cols-2 gap-3 mt-5"><div class="card-flat p-4"><div class="text-[9px] uppercase tracking-[.13em] text-[#8b978f] font-bold">Email</div><div id="profile-email" class="text-[12px] font-bold mt-3 break-all">—</div></div><div class="card-flat p-4"><div class="text-[9px] uppercase tracking-[.13em] text-[#8b978f] font-bold">WhatsApp</div><div id="profile-wa" class="text-[12px] font-bold mt-3">—</div></div></div></div></div></section>
+</div></main></div>
+<div id="login-modal" class="modal"><div class="modal-card p-6 md:p-8 max-w-[430px]"><div class="flex justify-between items-start"><div><div class="eyebrow">Secure Access</div><h2 class="section-title text-[26px] mt-2">Masuk dengan PIN</h2><p class="text-[11px] text-[#77857d] mt-2 leading-5">Akses Superadmin untuk modul operasional ETOS ID Palu.</p></div><button class="btn btn-ghost !p-2" onclick="closeLogin()"><i data-lucide="x" class="w-4 h-4"></i></button></div><form onsubmit="submitPin(event)" class="mt-7"><label class="text-[10px] font-extrabold uppercase tracking-[.12em] text-[#718078]">PIN Akses</label><input id="pin-input" type="password" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="current-password" class="input pin-input mt-2" placeholder="••••••" required><p id="pin-message" class="hidden text-[11px] text-red-700 mt-3"></p><button id="pin-submit" type="submit" class="btn btn-primary w-full mt-5"><i data-lucide="shield-check" class="w-4 h-4"></i>Buka Dashboard Operasional</button></form></div></div>
 <div id="attendance-modal" class="modal"><div class="modal-card p-6"><div class="flex justify-between"><div><div class="eyebrow">Attendance Entry</div><h2 class="section-title text-[22px] mt-2">Catat Absensi</h2></div><button class="btn btn-ghost !p-2" onclick="closeModal('attendance-modal')"><i data-lucide="x" class="w-4 h-4"></i></button></div><form onsubmit="saveAttendance(event)" class="mt-5 space-y-3"><div class="grid sm:grid-cols-2 gap-3"><select id="attendance-form-period" class="input select" required></select><input id="attendance-form-date" type="date" class="input" required></div><input id="attendance-form-agenda" class="input" placeholder="Nama agenda / kegiatan" required><select id="attendance-form-target" class="input select"></select><div id="attendance-entry-list" class="card-flat max-h-[330px] overflow-auto divide-y divide-[#edf1ef]"></div><button class="btn btn-green w-full">Simpan Absensi</button></form></div></div>
-
 <div id="coaching-modal" class="modal"><div class="modal-card p-6"><div class="flex justify-between"><div><div class="eyebrow">Coaching Entry</div><h2 class="section-title text-[22px] mt-2">Catat Coaching</h2></div><button class="btn btn-ghost !p-2" onclick="closeModal('coaching-modal')"><i data-lucide="x" class="w-4 h-4"></i></button></div><form onsubmit="saveCoaching(event)" class="mt-5 space-y-3"><select id="coaching-awardee" class="input select" required></select><input id="coaching-date" type="date" class="input" required><textarea id="coaching-topic" class="input min-h-[90px]" placeholder="Topik / masalah" required></textarea><textarea id="coaching-solution" class="input min-h-[90px]" placeholder="Solusi / arahan"></textarea><textarea id="coaching-rtl" class="input min-h-[80px]" placeholder="Rencana tindak lanjut"></textarea><button class="btn btn-green w-full">Simpan Coaching</button></form></div></div>
-
 <div id="case-modal" class="modal"><div class="modal-card p-6"><div class="flex justify-between"><div><div class="eyebrow">Mentoring Case</div><h2 class="section-title text-[22px] mt-2">Buat Case Pendampingan</h2></div><button class="btn btn-ghost !p-2" onclick="closeModal('case-modal')"><i data-lucide="x" class="w-4 h-4"></i></button></div><form onsubmit="saveCase(event)" class="mt-5 space-y-3"><select id="case-awardee" class="input select" required></select><input id="case-title" class="input" placeholder="Judul case" required><div class="grid sm:grid-cols-2 gap-3"><input id="case-category" class="input" placeholder="Kategori"><select id="case-priority" class="input select"><option>Rendah</option><option selected>Sedang</option><option>Tinggi</option></select></div><textarea id="case-action" class="input min-h-[100px]" placeholder="Aksi pendampingan"></textarea><input id="case-deadline" type="date" class="input"><button class="btn btn-green w-full">Simpan Case</button></form></div></div>
-
 <div id="awardee-drawer" class="drawer" onclick="if(event.target===this)closeDrawer()"><aside class="drawer-panel"><div class="sticky top-0 z-10 bg-[#f8faf9]/90 backdrop-blur px-5 py-4 border-b border-[#e3e9e5] flex justify-between items-center"><div><div class="eyebrow">Awardee 360</div><h2 id="drawer-title" class="section-title text-[19px] mt-1">Profil</h2></div><button class="btn btn-soft !p-2" onclick="closeDrawer()"><i data-lucide="x" class="w-4 h-4"></i></button></div><div id="drawer-content" class="p-5"></div></aside></div>
-
-<script src="/supabase-adapter.js"></script>
-<script src="/app-core.js"></script>
-<script src="/app-public.js"></script>
-<script src="/app-secure.js"></script>
-</body>
-</html>
+</body></html>
