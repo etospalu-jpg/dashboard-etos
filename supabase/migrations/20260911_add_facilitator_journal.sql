@@ -1,6 +1,7 @@
 -- ETOS ID Palu Dashboard v36
 -- Persistent facilitator field journal + monthly summaries.
 -- Self-contained authorization helpers avoid dependency on older policy helpers.
+-- Existing v35/v36-compatible journal indexes are reused by name to avoid duplicates.
 
 create schema if not exists private;
 revoke all on schema private from public;
@@ -60,9 +61,9 @@ create table if not exists public.facilitator_journal_entries (
   updated_by uuid
 );
 
-create index if not exists facilitator_journal_awardee_observed_idx
+create index if not exists facilitator_journal_awardee_date_idx
   on public.facilitator_journal_entries(awardee_id, observed_at desc);
-create index if not exists facilitator_journal_facilitator_observed_idx
+create index if not exists facilitator_journal_facilitator_date_idx
   on public.facilitator_journal_entries(facilitator_name, observed_at desc);
 
 alter table public.facilitator_journal_entries enable row level security;
@@ -105,7 +106,7 @@ create table if not exists public.facilitator_monthly_summaries (
   constraint facilitator_monthly_summary_unique unique (awardee_id, month_start, facilitator_scope)
 );
 
-create index if not exists facilitator_monthly_summary_awardee_month_idx
+create index if not exists facilitator_monthly_awardee_month_idx
   on public.facilitator_monthly_summaries(awardee_id, month_start desc);
 
 alter table public.facilitator_monthly_summaries enable row level security;
