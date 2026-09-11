@@ -11,7 +11,8 @@ const polish=read('app-polish.js');
 need(polish,["PIN_VIEWS=new Set(['coaching','mentoring','profile','system','datacenter','settings'])","secureViews.delete('attendance')","view==='attendance'","PIN_VIEWS.has(view)&&!pinReady()","openAttendanceEntry","saveAttendancePeriodForm","etos:enhancements-ready"],'PIN/public attendance policy');
 
 const adapter=read('supabase-adapter.js');
-need(adapter,["name==='getAbsensiList'","publicCall('getPublicAttendance',params)",'saveAbsensiEntry'],'Attendance source policy');
+need(adapter,["name==='getAbsensiList'","publicCall('getPublicAttendance',params)"],'Attendance public-read policy');
+forbid(adapter,["publicCall('saveAbsensiEntry'","publicCall('saveAttendancePeriod'","publicCall('saveAttendanceAgenda'"],'Attendance write isolation');
 
 const dispatch=read('api/secure.js');
 need(dispatch,['ATTENDANCE_PIN_REQUIRED',"'getAbsensiEntryOptions'","'saveAbsensiEntry'","'getAttendanceSettings'","'saveAttendancePeriod'","session.verify(req)",'PIN Superadmin diperlukan untuk mengubah data absensi.'],'Attendance backend PIN gate');
