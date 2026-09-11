@@ -23,4 +23,6 @@ jobs:
         with:
           node-version: '22'
       - name: Run ETOS quality gate
-        run: node scripts/quality-check.js
+        run: |
+          node scripts/quality-check.js
+          node scripts/v36-1-check.js
