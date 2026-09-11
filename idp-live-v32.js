@@ -58,7 +58,7 @@ async function googleToken(){
   const head={alg:'RS256',typ:'JWT'};
   const unsigned=b64(JSON.stringify(head))+'.'+b64(JSON.stringify(payload));
   const sig=crypto.sign('RSA-SHA256',Buffer.from(unsigned),sa.private_key).toString('base64url');
-  const r=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'urn:ietf:params:oauth-type:jwt-bearer',assertion:unsigned+'.'+sig})});
+  const r=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer',assertion:unsigned+'.'+sig})});
   const j=await r.json().catch(()=>({}));
   if(!r.ok||!j.access_token)throw new Error(j.error_description||'Token Google gagal dibuat.');
   return{token:j.access_token,email:sa.client_email};
