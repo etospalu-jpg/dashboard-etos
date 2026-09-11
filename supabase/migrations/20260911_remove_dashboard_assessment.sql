@@ -2,8 +2,29 @@
 -- Assessment feature was retired from this dashboard.
 -- This migration intentionally targets only the dashboard assessment table.
 -- The separate ETOS Assessment Center project is not affected.
--- Health snapshot is updated first so the hourly cron no longer references the retired table.
+-- Spreadsheet sync is retired in v36; Supabase PostgreSQL is the application source of truth.
 -- Intentionally no CASCADE: unexpected dependencies must be reviewed explicitly.
+
+create schema if not exists private;
+revoke all on schema private from public;
+grant usage on schema private to authenticated, service_role;
+
+-- Stop the legacy spreadsheet sync schedule if it still exists.
+-- The RPC/function itself is intentionally left untouched here; runtime v36 no longer calls it.
+do $block$
+declare
+  legacy_job_id bigint;
+begin
+  select jobid into legacy_job_id
+  from cron.job
+  where jobname = 'etos-sheet-sync-hourly'
+  limit 1;
+
+  if legacy_job_id is not null then
+    perform cron.unschedule(legacy_job_id);
+  end if;
+end;
+$block$;
 
 create or replace function private.run_etos_health_snapshot()
 returns jsonb
@@ -13,11 +34,10 @@ set search_path = ''
 as $function$
 declare
   actual jsonb;
-  parity boolean;
-  last_sync timestamptz;
+  parity boolean := true;
+  sync_ok boolean := true;
   last_backup timestamptz;
   last_verify timestamptz;
-  sync_ok boolean;
   backup_ok boolean;
   verify_ok boolean;
   jobs_ok boolean;
@@ -36,15 +56,6 @@ begin
     'facilitators', (select count(*) from public.facilitators)
   );
 
-  parity := actual = jsonb_build_object(
-    'awardees',16,'academic_records',61,'achievements',19,'organization_records',2,
-    'rule_analyses',3,'portfolios',3,'reflection_forms',1,'facilitators',1
-  );
-
-  select max(coalesce(completed_at,started_at)) into last_sync
-  from public.migration_batches
-  where lower(status)='completed';
-
   select max(coalesce(completed_at,started_at)) into last_backup
   from public.backup_runs
   where lower(status)='completed';
@@ -54,13 +65,11 @@ begin
   where lower(status)='completed'
     and checksum_ok is true and size_ok is true and json_ok is true and row_counts_ok is true;
 
-  sync_ok := last_sync is not null and last_sync >= now() - interval '150 minutes';
   backup_ok := last_backup is not null and last_backup >= now() - interval '36 hours';
   verify_ok := last_verify is not null and last_verify >= now() - interval '36 hours';
 
   jobs_ok :=
-    exists(select 1 from cron.job where jobname='etos-sheet-sync-hourly' and active)
-    and exists(select 1 from cron.job where jobname='etos-logical-backup-daily' and active)
+    exists(select 1 from cron.job where jobname='etos-logical-backup-daily' and active)
     and exists(select 1 from cron.job where jobname='etos-backup-verify-daily' and active)
     and exists(select 1 from cron.job where jobname='etos-health-snapshot-hourly' and active);
 
@@ -79,16 +88,18 @@ begin
     'roles',coalesce((select jsonb_object_agg(role_text,cnt) from (select role::text role_text,count(*) cnt from public.profiles group by role::text) x),'{}'::jsonb)
   ) into auth_summary;
 
-  state := case when parity and sync_ok and backup_ok and verify_ok and jobs_ok then 'healthy' else 'degraded' end;
+  state := case when backup_ok and verify_ok and jobs_ok then 'healthy' else 'degraded' end;
   result := jsonb_build_object(
     'status',state,
     'checked_at',now(),
+    'source','supabase-postgres',
     'parity_ok',parity,
     'sync_fresh',sync_ok,
+    'sync_mode','retired',
     'backup_fresh',backup_ok,
     'backup_verified',verify_ok,
     'cron_ok',jobs_ok,
-    'last_sync',last_sync,
+    'last_sync',null,
     'last_backup',last_backup,
     'last_backup_verification',last_verify,
     'counts',actual,
