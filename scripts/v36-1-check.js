@@ -24,8 +24,11 @@ const systemUi=read('app-system.js');
 need(systemUi,['retry=1','await wait(280)',"'warn'",'Data belum berhasil dimuat. Klik Perbarui untuk mencoba lagi.'],'System Center retry UX');
 
 const idp=read('idp-live-v32.js');
-need(idp,["FILE_ID='1OzW2RfiXL5SmqLOJx-t4Grimy7usdnSqVvSQszZ8WvQ'","SOURCE_GID='1973014346'",'serviceAccountConfigured()','sheets-live-public-readonly','gviz/tq?tqx=out:csv'],'IDP Palu source');
+need(idp,["FILE_ID='1OzW2RfiXL5SmqLOJx-t4Grimy7usdnSqVvSQszZ8WvQ'","SOURCE_GID='1973014346'",'serviceAccountConfigured()','sheets-live-public-readonly','gviz/tq?tqx=out:csv','driveFallback.overview','driveFallback.detail','driveFallback.health'],'IDP Palu source');
 forbid(idp,['AIzaSy','-----BEGIN PRIVATE KEY-----'],'IDP secret hygiene');
+const idpFallback=read('idp-drive-fallback.js');
+need(idpFallback,["FILE_ID='15TcqNsc3oLqzJxjZ8whV-cgYX00HM2k9'","SOURCE_NAME='Palu-IDP KI.xlsx'","SOURCE_MODIFIED_AT='2026-07-24T14:45:10.558Z'",'drive-verified-fallback','inflateRawSync','Verified read-only fallback workbook'],'IDP verified fallback');
+forbid(idpFallback,['AIzaSy','-----BEGIN PRIVATE KEY-----'],'IDP fallback secret hygiene');
 
 if(errors.length){console.error(errors.map(x=>'✗ '+x).join('\n'));process.exit(1)}
 console.log('✓ ETOS v36.1 regression gate LULUS');
