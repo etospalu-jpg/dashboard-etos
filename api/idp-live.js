@@ -1,5 +1,5 @@
 const session=require('../server-session');
-const sheet=require('../idp-google-sheet');
+const sheet=require('../idp-google-oauth');
 const drive=require('../idp-drive-fallback');
 
 function out(res,status,body){
@@ -23,7 +23,7 @@ async function awards(){
 function fallbackMeta(data,error){
   data.fallback=true;
   data.preferredSource={sourceName:sheet.SOURCE_NAME,sourceId:sheet.FILE_ID,sourceGid:sheet.SOURCE_GID};
-  data.preferredSourceError=error?.message||String(error||'Google Sheet utama belum tersedia.');
+  data.preferredSourceError=error?.message||String(error||'Google Sheet IDP pusat belum tersedia.');
   return data;
 }
 async function overview(force=false){
@@ -45,7 +45,7 @@ module.exports=async function handler(req,res){
   try{
     if(req.method==='GET'&&String(req.query?.source_health||'')==='1'){
       const data=await health(true);
-      return out(res,200,{success:true,data,warning:data.fallback?'Google Sheet utama belum dapat dibaca; sumber cadangan Drive masih aktif.':undefined});
+      return out(res,200,{success:true,data,warning:data.fallback?'IDP pusat belum dapat dibaca melalui OAuth; sumber cadangan Palu masih aktif.':undefined});
     }
     if(req.method!=='POST')return out(res,405,{success:false,error:'Method not allowed'});
     const fn=String(req.body?.function||'getIDPOverview'),p=req.body?.params||{},force=!!p.forceRefresh;

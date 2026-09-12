@@ -3,7 +3,8 @@
   "cleanUrls": false,
   "rewrites": [
     { "source": "/r/:code", "destination": "/index.html" },
-    { "source": "/privacy", "destination": "/privacy.html" }
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/oauth-setup", "destination": "/oauth-setup.html" }
   ],
   "headers": [
     {
@@ -27,6 +28,12 @@
     },
     {
       "source": "/shell.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/oauth-setup.html",
       "headers": [
         { "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }
       ]
