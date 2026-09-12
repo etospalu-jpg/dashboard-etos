@@ -1,47 +1,36 @@
 <!doctype html>
 <html lang="id"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#071b13">
-<meta name="etos-build" content="20260913-responsiveness-idp-persist-v36-7"><title>ETOS ID Palu — Awardee Intelligence</title>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=36.7"><link rel="preload" as="image" href="/brand-etos.svg?v=36.7">
+<meta name="etos-build" content="20260913-instant-navigation-motion-v36-8"><title>ETOS ID Palu — Awardee Intelligence</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=36.8"><link rel="preload" as="image" href="/brand-etos.svg?v=36.8">
 <link rel="preconnect" href="https://weklmapqizeldfdalbgs.supabase.co" crossorigin><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin><link rel="preconnect" href="https://lh3.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="//lh3.googleusercontent.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/app.css?v=36.7"><link rel="stylesheet" href="/app-layout.css?v=36.7"><link rel="stylesheet" href="/app-mobile-v364.css?v=36.7">
+<link rel="stylesheet" href="/app.css?v=36.8"><link rel="stylesheet" href="/app-layout.css?v=36.8"><link rel="stylesheet" href="/app-mobile-v364.css?v=36.8">
 <style>
-:root{--instant-side:286px}html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden;background:#f5f7f6;font-family:Inter,system-ui,sans-serif;color:#15201c}
-#instant-shell{position:fixed;inset:0;z-index:9998;background:#f7f9f8;display:flex;pointer-events:none}#instant-side{width:var(--instant-side);background:#071b13;color:#fff;padding:24px 18px;display:flex;flex-direction:column}#instant-side img{width:170px;max-width:82%;height:auto;margin:2px 4px 22px}.instant-nav{display:flex;flex-direction:column;gap:4px}.instant-nav span{height:38px;border-radius:12px;padding:0 12px;display:flex;align-items:center;color:#a8b5af;font-size:12px;font-weight:600}.instant-nav span:first-child{background:#173b2e;color:#fff}
-#instant-main{margin-left:0;flex:1;min-width:0}#instant-top{height:76px;border-bottom:1px solid #e3e9e5;background:rgba(247,249,248,.96);display:flex;align-items:center;justify-content:space-between;padding:0 34px}.instant-kicker{font-size:10px;line-height:1;text-transform:uppercase;letter-spacing:.18em;font-weight:800;color:#0f6248}.instant-title{font-family:Manrope,Inter,sans-serif;font-weight:800;font-size:22px;letter-spacing:-.035em;margin-top:6px}.instant-access{height:44px;border-radius:14px;background:#071b13;color:#fff;padding:0 18px;display:flex;align-items:center;font-size:12px;font-weight:800}
-#instant-content{padding:30px 34px}.instant-hero{min-height:178px;border-radius:26px;background:#071b13;padding:28px;color:#fff;display:flex;align-items:flex-end;position:relative;overflow:hidden}.instant-hero:after{content:"";position:absolute;width:260px;height:260px;border:42px solid rgba(173,145,99,.10);border-radius:50%;right:-40px;bottom:-150px}.instant-hero h1{font-family:Manrope,Inter,sans-serif;font-size:32px;line-height:1.08;margin:8px 0 0;letter-spacing:-.04em}.instant-hero p{font-size:11px;color:rgba(255,255,255,.55);margin:10px 0 0}.instant-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px}.instant-card{height:126px;border:1px solid #e3e9e5;background:#fff;border-radius:20px;padding:18px}.instant-card b{display:block;font-family:Manrope;font-size:26px;margin-top:18px}.instant-card small{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#87948d;font-weight:800}
+html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden;background:#f5f7f6;font-family:Inter,system-ui,sans-serif;color:#15201c}
+#instant-shell{position:fixed;inset:0;z-index:9998;background:#071b13;display:grid;place-items:center;pointer-events:none;overflow:hidden}
+#instant-shell:before,#instant-shell:after{content:"";position:absolute;border-radius:999px;filter:blur(1px);opacity:.45;animation:etosOrbit 2.8s ease-in-out infinite alternate}
+#instant-shell:before{width:420px;height:420px;border:1px solid rgba(117,211,164,.15);right:-120px;top:-150px}
+#instant-shell:after{width:300px;height:300px;border:54px solid rgba(184,154,102,.07);left:-90px;bottom:-150px;animation-delay:-1.1s}
+.instant-entry{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:18px;animation:etosEntry .42s cubic-bezier(.2,.8,.2,1) both}
+.instant-entry img{width:min(190px,46vw);height:auto;filter:drop-shadow(0 16px 36px rgba(0,0,0,.18))}
+.instant-entry-line{width:76px;height:2px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
+.instant-entry-line:after{content:"";display:block;width:42%;height:100%;border-radius:inherit;background:#69d391;animation:etosSweep .9s cubic-bezier(.4,0,.2,1) infinite}
+.instant-entry small{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.42);font-weight:800}
 #startup-error{display:none;position:fixed;z-index:10000;left:50%;bottom:18px;transform:translateX(-50%);width:min(520px,calc(100vw - 28px));background:#7a2f2f;color:#fff;border-radius:14px;padding:12px 14px;font-size:11px;box-shadow:0 18px 45px rgba(5,25,17,.2)}
-@media(max-width:960px){:root{--instant-side:0px}#instant-side{display:none}#instant-top{height:auto;min-height:104px;padding:calc(env(safe-area-inset-top,0px) + 18px) 14px 16px;align-items:flex-start}#instant-top .instant-title{font-size:21px;line-height:1.13;max-width:190px}.instant-access{height:48px;margin-top:0}#instant-content{padding:24px 14px}.instant-hero{min-height:160px;border-radius:21px;padding:22px}.instant-hero h1{font-size:27px}.instant-metrics{grid-template-columns:repeat(2,1fr);gap:10px}.instant-card{height:108px;border-radius:18px}}
-@media(max-width:374px){#instant-top .instant-title{font-size:19px;max-width:160px}.instant-access{padding:0 14px}}
+@keyframes etosEntry{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+@keyframes etosSweep{0%{transform:translateX(-130%)}100%{transform:translateX(340%)}}
+@keyframes etosOrbit{from{transform:translate3d(0,0,0) scale(.96)}to{transform:translate3d(18px,12px,0) scale(1.04)}}
+@media(prefers-reduced-motion:reduce){.instant-entry,#instant-shell:before,#instant-shell:after,.instant-entry-line:after{animation:none!important}}
 </style></head><body>
-<div id="instant-shell" aria-hidden="true"><aside id="instant-side"><img src="/brand-etos.svg?v=36.7" alt=""><div class="instant-nav"><span>Dashboard</span><span>Direktori Awardee</span><span>Tracking Alumni</span><span>Monitoring Akademik</span><span>Absensi Pembinaan</span><span>Coaching &amp; IDP</span><span>Prestasi Awardee</span></div></aside><main id="instant-main"><header id="instant-top"><div><div class="instant-kicker">ETOS ID PALU</div><div class="instant-title">Dashboard</div></div><div class="instant-access">Akses</div></header><section id="instant-content"><div class="instant-hero"><div><div class="instant-kicker" style="color:#79d4aa">AWARDEE INTELLIGENCE</div><h1>ETOS ID Palu</h1><p>Monitoring perkembangan awardee dalam satu dashboard.</p></div></div><div class="instant-metrics"><div class="instant-card"><small>Total Awardee</small><b id="instant-total">—</b></div><div class="instant-card"><small>Aktif</small><b id="instant-active">—</b></div><div class="instant-card"><small>Alumni</small><b id="instant-alumni">—</b></div><div class="instant-card"><small>Rata-rata IPK</small><b id="instant-ipk">—</b></div></div></section></main></div>
+<div id="instant-shell" aria-hidden="true"><div class="instant-entry"><img src="/brand-etos.svg?v=36.8" alt="ETOS ID Palu"><div class="instant-entry-line"></div><small>PALU · AWARDEE INTELLIGENCE</small></div></div>
 <div id="startup-error" role="alert"></div>
 <script>(function(){'use strict';
-const V='36.7',DATA_TIMEOUT=12000;window.ETOS_VERSION=V;window.ETOS_BOOT_RESILIENCE='v36.7-stable-first-paint';
+const V='36.8',DATA_TIMEOUT=12000;window.ETOS_VERSION=V;window.ETOS_BOOT_RESILIENCE='v36.8-native-entry';
 const nativeFetch=window.fetch.bind(window),loaded=new Map();
-function readInstant(name){
-  for(const prefix of ['etos-public-v367:','etos-public-v364:']){
-    try{const raw=localStorage.getItem(prefix+name+':null');if(!raw)continue;const x=JSON.parse(raw),r=x?.value,d=r?.data;if(x?.t&&Date.now()-x.t<24*60*60*1000&&d!=null)return d}catch(_){}
-  }
-  return null;
-}
-function hydrateInstant(){
-  try{
-    const list0=readInstant('getAwardeeList'),academic0=readInstant('getAkademikList');
-    const list=Array.isArray(list0)?list0:(list0?.items||[]);
-    if(list.length){
-      const alumni=list.filter(x=>String(x.status||'').toLowerCase()==='lulus'),active=list.filter(x=>String(x.status||'').toLowerCase()!=='lulus');
-      document.getElementById('instant-total').textContent=list.length;
-      document.getElementById('instant-active').textContent=active.length;
-      document.getElementById('instant-alumni').textContent=alumni.length;
-    }
-    const ac=Array.isArray(academic0)?academic0:(academic0?.items||[]),vals=ac.map(x=>Number(x.ipk)).filter(v=>Number.isFinite(v)&&v>0);
-    if(vals.length)document.getElementById('instant-ipk').textContent=(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2);
-  }catch(_){}
-}
+function hydrateInstant(){}
 hydrateInstant();
 window.fetch=function(input,init){init=init||{};if(init.signal)return nativeFetch(input,init);const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),DATA_TIMEOUT);return nativeFetch(input,Object.assign({},init,{signal:controller.signal})).catch(err=>{if(controller.signal.aborted){const e=new Error('Koneksi data melewati batas waktu. Silakan coba lagi.');e.name='ETOSTimeoutError';throw e}throw err}).finally(()=>clearTimeout(timer))};
 function load(src,optional=false,timeout=7000){if(loaded.has(src))return loaded.get(src);const job=new Promise((resolve,reject)=>{const s=document.createElement('script');let done=false;const finish=(ok,err)=>{if(done)return;done=true;clearTimeout(timer);if(ok||optional)resolve(ok);else reject(err||new Error(src+' gagal dimuat'))};const timer=setTimeout(()=>{try{s.remove()}catch(_){}finish(false,new Error(src+' timeout'))},timeout);s.src=src;s.async=false;s.onload=()=>finish(true);s.onerror=()=>finish(false,new Error(src+' gagal dimuat'));document.head.appendChild(s)});loaded.set(src,job);return job}
@@ -51,11 +40,11 @@ async function libs(){const tailwind=load('https://cdn.tailwindcss.com',false,70
 function mountShell(html){const parsed=new DOMParser().parseFromString(html,'text/html');parsed.body.querySelectorAll('script').forEach(x=>x.remove());const frag=document.createDocumentFragment();Array.from(parsed.body.childNodes).forEach(node=>frag.appendChild(document.importNode(node,true)));document.body.appendChild(frag);const app=document.getElementById('main-app');if(app){app.style.visibility='visible';app.style.opacity='1';app.style.pointerEvents='auto';app.removeAttribute('aria-hidden')}}
 function revealShell(){const instant=document.getElementById('instant-shell');if(instant)requestAnimationFrame(()=>instant.remove())}
 function brand(){const side=document.getElementById('sidebar');if(side&&side.firstElementChild){side.firstElementChild.className='brand-production';side.firstElementChild.innerHTML='<div style="position:relative"><div class="brand-production-card"><img src="/brand-etos.svg?v='+V+'" alt="ETOS ID"></div><div class="etos-location"><span>PALU</span></div><div class="etos-brand-sub">Awardee Development Intelligence</div><button class="mobile-only absolute right-0 top-0 w-9 h-9 rounded-xl bg-white/5 text-white items-center justify-center" onclick="toggleSidebar(false)">×</button></div>'}window.lucide?.createIcons?.()}
-function softError(e){console.error('[ETOS v36.7]',e);const box=document.getElementById('startup-error');if(box){box.textContent=e?.message||String(e);box.style.display='block';setTimeout(()=>{box.style.display='none'},7000)}}
+function softError(e){console.error('[ETOS v36.8]',e);const box=document.getElementById('startup-error');if(box){box.textContent=e?.message||String(e);box.style.display='block';setTimeout(()=>{box.style.display='none'},7000)}}
 async function loadSeries(list){for(const f of list)await load('/'+f+'.js?v='+V,false,7000)}
 async function loadGroup(list,optional=false){await Promise.all(list.map(f=>load('/'+f+'.js?v='+V,optional,7000).catch(e=>{if(optional){console.warn('[ETOS optional]',f,e?.message||e);return false}throw e})))}
 async function reflection(){const m=location.pathname.match(/^\/r\/([^/?#]+)/i);if(!m)return false;await libs();await load('/supabase-adapter.js?v='+V);await load('/app-supabase-authority.js?v='+V);await load('/app-reflection.js?v='+V);document.getElementById('instant-shell')?.remove();if(typeof window.bootReflection!=='function')throw new Error('Form refleksi tidak tersedia.');await window.bootReflection(decodeURIComponent(m[1]));return true}
 function idleEnhancements(){const run=async()=>{await loadGroup(['app-auth-recovery','app-auth-mfa'],true);try{window.dispatchEvent(new CustomEvent('etos:enhancements-ready'));window.lucide?.createIcons?.()}catch(_){}};if('requestIdleCallback'in window)requestIdleCallback(()=>run(),{timeout:1600});else setTimeout(run,250)}
-async function dashboard(){const shellPromise=fetch('/shell.html?v='+V,{cache:'no-store'}),libsPromise=libs();const r=await shellPromise;if(!r.ok)throw new Error('shell HTTP '+r.status);const html=await r.text();await libsPromise;mountShell(html);brand();if(document.readyState==='loading')await new Promise(resolve=>document.addEventListener('DOMContentLoaded',resolve,{once:true}));await loadSeries(['supabase-adapter','app-instant-cache-v367','app-supabase-authority','app-core','app-public','app-secure','app-click-guard']);await loadGroup(['app-access','app-auth-rbac','app-interaction-fix','app-attendance-settings','app-restore-core'],false);await load('/app-polish.js?v='+V,true,6000);await load('/app-pin-policy.js?v='+V,false,7000);await load('/app-v367-performance.js?v='+V,false,7000);brand();try{window.dispatchEvent(new CustomEvent('etos:enhancements-ready'));window.lucide?.createIcons?.()}catch(_){}if(typeof window.boot!=='function')throw new Error('boot tidak ditemukan');try{await window.boot()}finally{revealShell()}idleEnhancements()}
+async function dashboard(){const shellPromise=fetch('/shell.html?v='+V,{cache:'no-store'}),libsPromise=libs();const r=await shellPromise;if(!r.ok)throw new Error('shell HTTP '+r.status);const html=await r.text();await libsPromise;mountShell(html);brand();if(document.readyState==='loading')await new Promise(resolve=>document.addEventListener('DOMContentLoaded',resolve,{once:true}));await loadSeries(['supabase-adapter','app-instant-cache-v367','app-supabase-authority','app-core','app-public','app-secure','app-click-guard']);await loadGroup(['app-access','app-auth-rbac','app-interaction-fix','app-attendance-settings','app-restore-core'],false);await load('/app-polish.js?v='+V,true,6000);await load('/app-pin-policy.js?v='+V,false,7000);await load('/app-v367-performance.js?v='+V,false,7000);await load('/app-v368-experience.js?v='+V,false,7000);brand();try{window.dispatchEvent(new CustomEvent('etos:enhancements-ready'));window.lucide?.createIcons?.()}catch(_){}if(typeof window.boot!=='function')throw new Error('boot tidak ditemukan');try{await window.boot()}finally{revealShell()}idleEnhancements()}
 (async()=>{try{if(await reflection())return;await dashboard()}catch(e){revealShell();softError(e)}})();
 })();</script></body></html>
