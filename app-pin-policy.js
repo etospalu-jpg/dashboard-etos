@@ -1,87 +1,52 @@
 (function(){
 'use strict';
-if(window.ETOS_PIN_POLICY_V363)return;window.ETOS_PIN_POLICY_V363=true;
+if(window.ETOS_PIN_POLICY_V364)return;window.ETOS_PIN_POLICY_V364=true;
 const PIN_VIEWS=new Set(['mentoring','profile','system','datacenter','settings']);
 const VIEW_TITLES={dashboard:'Dashboard',directory:'Direktori Awardee',alumni:'Tracking Alumni',academic:'Monitoring Akademik',attendance:'Absensi Pembinaan',coaching:'Coaching & IDP',achievements:'Prestasi Awardee',mentoring:'Jurnal Pendampingan',profile:'Profil Fasilitator',system:'System Center',datacenter:'Data Center',settings:'Pengaturan'};
+const VIEW_MODULES={attendance:['app-restore-attendance'],coaching:['app-restore-idp'],mentoring:['app-mentoring-journal','app-mentoring-cases'],system:['app-system'],datacenter:['app-data-center'],settings:['app-admin','app-access-control']};
 function appState(){try{return typeof state!=='undefined'?state:null}catch(_){return null}}
 function pinReady(){return appState()?.session?.kind==='pin'}
 function requestPin(next){
   if(pinReady())return true;
-  const st=appState();
-  if(st)st.afterAuth=typeof next==='function'?next:null;
-  if(typeof window.openPinAccess==='function')window.openPinAccess();
-  else window.openLogin?.();
-  return false;
+  const st=appState();if(st)st.afterAuth=typeof next==='function'?next:null;
+  if(typeof window.openPinAccess==='function')window.openPinAccess();else window.openLogin?.();return false;
 }
 function ensureNavStyle(){
   if(document.getElementById('etos-pin-visible-nav'))return;
-  const s=document.createElement('style');
-  s.id='etos-pin-visible-nav';
-  s.textContent='#sidebar .nav-btn[data-view]{display:flex!important;visibility:visible!important;opacity:1!important}';
-  document.head.appendChild(s);
+  const s=document.createElement('style');s.id='etos-pin-visible-nav';
+  s.textContent='#sidebar .nav-btn[data-view]{display:flex!important;visibility:visible!important;opacity:1!important}#sidebar .nav-btn[data-view="coaching"] .secure-lock{display:none!important}';document.head.appendChild(s);
 }
 function showAllNav(){
-  ensureNavStyle();
-  document.querySelectorAll('#sidebar .nav-btn[data-view]').forEach(b=>{
-    if(b.getAttribute('aria-hidden')==='true')b.setAttribute('aria-hidden','false');
-    if(b.hasAttribute('hidden'))b.removeAttribute('hidden');
-    if(b.disabled)b.disabled=false;
-  });
+  ensureNavStyle();document.querySelectorAll('#sidebar .nav-btn[data-view]').forEach(b=>{b.style.removeProperty('display');if(b.getAttribute('aria-hidden')==='true')b.setAttribute('aria-hidden','false');if(b.hasAttribute('hidden'))b.removeAttribute('hidden');if(b.disabled)b.disabled=false});
 }
-async function publicJson(url,payload){
-  const r=await fetch(url,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload||{})});
-  const b=await r.json().catch(()=>({}));
-  if(!r.ok||b.success===false)throw new Error(b.error||'Data belum dapat dibaca.');
-  return b;
+function normalizeAccessCopy(){
+  const text=document.getElementById('sidebar-auth-text');if(text&&!pinReady()&&!appState()?.auth)text.textContent='Mode baca publik aktif. PIN hanya diperlukan untuk pencatatan dan modul operasional tertentu.';
+  const p=document.querySelector('#access-choice-modal .modal-card p');if(p)p.textContent='Gunakan PIN Superadmin untuk aksi pencatatan atau modul operasional yang membutuhkan otorisasi.';
 }
+function normalizeHeader(){const top=document.querySelector('.topbar');if(!top)return;top.classList.add('etos-mobile-header');top.firstElementChild?.classList.add('etos-mobile-header-main');top.lastElementChild?.classList.add('etos-mobile-header-actions')}
+async function publicJson(url,payload){const r=await fetch(url,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload||{})});const b=await r.json().catch(()=>({}));if(!r.ok||b.success===false)throw new Error(b.error||'Data belum dapat dibaca.');return b}
 function installPublicReads(){
-  if(!window.etosAPI||window.etosAPI.__etosPublicCoachingV363)return;
+  if(!window.etosAPI||window.etosAPI.__etosPublicCoachingV364)return;
   const base=window.etosAPI.call.bind(window.etosAPI);
   window.etosAPI.call=async function(name,params){
     if(name==='getCoachingList')return publicJson('/api/public-coaching',{function:name,params:params??null});
     if(name==='getIDPOverview'||name==='getIDPDetail')return publicJson('/api/idp-live',{function:name,params:params??null});
     return base(name,params);
   };
-  window.etosAPI.__etosPublicCoachingV363=true;
+  window.etosAPI.__etosPublicCoachingV364=true;
 }
+async function ensureViewModules(view){const loader=window.etosLoadModule,mods=VIEW_MODULES[view]||[];if(typeof loader!=='function'||!mods.length)return;for(const m of mods)await loader(m)}
 async function openViewDirect(view,force=false){
-  const st=appState();if(!st)return;
-  const target=document.getElementById('view-'+view);
-  if(!target){window.toast?.('Modul belum tersedia.','warn');return}
-  st.view=view;
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  target.classList.add('active');
-  document.querySelectorAll('.nav-btn[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
-  const title=document.getElementById('page-title');if(title)title.textContent=VIEW_TITLES[view]||view;
-  window.toggleSidebar?.(false);
-  if(typeof window.loadView==='function')await window.loadView(view,force);
+  const st=appState();if(!st)return;const target=document.getElementById('view-'+view);if(!target){window.toast?.('Modul belum tersedia.','warn');return}
+  await ensureViewModules(view);st.view=view;document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));target.classList.add('active');document.querySelectorAll('.nav-btn[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+  const title=document.getElementById('page-title');if(title)title.textContent=VIEW_TITLES[view]||view;window.toggleSidebar?.(false);if(typeof window.loadView==='function')await window.loadView(view,force);
 }
-window.goView=async function(view,force=false){
-  view=String(view||'').trim();if(!view)return;
-  showAllNav();installPublicReads();
-  if(PIN_VIEWS.has(view)&&!pinReady()){
-    requestPin(()=>window.goView(view,force));
-    return;
-  }
-  return openViewDirect(view,force);
-};
+window.goView=async function(view,force=false){view=String(view||'').trim();if(!view)return;showAllNav();installPublicReads();normalizeAccessCopy();normalizeHeader();if(PIN_VIEWS.has(view)&&!pinReady()){requestPin(()=>window.goView(view,force));return}return openViewDirect(view,force)};
 try{secureViews.delete('attendance');secureViews.delete('coaching')}catch(_){}
-function wrapPinAction(name){
-  const base=window[name];
-  if(typeof base!=='function'||base.__etosPinPolicyV363)return;
-  const guarded=function(){const self=this,args=arguments;if(!requestPin(()=>guarded.apply(self,args)))return;return base.apply(self,args)};
-  guarded.__etosPinPolicyV363=true;window[name]=guarded;
-}
-function installActionGates(){
-  ['openAttendanceEntry','openAttendancePeriodSettings','deleteAttendancePeriodSetting','openAttendanceAgendaSettings','deleteAttendanceAgendaSetting','openCoachingModal'].forEach(wrapPinAction);
-}
-function reinforce(){showAllNav();installPublicReads();installActionGates()}
-reinforce();
-window.addEventListener('etos:enhancements-ready',()=>setTimeout(reinforce,0));
-const side=document.getElementById('sidebar');
-if(side&&window.MutationObserver){
-  const ob=new MutationObserver(()=>reinforce());
-  ob.observe(side,{subtree:true,childList:true,attributes:true,attributeFilter:['style','hidden','aria-hidden','disabled']});
-}
-setTimeout(reinforce,250);setTimeout(reinforce,1200);
+function wrapPinAction(name){const base=window[name];if(typeof base!=='function'||base.__etosPinPolicyV364)return;const guarded=function(){const self=this,args=arguments;if(!requestPin(()=>guarded.apply(self,args)))return;return base.apply(self,args)};guarded.__etosPinPolicyV364=true;window[name]=guarded}
+function installActionGates(){['openAttendanceEntry','openAttendancePeriodSettings','deleteAttendancePeriodSetting','openAttendanceAgendaSettings','deleteAttendanceAgendaSetting','openCoachingModal'].forEach(wrapPinAction)}
+function reinforce(){showAllNav();installPublicReads();installActionGates();normalizeAccessCopy();normalizeHeader()}
+reinforce();window.addEventListener('etos:enhancements-ready',()=>setTimeout(reinforce,0));
+const side=document.getElementById('sidebar');if(side&&window.MutationObserver){const ob=new MutationObserver(()=>reinforce());ob.observe(side,{subtree:true,childList:true,attributes:true,attributeFilter:['style','hidden','aria-hidden','disabled']})}
+setTimeout(reinforce,200);setTimeout(reinforce,900);
 })();

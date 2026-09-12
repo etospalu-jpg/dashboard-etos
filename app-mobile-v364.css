@@ -1,0 +1,28 @@
+/* ETOS v36.4 — portrait/mobile consistency */
+#sidebar .nav-btn[data-view]{display:flex!important;visibility:visible!important;opacity:1!important}
+#sidebar .nav-btn[data-view="coaching"] .secure-lock{display:none!important}
+@media(max-width:960px){.topbar.etos-mobile-header{box-sizing:border-box!important}}
+@media(max-width:640px) and (orientation:portrait){
+  .topbar.etos-mobile-header{height:auto!important;min-height:104px!important;padding-top:calc(env(safe-area-inset-top,0px) + 18px)!important;padding-bottom:16px!important;padding-left:14px!important;padding-right:14px!important;align-items:flex-start!important;gap:10px!important;background:rgba(247,249,248,.96)!important}
+  .etos-mobile-header-main{flex:1 1 auto!important;min-width:0!important;align-items:flex-start!important;gap:12px!important}
+  .etos-mobile-header-main>.mobile-only{width:48px!important;height:48px!important;min-width:48px!important;padding:0!important;margin:0!important;align-items:center!important;justify-content:center!important;border-radius:15px!important}
+  .etos-mobile-header-main>div{min-width:0!important;padding-top:2px!important}
+  .etos-mobile-header .eyebrow{margin:0!important;font-size:10px!important;line-height:1.15!important;letter-spacing:.17em!important;white-space:nowrap!important}
+  #page-title{margin-top:7px!important;max-width:100%!important;font-size:21px!important;line-height:1.13!important;letter-spacing:-.035em!important;overflow-wrap:anywhere!important}
+  .etos-mobile-header-actions{flex:0 0 auto!important;align-items:flex-start!important;gap:6px!important;padding-top:0!important}
+  .etos-mobile-header #system-mode{display:inline-flex!important;min-height:36px!important;align-items:center!important;padding:.45rem .65rem!important;font-size:9px!important}
+  .etos-mobile-header #top-auth-btn{min-height:48px!important;padding:.72rem .88rem!important;border-radius:15px!important;font-size:11px!important}
+  .etos-mobile-header #top-auth-btn svg{width:15px!important;height:15px!important}
+  .content-pad{padding-top:24px!important;padding-left:14px!important;padding-right:14px!important;padding-bottom:32px!important}
+  .view.active>div:first-child{margin-top:0!important}.view .section-title{line-height:1.13}
+}
+@media(max-width:430px) and (orientation:portrait){
+  .topbar.etos-mobile-header{min-height:102px!important;padding-left:12px!important;padding-right:12px!important}
+  .etos-mobile-header-main{gap:10px!important}#page-title{font-size:20px!important}.etos-mobile-header #top-auth-btn{padding-left:.75rem!important;padding-right:.75rem!important}
+}
+@media(max-width:374px) and (orientation:portrait){
+  .etos-mobile-header #system-mode{display:none!important}#page-title{font-size:19px!important}.etos-mobile-header-main>.mobile-only{width:46px!important;height:46px!important;min-width:46px!important}.etos-mobile-header #top-auth-btn{min-height:46px!important}
+}
+@media(min-width:641px) and (max-width:960px) and (orientation:portrait){
+  .topbar.etos-mobile-header{height:auto!important;min-height:88px!important;padding-top:calc(env(safe-area-inset-top,0px) + 14px)!important;padding-bottom:14px!important}#page-title{line-height:1.12!important}
+}

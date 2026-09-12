@@ -1,0 +1,11 @@
+'use strict';
+const fs=require('fs');const path=require('path');const ROOT=path.resolve(__dirname,'..');const read=n=>fs.readFileSync(path.join(ROOT,n),'utf8');const errors=[];
+const need=(text,tokens,label)=>tokens.forEach(t=>{if(!text.includes(t))errors.push(`${label}: marker hilang: ${t}`)});const forbid=(text,tokens,label)=>tokens.forEach(t=>{if(text.includes(t))errors.push(`${label}: marker terlarang: ${t}`)});
+const index=read('index.html');need(index,['instant-shell',"const V='36.4'",'app-instant-cache','app-mobile-v364.css'],'Instant boot');forbid(index,['id="boot"','Menyiapkan ETOS Palu','body class="etos-booting"'],'Full-screen loader');
+const pin=read('app-pin-policy.js');need(pin,["PIN_VIEWS=new Set(['mentoring','profile','system','datacenter','settings'])",'openCoachingModal',"secureViews.delete('attendance');secureViews.delete('coaching')",'#sidebar .nav-btn[data-view]{display:flex!important'],'PIN policy');forbid(pin,['932000',"PIN_VIEWS=new Set(['coaching'"],'PIN frontend hygiene');
+const secure=read('api/secure.js');need(secure,['COACHING_PIN_REQUIRED',"new Set(['saveCoaching'])",'session.verify(req)','PIN Superadmin diperlukan untuk mencatat coaching.'],'Backend coaching PIN');
+const source=read('idp-google-sheet.js');need(source,["FILE_ID='1OzW2RfiXL5SmqLOJx-t4Grimy7usdnSqVvSQszZ8WvQ'","SOURCE_GID='1973014346'",'GOOGLE_SERVICE_ACCOUNT_JSON',"sourceMode:'sheets-live-service-account'",'CACHE_MS=60000'],'Google Sheet live source');forbid(source,['AIzaSy','-----BEGIN PRIVATE KEY-----','$Google Sheet HTTP'],'IDP secret/syntax hygiene');
+const api=read('api/idp-live.js');need(api,["require('../idp-google-sheet')",'fallbackMeta','drive.overview','drive.detail'],'IDP fallback');
+const restore=read('app-restore-idp.js');need(restore,['IDP dapat dilihat bebas','Live Google Sheets','Sumber cadangan','wrapCoaching'],'IDP public UX');forbid(restore,['R.canDev()','Terkunci','Locked','PIN Required'],'IDP no-lock UX');
+const mobile=read('app-mobile-v364.css');need(mobile,['env(safe-area-inset-top,0px) + 18px','max-width:430px','max-width:374px','.etos-mobile-header'],'Portrait consistency');
+if(errors.length){console.error(errors.map(x=>'✗ '+x).join('\n'));process.exit(1)}console.log('✓ ETOS v36.4 master-plan regression gate LULUS');
