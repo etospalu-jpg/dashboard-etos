@@ -1,7 +1,7 @@
 (function(){
 'use strict';
-if(window.ETOS_PIN_POLICY_V362)return;window.ETOS_PIN_POLICY_V362=true;
-const PIN_VIEWS=new Set(['coaching','mentoring','profile','system','datacenter','settings']);
+if(window.ETOS_PIN_POLICY_V363)return;window.ETOS_PIN_POLICY_V363=true;
+const PIN_VIEWS=new Set(['mentoring','profile','system','datacenter','settings']);
 const VIEW_TITLES={dashboard:'Dashboard',directory:'Direktori Awardee',alumni:'Tracking Alumni',academic:'Monitoring Akademik',attendance:'Absensi Pembinaan',coaching:'Coaching & IDP',achievements:'Prestasi Awardee',mentoring:'Jurnal Pendampingan',profile:'Profil Fasilitator',system:'System Center',datacenter:'Data Center',settings:'Pengaturan'};
 function appState(){try{return typeof state!=='undefined'?state:null}catch(_){return null}}
 function pinReady(){return appState()?.session?.kind==='pin'}
@@ -28,6 +28,22 @@ function showAllNav(){
     if(b.disabled)b.disabled=false;
   });
 }
+async function publicJson(url,payload){
+  const r=await fetch(url,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload||{})});
+  const b=await r.json().catch(()=>({}));
+  if(!r.ok||b.success===false)throw new Error(b.error||'Data belum dapat dibaca.');
+  return b;
+}
+function installPublicReads(){
+  if(!window.etosAPI||window.etosAPI.__etosPublicCoachingV363)return;
+  const base=window.etosAPI.call.bind(window.etosAPI);
+  window.etosAPI.call=async function(name,params){
+    if(name==='getCoachingList')return publicJson('/api/public-coaching',{function:name,params:params??null});
+    if(name==='getIDPOverview'||name==='getIDPDetail')return publicJson('/api/idp-live',{function:name,params:params??null});
+    return base(name,params);
+  };
+  window.etosAPI.__etosPublicCoachingV363=true;
+}
 async function openViewDirect(view,force=false){
   const st=appState();if(!st)return;
   const target=document.getElementById('view-'+view);
@@ -42,24 +58,24 @@ async function openViewDirect(view,force=false){
 }
 window.goView=async function(view,force=false){
   view=String(view||'').trim();if(!view)return;
-  showAllNav();
+  showAllNav();installPublicReads();
   if(PIN_VIEWS.has(view)&&!pinReady()){
     requestPin(()=>window.goView(view,force));
     return;
   }
   return openViewDirect(view,force);
 };
-try{secureViews.delete('attendance')}catch(_){}
+try{secureViews.delete('attendance');secureViews.delete('coaching')}catch(_){}
 function wrapPinAction(name){
   const base=window[name];
-  if(typeof base!=='function'||base.__etosPinPolicyV362)return;
+  if(typeof base!=='function'||base.__etosPinPolicyV363)return;
   const guarded=function(){const self=this,args=arguments;if(!requestPin(()=>guarded.apply(self,args)))return;return base.apply(self,args)};
-  guarded.__etosPinPolicyV362=true;window[name]=guarded;
+  guarded.__etosPinPolicyV363=true;window[name]=guarded;
 }
 function installActionGates(){
-  ['openAttendanceEntry','openAttendancePeriodSettings','deleteAttendancePeriodSetting','openAttendanceAgendaSettings','deleteAttendanceAgendaSetting'].forEach(wrapPinAction);
+  ['openAttendanceEntry','openAttendancePeriodSettings','deleteAttendancePeriodSetting','openAttendanceAgendaSettings','deleteAttendanceAgendaSetting','openCoachingModal'].forEach(wrapPinAction);
 }
-function reinforce(){showAllNav();installActionGates()}
+function reinforce(){showAllNav();installPublicReads();installActionGates()}
 reinforce();
 window.addEventListener('etos:enhancements-ready',()=>setTimeout(reinforce,0));
 const side=document.getElementById('sidebar');
