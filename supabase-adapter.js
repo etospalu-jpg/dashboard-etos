@@ -21,7 +21,7 @@ function startRealtimeSignals(){
     realtimeTimer=setTimeout(()=>{
      try{
       const active=String(document.querySelector('.view.active')?.id||'').replace(/^view-/,'');
-      const safe=new Set(['dashboard','directory','alumni','academic','achievements']);
+      const safe=new Set(['dashboard','directory','alumni','academic','achievements','attendance']);
       const modalOpen=!!document.querySelector('.modal.open');
       if(!modalOpen&&safe.has(active)&&typeof window.refreshCurrent==='function')window.refreshCurrent();
      }catch(_){}
@@ -55,7 +55,7 @@ function reflectionCall(name,params){const action=name==='getPublicKajianReflect
 async function secureCall(name,params){const endpoint=name==='getAwardee360'?'/api/awardee360':'/api/secure';return sanitizeResult(await fetchJson(endpoint,{method:'POST',body:JSON.stringify({function:name,params:params==null?null:params})}))}
 const PUBLIC_FUNCTIONS=new Set(['getDashboardStats','getFeaturedAwardees','getAwardeeList','getAlumniList','getAkademikList','getPrestasiList','getOrganisasiList','getAwardeeProfile','getDropdownOptions']);
 const REFLECTION_FUNCTIONS=new Set(['getPublicKajianReflectionForm','verifyKajianReflectionParticipant','submitKajianReflection']);
-async function call(name,params){if(REFLECTION_FUNCTIONS.has(name))return reflectionCall(name,params);if(PUBLIC_FUNCTIONS.has(name))return publicCall(name,params);if(name==='logoutAbsensiAdmin'||name==='logoutFacilitatorAccess')return{success:true};return secureCall(name,params)}
+async function call(name,params){if(REFLECTION_FUNCTIONS.has(name))return reflectionCall(name,params);if(name==='getAbsensiList')return publicCall('getPublicAttendance',params);if(PUBLIC_FUNCTIONS.has(name))return publicCall(name,params);if(name==='logoutAbsensiAdmin'||name==='logoutFacilitatorAccess')return{success:true};return secureCall(name,params)}
 async function signInPin(pin){pin=String(pin||'').trim();if(!/^\d{6}$/.test(pin))throw new Error('PIN harus terdiri dari 6 digit.');const body=await fetchJson('/api/pin-login',{method:'POST',body:JSON.stringify({pin})});if(!body||body.success===false||!body.data?.session){const e=new Error(body?.error||'PIN tidak sesuai.');e.code=body?.code;e.credential_type=body?.credential_type;e.http_status=body?.http_status;throw e}return{session:body.data.session,firstSetup:false}}
 async function getSession(){const body=await fetchJson('/api/pin-login',{method:'GET'});return{data:{session:body?.data?.session||null}}}
 async function signOut(){await fetchJson('/api/pin-login',{method:'DELETE'});return{error:null}}
