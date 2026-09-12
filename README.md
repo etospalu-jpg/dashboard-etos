@@ -1,42 +1,17 @@
 # ETOS ID Palu Dashboard
 
-ETOS ID Palu Dashboard adalah workspace perkembangan Awardee berbasis **Supabase PostgreSQL** dengan frontend di Vercel.
+Awardee development intelligence dashboard for ETOS ID Palu.
 
-## Arsitektur v36
+## Runtime
 
-- **Frontend:** ETOS web dashboard di Vercel
-- **Database utama:** Supabase PostgreSQL (`weklmapqizeldfdalbgs`)
-- **Authentication:** Supabase Auth + session operasional Superadmin
-- **Authorization:** RBAC + Row Level Security
-- **Realtime:** Supabase Realtime untuk perubahan data aplikasi
-- **Public data:** Supabase Edge Function `public-api`
-- **Refleksi Kajian:** Supabase Edge Function `public-reflection`
-- **IDP:** live read-only; satu-satunya sumber data eksternal yang diizinkan
+- Frontend: static HTML/CSS/JavaScript
+- Backend: Vercel Functions + Supabase
+- Production domain: https://etosidpalu.vercel.app
 
-## Kebijakan sumber data
+## Data
 
-Seluruh data aplikasi selain IDP harus dibaca dan ditulis ke Supabase PostgreSQL. Tidak ada auto-sync spreadsheet, manual spreadsheet sync, snapshot JSON sebagai fallback database, atau migration-on-build.
+Public dashboard data is served from Supabase. IDP Palu supports a replace-upload workflow for the active `.xlsx` workbook; the active parsed workbook is stored in Supabase and remains available across refreshes and deployments.
 
-IDP pusat hanya dibaca secara live dan tidak boleh digunakan sebagai database fallback. Dashboard tidak menulis ke workbook IDP.
+## Security
 
-## Modul akses
-
-Dashboard, Direktori Awardee, Tracking Alumni, Akademik, dan Prestasi dapat memiliki akses baca sesuai kebijakan aplikasi. Modul operasional berikut berada di balik autentikasi/RBAC:
-
-- Absensi
-- Coaching & IDP
-- Jurnal Pendampingan
-- Profil Fasilitator
-- Data Center
-- System Center
-- Pengaturan
-
-## Data Center dan Pengaturan
-
-**Data Center** adalah workspace CRUD data Supabase sesuai role. **Pengaturan** adalah workspace konfigurasi operasional, termasuk Periode Pembinaan dan Agenda Absensi. Keduanya merupakan view terpisah dan tidak boleh saling menimpa.
-
-## Deployment
-
-Perubahan dikerjakan dan diverifikasi di branch terlebih dahulu. Production dipromosikan hanya setelah migration database, quality gate, dan verifikasi runtime selesai.
-
-Jangan menaruh service-role key atau secret server di repository. Browser hanya boleh menggunakan Supabase publishable key.
+Operational actions require authorized access. Public views remain read-only.
