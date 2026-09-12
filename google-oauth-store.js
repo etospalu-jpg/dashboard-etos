@@ -1,7 +1,7 @@
 const crypto=require('crypto');
-const https=require('https');
 const session=require('./server-session');
 const PROVIDER='google_idp_oauth';
+const SESSION_SALT='e811d29b1b60cc0f4ffc2e65ffc4b14c38415da9c7b1cc73f73a97c67725a490';
 
 function secretKey(){
   const raw=session.secret();
@@ -20,33 +20,28 @@ function decrypt(row){
   const plain=Buffer.concat([decipher.update(Buffer.from(row.ciphertext,'base64')),decipher.final()]).toString('utf8');
   return JSON.parse(plain);
 }
-function directRequest(path,{method='GET',body=null,headers={}}={}){
-  return new Promise((resolve,reject)=>{
-    const key=session.secret(),kind=session.kind(key);
-    if(!key||!['secret','legacy'].includes(kind))return reject(new Error('Supabase server credential tidak tersedia.'));
-    const base=new URL(session.PROJECT_URL),payload=body==null?null:JSON.stringify(body);
-    const h={apikey:key,Accept:'application/json','Content-Type':'application/json',...headers};
-    if(kind==='legacy')h.Authorization='Bearer '+key;
-    if(payload)h['Content-Length']=Buffer.byteLength(payload);
-    const req=https.request({protocol:base.protocol,hostname:base.hostname,port:443,path,method,headers:h},res=>{
-      const chunks=[];res.on('data',d=>chunks.push(d));res.on('end',()=>{
-        const text=Buffer.concat(chunks).toString('utf8');let parsed=null;
-        try{parsed=text?JSON.parse(text):null}catch{parsed=text}
-        if(res.statusCode>=200&&res.statusCode<300)return resolve(parsed);
-        reject(new Error(parsed?.message||parsed?.error||`Supabase HTTP ${res.statusCode}`));
-      });
-    });
-    req.on('error',reject);if(payload)req.write(payload);req.end();
-  });
+function internalSessionCookie(){
+  const serverSecret=session.secret();if(!serverSecret)throw new Error('Supabase server secret belum tersedia.');
+  const signingKey=crypto.createHash('sha256').update('ETOS-PIN-SESSION|'+serverSecret+'|'+SESSION_SALT).digest();
+  const now=Math.floor(Date.now()/1000),payload=Buffer.from(JSON.stringify({iat:now,exp:now+300,role:'superadmin',scope:'etos-operational',n:crypto.randomBytes(12).toString('hex')})).toString('base64url');
+  const sig=crypto.createHmac('sha256',signingKey).update(payload).digest('base64url');
+  return `etos_session=${encodeURIComponent(payload+'.'+sig)}`;
+}
+async function proxyRequest(path,{method='GET',body=null,headers={}}={}){
+  const cookie=internalSessionCookie();
+  const response=await fetch(session.EDGE_PROXY,{method:'POST',headers:{apikey:session.PUBLISHABLE_KEY,'Content-Type':'application/json','x-etos-session-cookie':Buffer.from(cookie).toString('base64url')},body:JSON.stringify({action:'proxy',path,method,headers:{accept:'application/json','content-type':'application/json',...headers},body:body==null?null:JSON.stringify(body)})});
+  const text=await response.text();let parsed=null;try{parsed=text?JSON.parse(text):null}catch{parsed=text}
+  if(!response.ok)throw new Error(parsed?.error||parsed?.message||`Supabase proxy HTTP ${response.status}`);
+  return parsed;
 }
 async function getRow(){
-  const rows=await directRequest('/rest/v1/integration_secrets?provider=eq.'+encodeURIComponent(PROVIDER)+'&select=provider,ciphertext,iv,auth_tag,metadata,updated_at&limit=1');
+  const rows=await proxyRequest('/rest/v1/integration_secrets?provider=eq.'+encodeURIComponent(PROVIDER)+'&select=provider,ciphertext,iv,auth_tag,metadata,updated_at&limit=1');
   return Array.isArray(rows)&&rows.length?rows[0]:null;
 }
 async function getConfig(){return decrypt(await getRow())}
 async function saveConfig(config,metadata={}){
   const enc=encrypt(config),row={provider:PROVIDER,...enc,metadata,updated_at:new Date().toISOString()};
-  const rows=await directRequest('/rest/v1/integration_secrets?on_conflict=provider',{method:'POST',body:row,headers:{Prefer:'resolution=merge-duplicates,return=representation'}});
+  const rows=await proxyRequest('/rest/v1/integration_secrets?on_conflict=provider',{method:'POST',body:row,headers:{prefer:'resolution=merge-duplicates,return=representation'}});
   return Array.isArray(rows)?rows[0]:rows;
 }
 async function status(){
