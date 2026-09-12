@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="id"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#071b13">
-<meta name="etos-build" content="20260913-instant-navigation-motion-v36-8"><title>ETOS ID Palu — Awardee Intelligence</title>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=36.8"><link rel="preload" as="image" href="/brand-etos.svg?v=36.8">
+<meta name="etos-build" content="20260913-backoffice-idp-profile-v36-9"><title>ETOS ID Palu — Awardee Intelligence</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=36.9"><link rel="preload" as="image" href="/brand-etos.svg?v=36.9">
 <link rel="preconnect" href="https://weklmapqizeldfdalbgs.supabase.co" crossorigin><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin><link rel="preconnect" href="https://lh3.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="//lh3.googleusercontent.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/app.css?v=36.8"><link rel="stylesheet" href="/app-layout.css?v=36.8"><link rel="stylesheet" href="/app-mobile-v364.css?v=36.8">
+<link rel="stylesheet" href="/app.css?v=36.9"><link rel="stylesheet" href="/app-layout.css?v=36.9"><link rel="stylesheet" href="/app-mobile-v364.css?v=36.9">
 <style>
 html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden;background:#f5f7f6;font-family:Inter,system-ui,sans-serif;color:#15201c}
 #instant-shell{position:fixed;inset:0;z-index:9998;background:#071b13;display:grid;place-items:center;pointer-events:none;overflow:hidden}
@@ -25,10 +25,10 @@ html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden;background:#f5f7
 @keyframes etosOrbit{from{transform:translate3d(0,0,0) scale(.96)}to{transform:translate3d(18px,12px,0) scale(1.04)}}
 @media(prefers-reduced-motion:reduce){.instant-entry,#instant-shell:before,#instant-shell:after,.instant-entry-line:after{animation:none!important}}
 </style></head><body>
-<div id="instant-shell" aria-hidden="true"><div class="instant-entry"><img src="/brand-etos.svg?v=36.8" alt="ETOS ID Palu"><div class="instant-entry-line"></div><small>PALU · AWARDEE INTELLIGENCE</small></div></div>
+<div id="instant-shell" aria-hidden="true"><div class="instant-entry"><img src="/brand-etos.svg?v=36.9" alt="ETOS ID Palu"><div class="instant-entry-line"></div><small>PALU · AWARDEE INTELLIGENCE</small></div></div>
 <div id="startup-error" role="alert"></div>
 <script>(function(){'use strict';
-const V='36.8',DATA_TIMEOUT=12000;window.ETOS_VERSION=V;window.ETOS_BOOT_RESILIENCE='v36.8-native-entry';
+const V='36.9',DATA_TIMEOUT=12000;window.ETOS_VERSION=V;window.ETOS_BOOT_RESILIENCE='v36.9-backoffice-entry';
 const nativeFetch=window.fetch.bind(window),loaded=new Map();
 function hydrateInstant(){}
 hydrateInstant();
@@ -40,11 +40,11 @@ async function libs(){const tailwind=load('https://cdn.tailwindcss.com',false,70
 function mountShell(html){const parsed=new DOMParser().parseFromString(html,'text/html');parsed.body.querySelectorAll('script').forEach(x=>x.remove());const frag=document.createDocumentFragment();Array.from(parsed.body.childNodes).forEach(node=>frag.appendChild(document.importNode(node,true)));document.body.appendChild(frag);const app=document.getElementById('main-app');if(app){app.style.visibility='visible';app.style.opacity='1';app.style.pointerEvents='auto';app.removeAttribute('aria-hidden')}}
 function revealShell(){const instant=document.getElementById('instant-shell');if(instant)requestAnimationFrame(()=>instant.remove())}
 function brand(){const side=document.getElementById('sidebar');if(side&&side.firstElementChild){side.firstElementChild.className='brand-production';side.firstElementChild.innerHTML='<div style="position:relative"><div class="brand-production-card"><img src="/brand-etos.svg?v='+V+'" alt="ETOS ID"></div><div class="etos-location"><span>PALU</span></div><div class="etos-brand-sub">Awardee Development Intelligence</div><button class="mobile-only absolute right-0 top-0 w-9 h-9 rounded-xl bg-white/5 text-white items-center justify-center" onclick="toggleSidebar(false)">×</button></div>'}window.lucide?.createIcons?.()}
-function softError(e){console.error('[ETOS v36.8]',e);const box=document.getElementById('startup-error');if(box){box.textContent=e?.message||String(e);box.style.display='block';setTimeout(()=>{box.style.display='none'},7000)}}
+function softError(e){console.error('[ETOS v36.9]',e);const box=document.getElementById('startup-error');if(box){box.textContent=e?.message||String(e);box.style.display='block';setTimeout(()=>{box.style.display='none'},7000)}}
 async function loadSeries(list){for(const f of list)await load('/'+f+'.js?v='+V,false,7000)}
 async function loadGroup(list,optional=false){await Promise.all(list.map(f=>load('/'+f+'.js?v='+V,optional,7000).catch(e=>{if(optional){console.warn('[ETOS optional]',f,e?.message||e);return false}throw e})))}
 async function reflection(){const m=location.pathname.match(/^\/r\/([^/?#]+)/i);if(!m)return false;await libs();await load('/supabase-adapter.js?v='+V);await load('/app-supabase-authority.js?v='+V);await load('/app-reflection.js?v='+V);document.getElementById('instant-shell')?.remove();if(typeof window.bootReflection!=='function')throw new Error('Form refleksi tidak tersedia.');await window.bootReflection(decodeURIComponent(m[1]));return true}
 function idleEnhancements(){const run=async()=>{await loadGroup(['app-auth-recovery','app-auth-mfa'],true);try{window.dispatchEvent(new CustomEvent('etos:enhancements-ready'));window.lucide?.createIcons?.()}catch(_){}};if('requestIdleCallback'in window)requestIdleCallback(()=>run(),{timeout:1600});else setTimeout(run,250)}
-async function dashboard(){const shellPromise=fetch('/shell.html?v='+V,{cache:'no-store'}),libsPromise=libs();const r=await shellPromise;if(!r.ok)throw new Error('shell HTTP '+r.status);const html=await r.text();await libsPromise;mountShell(html);brand();if(document.readyState==='loading')await new Promise(resolve=>document.addEventListener('DOMContentLoaded',resolve,{once:true}));await loadSeries(['supabase-adapter','app-instant-cache-v367','app-supabase-authority','app-core','app-public','app-secure','app-click-guard']);await loadGroup(['app-access','app-auth-rbac','app-interaction-fix','app-attendance-settings','app-restore-core'],false);await load('/app-polish.js?v='+V,true,6000);await load('/app-pin-policy.js?v='+V,false,7000);await load('/app-v367-performance.js?v='+V,false,7000);await load('/app-v368-experience.js?v='+V,false,7000);brand();try{window.dispatchEvent(new CustomEvent('etos:enhancements-ready'));window.lucide?.createIcons?.()}catch(_){}if(typeof window.boot!=='function')throw new Error('boot tidak ditemukan');try{await window.boot()}finally{revealShell()}idleEnhancements()}
+async function dashboard(){const shellPromise=fetch('/shell.html?v='+V,{cache:'no-store'}),libsPromise=libs();const r=await shellPromise;if(!r.ok)throw new Error('shell HTTP '+r.status);const html=await r.text();await libsPromise;mountShell(html);brand();if(document.readyState==='loading')await new Promise(resolve=>document.addEventListener('DOMContentLoaded',resolve,{once:true}));await loadSeries(['supabase-adapter','app-instant-cache-v367','app-supabase-authority','app-core','app-public','app-secure','app-click-guard']);await loadGroup(['app-access','app-auth-rbac','app-interaction-fix','app-attendance-settings','app-restore-core'],false);await load('/app-polish.js?v='+V,true,6000);await load('/app-pin-policy.js?v='+V,false,7000);await load('/app-v367-performance.js?v='+V,false,7000);await load('/app-v368-experience.js?v='+V,false,7000);await load('/app-v369-backoffice.js?v='+V,false,7000);brand();try{window.dispatchEvent(new CustomEvent('etos:enhancements-ready'));window.lucide?.createIcons?.()}catch(_){}if(typeof window.boot!=='function')throw new Error('boot tidak ditemukan');try{await window.boot()}finally{revealShell()}idleEnhancements()}
 (async()=>{try{if(await reflection())return;await dashboard()}catch(e){revealShell();softError(e)}})();
 })();</script></body></html>
