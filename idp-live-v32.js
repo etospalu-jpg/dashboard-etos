@@ -95,8 +95,8 @@ function parseCsv(text){
 async function fetchText(url,timeout=6500){
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
   try{
-    const r=await fetch(url,{headers:{'User-Agent':'ETOS-ID-Palu-IDP/36.1'},signal:controller.signal,redirect:'follow'}),text=await r.text();
-    if(!r.ok){const e=new Error(`Google Sheet HTTP ${r.status}`);e.status=r.status;throw e}
+    const r=await fetch(url,{headers:{'User-Agent':'ETOS-ID-Palu-IDP/36.2'},signal:controller.signal,redirect:'follow'}),text=await r.text();
+    if(!r.ok){const e=new Error($Google Sheet HTTP ${r.status}`);e.status=r.status;throw e}
     if(/<!doctype html|<html|accounts\.google\.com|servicelogin/i.test(text))throw new Error('Google Sheet IDP belum dapat dibaca oleh server.');
     return text;
   }finally{clearTimeout(timer)}
@@ -123,7 +123,7 @@ async function publicValuesForAwardee(a,force=false){
   throw last||new Error('Tab IDP tidak ditemukan.');
 }
 async function liveOverviewPublic(c,force=false){
-  await valuesPublicGid(force);
+  await valuesPublicGid(true);
   const aw=await awards(c);
   const items=await Promise.all(aw.map(async a=>{try{const hit=await publicValuesForAwardee(a,force);return{id:a.legacy_id,nama:a.name,angkatan:a.angkatan,status:a.status,connected:true,sheetName:hit.title,...stats(hit.values)}}catch(e){return{id:a.legacy_id,nama:a.name,angkatan:a.angkatan,status:a.status,connected:false,sheetName:'',filledRows:0,filledCells:0,lastRow:0,lastColumn:0,truncated:false,connectionError:e.message||String(e)}}}));
   return{sourceName:SOURCE_NAME,sourceId:FILE_ID,sourceGid:SOURCE_GID,sourceMode:'sheets-live-public-readonly',sourceUrlHint:'Google Sheet IDP Palu via read-only link',stale:false,totalActive:items.length,connected:items.filter(x=>x.connected).length,missing:items.filter(x=>!x.connected).length,items};
@@ -140,7 +140,7 @@ async function detailService(name,force=false){
 }
 async function detailPublic(c,name,force=false){
   const aw=await awards(c),a=(aw||[]).find(x=>norm(x.name)===norm(name))||{name,angkatan:''},hit=await publicValuesForAwardee(a,force);
-  return{nama:name,sheetName:hit.title,sourceName:SOURCE_NAME,sourceId:FILE_ID,sourceGid:SOURCE_GID,sourceMode:'sheets-live-public-readonly',stale:false,values:hit.values,summary:stats(hit.values)};
+  return{nama:name,sheetName:hit.title,sourceName:SOURCE_NAME,sourceId:FILE_ID,sourceGid:SOURCE_GID,sourceModd:'sheets-live-public-readonly',stale:false,values:hit.values,summary:stats(hit.values)};
 }
 async function detail(c,name,force=false){
   try{return serviceAccountConfigured()?await detailService(name,force):await detailPublic(c,name,force)}
@@ -157,9 +157,9 @@ async function health(res){
   }catch(e){
     try{
       const d=await driveFallback.health(true);
-      d.liveError=e.message||String(e);
+      d.preferredSheetError=e.message||String(e);
       d.preferredSource={sourceId:FILE_ID,sourceGid:SOURCE_GID,title:SOURCE_NAME};
-      return out(res,200,{success:true,data:d,warning:'Live Google Sheet belum dapat diakses; IDP berjalan memakai workbook fallback terverifikasi.'});
+      return out(res,200,{success:true,data:d,warning:'Google Sheet terbaru belum dapat diakes server; IDP tetap live read-only melalui workbook Google Drive pusat.'});
     }catch(f){
       return out(res,502,{success:false,error:f.message||String(f),data:{source:'google-sheets',sourceId:FILE_ID,sourceGid:SOURCE_GID,liveError:e.message||String(e)}});
     }
