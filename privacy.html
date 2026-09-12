@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="index,follow">
+  <title>Kebijakan Privasi — ETOS Dashboard IDP</title>
+  <meta name="description" content="Kebijakan Privasi ETOS Dashboard IDP untuk integrasi Google Sheets read-only.">
+  <style>
+    :root{color-scheme:light;--ink:#17211d;--muted:#62706a;--line:#e4e9e6;--accent:#117a4d;--soft:#f4f8f5}
+    *{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff;color:var(--ink);line-height:1.65}
+    main{width:min(860px,calc(100% - 36px));margin:0 auto;padding:56px 0 72px}.brand{display:inline-flex;align-items:center;gap:10px;font-weight:800;color:var(--accent);letter-spacing:.02em}.dot{width:12px;height:12px;border-radius:999px;background:var(--accent)}
+    h1{font-size:clamp(2rem,5vw,3.3rem);line-height:1.08;margin:18px 0 12px;letter-spacing:-.035em}h2{font-size:1.18rem;margin:30px 0 8px}p,li{color:#314039}a{color:var(--accent)}.lead{font-size:1.08rem;color:var(--muted);max-width:760px}.card{margin-top:28px;padding:20px 22px;border:1px solid var(--line);border-radius:18px;background:var(--soft)}.meta{font-size:.9rem;color:var(--muted);margin-top:8px}ul{padding-left:22px}.back{display:inline-block;margin-top:28px;text-decoration:none;font-weight:700}
+  </style>
+</head>
+<body>
+<main>
+  <div class="brand"><span class="dot" aria-hidden="true"></span>ETOS ID PALU</div>
+  <h1>Kebijakan Privasi</h1>
+  <p class="lead">Kebijakan ini menjelaskan bagaimana ETOS Dashboard IDP menggunakan akses Google untuk membaca data Individual Development Plan (IDP) secara terbatas dan hanya-baca.</p>
+  <p class="meta">Berlaku sejak 12 September 2026 · Aplikasi: ETOS Dashboard IDP</p>
+
+  <div class="card"><strong>Ringkasnya:</strong> integrasi Google hanya meminta akses <em>read-only</em> ke Google Sheets. Dashboard tidak menggunakan izin tersebut untuk mengubah, menambah, atau menghapus isi Google Sheets.</div>
+
+  <h2>1. Data yang diakses</h2>
+  <p>Aplikasi dapat mengakses isi Google Sheets yang dapat dibuka oleh akun Google yang memberikan persetujuan OAuth, menggunakan cakupan <code>https://www.googleapis.com/auth/spreadsheets.readonly</code>. Akses ini digunakan untuk membaca data IDP yang diperlukan oleh Dashboard ETOS Palu.</p>
+
+  <h2>2. Tujuan penggunaan</h2>
+  <p>Data Google Sheets digunakan hanya untuk menampilkan, merangkum, dan membantu pemantauan IDP di lingkungan ETOS Dashboard. Data tersebut tidak digunakan untuk iklan, profiling pemasaran, atau dijual kepada pihak lain.</p>
+
+  <h2>3. Akses hanya-baca</h2>
+  <p>Integrasi tidak meminta izin menulis Google Sheets. Dashboard tidak mengubah struktur, formula, nilai, kepemilikan, maupun pengaturan berbagi spreadsheet melalui integrasi ini.</p>
+
+  <h2>4. Penyimpanan dan keamanan</h2>
+  <p>Kredensial OAuth disimpan hanya pada sisi server sebagai rahasia aplikasi dan tidak dikirim ke browser pengguna. Untuk kinerja, hasil pembacaan dapat disimpan sementara di cache server dalam waktu singkat sebelum diperbarui kembali. Aplikasi tidak menempatkan token OAuth di kode frontend atau repositori publik.</p>
+
+  <h2>5. Pembagian data</h2>
+  <p>Data Google yang diperoleh melalui integrasi ini tidak dijual kepada pengiklan dan tidak dibagikan untuk tujuan periklanan. Akses dibatasi untuk fungsi internal Dashboard ETOS sesuai kebutuhan operasional dan izin yang berlaku.</p>
+
+  <h2>6. Pencabutan akses</h2>
+  <p>Pemilik akun Google dapat mencabut akses aplikasi melalui pengaturan keamanan Akun Google pada bagian aplikasi dan layanan pihak ketiga. Setelah akses dicabut, aplikasi tidak dapat memperoleh data baru dari Google Sheets menggunakan otorisasi tersebut.</p>
+
+  <h2>7. Perubahan kebijakan</h2>
+  <p>Kebijakan ini dapat diperbarui jika cara integrasi atau penggunaan data berubah. Versi terbaru akan tersedia pada halaman ini.</p>
+
+  <h2>8. Kontak</h2>
+  <p>Untuk pertanyaan mengenai privasi atau integrasi Google pada ETOS Dashboard IDP, hubungi <a href="mailto:etospalu@gmail.com">etospalu@gmail.com</a>.</p>
+
+  <a class="back" href="/">← Kembali ke ETOS Dashboard</a>
+</main>
+</body>
+</html>
