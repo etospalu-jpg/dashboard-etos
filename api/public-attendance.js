@@ -6,7 +6,26 @@ const PUBLIC_FUNCTIONS=new Set(['getDashboardStats','getFeaturedAwardees','getAw
 const REFLECTION_FUNCTIONS=new Set(['getPublicKajianReflectionForm','verifyKajianReflectionParticipant','submitKajianReflection']);
 function out(res,status,body,cache='public, max-age=15, s-maxage=30, stale-while-revalidate=60'){res.status(status).setHeader('Content-Type','application/json');res.setHeader('Cache-Control',cache);res.end(JSON.stringify(body))}
 async function edge(url,payload){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','apikey':PUBLISHABLE_KEY},body:JSON.stringify(payload)});const text=await r.text();let b={};try{b=text?JSON.parse(text):{}}catch{b={success:false,error:'Respons Supabase tidak valid.'}}if(!r.ok||b?.success===false){const e=new Error(b?.error||b?.message||`Supabase Edge ${r.status}`);e.status=r.status;throw e}return b}
-async function publicData(req,res){const fn=String(req.body?.function||'');if(!PUBLIC_FUNCTIONS.has(fn))return out(res,400,{success:false,error:'Fungsi data publik tidak valid.'},'no-store');try{const b=await edge(PUBLIC_EDGE,{function:fn,params:req.body?.params??null});b.source='supabase';return out(res,200,b)}catch(e){console.warn('[public-data]',fn,e.message);return out(res,502,{success:false,error:'Data Supabase tidak dapat dibaca saat ini.',source:'supabase'},'no-store')}}
+async function publicData(req,res){const fn=String(req.body?.function||'');if(!PUBLIC_FUNCTIONS.has(fn))return out(res,400,{success:false,error:'Fungsi data publik tidak valid.'},'no-store');try{
+  if(fn==='getPublicAttendance'){
+    const [attendance,list]=await Promise.all([
+      edge(PUBLIC_EDGE,{function:'getPublicAttendance',params:req.body?.params??null}),
+      edge(PUBLIC_EDGE,{function:'getAwardeeList',params:null})
+    ]);
+    const raw=Array.isArray(attendance?.data?.items)?attendance.data.items:[];
+    const awards=Array.isArray(list?.data)?list.data:[];
+    const byId=new Map(raw.map(x=>[String(x.id||''),x]));
+    const byName=new Map(raw.map(x=>[String(x.nama||'').trim().toLowerCase(),x]));
+    const items=awards.filter(x=>String(x.status||'').toLowerCase()==='aktif').map(a=>{
+      const hit=byId.get(String(a.id||''))||byName.get(String(a.nama||'').trim().toLowerCase());
+      return hit||{id:a.id,nama:a.nama,angkatan:a.angkatan,h:0,i:0,s:0,a:0,total:0,pct:null,recorded:false};
+    });
+    attendance.data={...(attendance.data||{}),items};
+    attendance.source='supabase';
+    return out(res,200,attendance,'no-store');
+  }
+  const b=await edge(PUBLIC_EDGE,{function:fn,params:req.body?.params??null});b.source='supabase';return out(res,200,b)
+}catch(e){console.warn('[public-data]',fn,e.message);return out(res,502,{success:false,error:'Data Supabase tidak dapat dibaca saat ini.',source:'supabase'},'no-store')}}
 async function publicBatch(req,res){const calls=Array.isArray(req.body?.calls)?req.body.calls:[];if(!calls.length||calls.length>12)return out(res,400,{success:false,error:'Batch data publik tidak valid.'},'no-store');if(calls.some(x=>!PUBLIC_FUNCTIONS.has(String(x?.function||''))))return out(res,400,{success:false,error:'Batch memuat fungsi data publik yang tidak valid.'},'no-store');const results=await Promise.all(calls.map(async x=>{const fn=String(x.function);try{const b=await edge(PUBLIC_EDGE,{function:fn,params:x.params??null});b.source='supabase';return b}catch(e){console.warn('[public-batch]',fn,e.message);return{success:false,error:'Data Supabase tidak dapat dibaca saat ini.',source:'supabase'}}}));return out(res,200,{success:true,data:results,source:'supabase'},'no-store')}
 function reflectionPayload(fn,params){const p=params&&typeof params==='object'?{...params}:{};if(fn==='getPublicKajianReflectionForm')return{action:'form',formToken:params};if(fn==='verifyKajianReflectionParticipant')return{...p,action:'verify'};return{...p,action:'submit'}}
 async function reflectionData(req,res){const fn=String(req.body?.function||'');if(!REFLECTION_FUNCTIONS.has(fn))return out(res,400,{success:false,error:'Fungsi refleksi tidak valid.'},'no-store');try{return out(res,200,await edge(REFLECTION_EDGE,reflectionPayload(fn,req.body?.params)),'no-store')}catch(e){console.warn('[reflection-data]',fn,e.message);return out(res,502,{success:false,error:'Layanan refleksi Supabase tidak tersedia.'},'no-store')}}
