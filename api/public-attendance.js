@@ -2,7 +2,7 @@ const PROJECT_URL='https://weklmapqizeldfdalbgs.supabase.co';
 const PUBLISHABLE_KEY='sb_publishable_cFm2Jvj2jvFyKcxbGniVWw_PL2SL7HC';
 const PUBLIC_EDGE=PROJECT_URL+'/functions/v1/public-api';
 const REFLECTION_EDGE=PROJECT_URL+'/functions/v1/public-reflection';
-const PUBLIC_FUNCTIONS=new Set(['getDashboardStats','getFeaturedAwardees','getAwardeeList','getAlumniList','getAkademikList','getPrestasiList','getOrganisasiList','getAwardeeProfile','getDropdownOptions']);
+const PUBLIC_FUNCTIONS=new Set(['getDashboardStats','getFeaturedAwardees','getAwardeeList','getAlumniList','getAkademikList','getPrestasiList','getOrganisasiList','getAwardeeProfile','getDropdownOptions','getPublicAttendance']);
 const REFLECTION_FUNCTIONS=new Set(['getPublicKajianReflectionForm','verifyKajianReflectionParticipant','submitKajianReflection']);
 function out(res,status,body,cache='public, max-age=15, s-maxage=30, stale-while-revalidate=60'){res.status(status).setHeader('Content-Type','application/json');res.setHeader('Cache-Control',cache);res.end(JSON.stringify(body))}
 async function edge(url,payload){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','apikey':PUBLISHABLE_KEY},body:JSON.stringify(payload)});const text=await r.text();let b={};try{b=text?JSON.parse(text):{}}catch{b={success:false,error:'Respons Supabase tidak valid.'}}if(!r.ok||b?.success===false){const e=new Error(b?.error||b?.message||`Supabase Edge ${r.status}`);e.status=r.status;throw e}return b}
