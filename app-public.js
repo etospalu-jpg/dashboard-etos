@@ -13,7 +13,32 @@ function renderAcademic(){const c=document.getElementById('academic-cohort').val
 async function loadAchievements(force=false){const data=await api('getPrestasiList',null,force);state.achievements=Array.isArray(data)?data:(data?.items||[]);renderAchievements()}
 function renderAchievements(){const q=document.getElementById('achievement-search').value.toLowerCase();const rows=state.achievements.filter(x=>[x.nama,x.name,x.prestasi,x.achievement_name,x.tingkat].join(' ').toLowerCase().includes(q));document.getElementById('achievement-body').innerHTML=rows.length?rows.map(x=>`<tr><td class="font-semibold">${esc(x.nama||x.name||'—')}</td><td>${esc(x.prestasi||x.achievement_name||'—')}</td><td>${esc(x.thn||x.tahun||x.year||'—')}</td><td><span class="pill pill-gray">${esc(x.tingkat||x.level||'—')}</span></td></tr>`).join(''):'<tr><td colspan="4" class="empty">Belum ada data prestasi.</td></tr>'}
 
-async function loadAttendance(force=false){const selected=document.getElementById('attendance-period').value||null;const data=await api('getAbsensiList',selected?{periodeId:selected}:null,force);state.attendanceOptions=data;const periods=data?.periods||[];const sel=data?.selectedPeriod;const p=document.getElementById('attendance-period');p.innerHTML=periods.length?periods.map(x=>`<option value="${esc(x.id)}" ${sel&&x.id===sel.id?'selected':''}>${esc(x.nama||x.name||x.id)}</option>`).join(''):'<option>Belum ada periode</option>';const items=data?.items||[];const total=items.reduce((s,x)=>s+num(x.total),0),hadir=items.reduce((s,x)=>s+num(x.h),0),izin=items.reduce((s,x)=>s+num(x.i),0),alpa=items.reduce((s,x)=>s+num(x.a),0);document.getElementById('attendance-summary').innerHTML=[['Total Catatan',total],['Hadir',hadir],['Izin',izin],['Alpa',alpa]].map(([l,v])=>`<div class="card-flat p-4"><div class="text-[9px] uppercase tracking-[.12em] font-bold text-[#88958e]">${l}</div><div class="metric-number text-[25px] font-extrabold mt-2">${v}</div></div>`).join('');document.getElementById('attendance-body').innerHTML=items.length?items.map(x=>`<tr><td class="font-semibold">${esc(x.nama)}</td><td>${esc(x.angkatan||'—')}</td><td>${num(x.h)}</td><td>${num(x.i)}</td><td>${num(x.s)}</td><td>${num(x.a)}</td><td><span class="pill ${num(x.pct)>=80?'pill-green':'pill-gold'}">${num(x.pct)}%</span></td></tr>`).join(''):'<tr><td colspan="7" class="empty">Belum ada absensi pada periode ini.</td></tr>'}
+async function loadAttendance(force=false){
+  const selected=document.getElementById('attendance-period')?.value||null;
+  const [data,list]=await Promise.all([
+    api('getAbsensiList',selected?{periodeId:selected}:null,force),
+    state.directory?.length&&!force?Promise.resolve(state.directory):api('getAwardeeList',null,force).catch(()=>state.directory||[])
+  ]);
+  state.attendanceOptions=data;
+  const directory=Array.isArray(list)?list:(list?.items||[]);
+  if(directory.length)state.directory=directory;
+  const periods=data?.periods||[],sel=data?.selectedPeriod,p=document.getElementById('attendance-period');
+  if(p)p.innerHTML=periods.length?periods.map(x=>`<option value="${esc(x.id)}" ${sel&&x.id===sel.id?'selected':''}>${esc(x.nama||x.name||x.id)}</option>`).join(''):'<option>Belum ada periode</option>';
+  const raw=data?.items||[],byId=new Map(raw.map(x=>[String(x.id||''),x])),byName=new Map(raw.map(x=>[String(x.nama||'').trim().toLowerCase(),x]));
+  const active=directory.filter(x=>String(x.status||'').toLowerCase()==='aktif');
+  const items=active.map(a=>{
+    const key=String(a.id||a.legacy_id||''),name=String(a.nama||a.name||'');
+    const hit=byId.get(key)||byName.get(name.trim().toLowerCase());
+    return hit||{id:key,nama:name,angkatan:a.angkatan,h:0,i:0,s:0,a:0,total:0,pct:null,recorded:false};
+  });
+  const total=raw.reduce((s,x)=>s+num(x.total),0),hadir=raw.reduce((s,x)=>s+num(x.h),0),izin=raw.reduce((s,x)=>s+num(x.i),0),alpa=raw.reduce((s,x)=>s+num(x.a),0);
+  document.getElementById('attendance-summary').innerHTML=[['Total Catatan',total],['Hadir',hadir],['Izin',izin],['Alpa',alpa]].map(([l,v])=>`<div class="card-flat p-4"><div class="text-[9px] uppercase tracking-[.12em] font-bold text-[#88958e]">${l}</div><div class="metric-number text-[25px] font-extrabold mt-2">${v}</div></div>`).join('');
+  document.getElementById('attendance-body').innerHTML=items.length?items.map(x=>{
+    const hasRecord=num(x.total)>0||x.recorded===true,pct=hasRecord?num(x.pct):null;
+    const presence=hasRecord?`<span class="pill ${pct>=80?'pill-green':'pill-gold'}">${pct}%</span>`:'<span class="pill pill-gray">Belum dicatat</span>';
+    return `<tr><td class="font-semibold">${esc(x.nama)}</td><td>${esc(x.angkatan||'—')}</td><td>${num(x.h)}</td><td>${num(x.i)}</td><td>${num(x.s)}</td><td>${num(x.a)}</td><td>${presence}</td></tr>`;
+  }).join(''):'<tr><td colspan="7" class="empty">Belum ada Awardee aktif.</td></tr>';
+}
 async function openAttendanceEntry(){const opts=await api('getAbsensiEntryOptions',{},true);state.attendanceOptions=opts;document.getElementById('attendance-form-period').innerHTML=(opts.periods||[]).map(x=>`<option value="${esc(x.id)}">${esc(x.nama||x.name||x.id)}</option>`).join('');document.getElementById('attendance-form-target').innerHTML='<option>Umum</option>'+(opts.cohorts||[]).map(x=>`<option>${esc(x)}</option>`).join('');document.getElementById('attendance-form-date').value=new Date().toISOString().slice(0,10);document.getElementById('attendance-entry-list').innerHTML=(opts.awardees||[]).map(x=>`<div class="px-4 py-3 flex items-center gap-3"><div class="flex-1"><div class="text-[12px] font-bold">${esc(x.nama)}</div><div class="text-[10px] text-[#87948d] mt-1">${esc(x.angkatan||'')}</div></div><select class="input select !w-[120px] attendance-status" data-id="${esc(x.id)}"><option value="">—</option><option>Hadir</option><option>Izin</option><option>Sakit</option><option>Alpa</option></select></div>`).join('');openModal('attendance-modal')}
 async function saveAttendance(e){e.preventDefault();const statuses={};document.querySelectorAll('.attendance-status').forEach(s=>{if(s.value)statuses[s.dataset.id]=s.value});const payload={periodeId:document.getElementById('attendance-form-period').value,namaKegiatan:document.getElementById('attendance-form-agenda').value,tanggal:document.getElementById('attendance-form-date').value,targetAngkatan:document.getElementById('attendance-form-target').value,statuses};try{showLoader(true);const r=await etosAPI.call('saveAbsensiEntry',payload);if(r.success===false)throw new Error(r.error);closeModal('attendance-modal');state.cache={};toast('Absensi berhasil disimpan.');loadAttendance(true)}catch(err){toast(err.message,'error')}finally{showLoader(false)}}
 
