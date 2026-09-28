@@ -93,8 +93,6 @@ document.querySelectorAll('.nav-btn[data-view]').forEach(btn=>{
 
 function warmData(){
   prefetchAchievements();
-  setTimeout(()=>window.api?.('getAbsensiList',null,false).catch(()=>{}),180);
-  setTimeout(()=>window.api?.('getCoachingList',null,false).catch(()=>{}),360);
 }
 installMotion();warmModules();
 if('requestIdleCallback'in window)requestIdleCallback(warmData,{timeout:650});else setTimeout(warmData,120);
