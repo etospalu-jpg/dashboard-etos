@@ -11,8 +11,10 @@ function usable(book){return(book||[]).filter(s=>!['definisi umum','nama etoser'
 function decodeBook(v){const raw=Buffer.from(String(v||''),'base64');if(!raw.length)return null;return JSON.parse(zlib.gunzipSync(raw).toString('utf8'))}
 async function uploaded(force=false){
   if(!force&&cache.row&&cache.book&&Date.now()-cache.t<CACHE_MS)return cache;
+  const key=session.secret(),kind=session.kind(key);
+  if(!key||!['secret','legacy'].includes(kind))throw new Error('Koneksi server IDP belum tersedia.');
   const url=session.PROJECT_URL+'/rest/v1/rpc/get_active_idp_book';
-  const r=await fetch(url,{method:'POST',headers:{apikey:session.PUBLISHABLE_KEY,'Content-Type':'application/json'},body:'{}'});
+  const r=await fetch(url,{method:'POST',headers:session.dbHeaders({server:true,key,kind}),body:'{}'});
   const text=await r.text();let body=[];try{body=text?JSON.parse(text):[]}catch{}
   if(!r.ok)throw new Error(body?.message||body?.error||`IDP store ${r.status}`);
   const row=Array.isArray(body)?body[0]:null;
