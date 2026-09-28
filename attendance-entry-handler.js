@@ -26,7 +26,7 @@ async function attendanceDetail(a,p){
   if(from&&!/^\d{4}-\d{2}-\d{2}$/.test(from))bad('Tanggal mulai tidak valid.');
   if(to&&!/^\d{4}-\d{2}-\d{2}$/.test(to))bad('Tanggal selesai tidak valid.');
   if(from&&to&&to<from)bad('Tanggal selesai tidak boleh sebelum tanggal mulai.');
-  let path=`/rest/v1/attendance_sessions?period_id=eq.${encodeURIComponent(selected.uuid)}&select=id,activity_name,activity_date,target_cohort,agenda_id&order=activity_date.desc,created_at.desc`;
+  let path=`/rest/v1/attendance_sessions?period_id=eq.${encodeURIComponent(selected.uuid)}&select=id,activity_name,activity_date,target_cohort,agenda_id,created_at&order=activity_date.desc,created_at.desc`;
   if(from)path+=`&activity_date=gte.${encodeURIComponent(from)}`;
   if(to)path+=`&activity_date=lte.${encodeURIComponent(to)}`;
   const [sessions,activeAwards]=await Promise.all([q(path,a.c),q('/rest/v1/awardees?status=eq.Aktif&select=legacy_id,name,angkatan&order=angkatan.asc,name.asc',a.c)]),ids=(sessions||[]).map(x=>x.id);
