@@ -1,6 +1,6 @@
 const state={view:'dashboard',auth:false,session:null,role:null,afterAuth:null,cache:{},directory:[],academic:[],achievements:[],alumni:[],activeAwardees:[],charts:{},chartTokens:{},attendanceOptions:null};
 const titles={dashboard:'Dashboard',directory:'Direktori Awardee',alumni:'Tracking Alumni',academic:'Akademik',attendance:'Absensi Pembinaan',coaching:'Coaching & IDP',achievements:'Prestasi',mentoring:'Jurnal Pendampingan',profile:'Profil Fasilitator',datacenter:'Data Center',settings:'Pengaturan',system:'System Center'};
-const secureViews=new Set(['attendance','coaching','mentoring','profile','datacenter','settings','system']);
+const secureViews=new Set(['coaching','mentoring','profile','datacenter','settings','system']);
 const ttl=90000;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=v=>Number.isFinite(Number(v))?Number(v):0;
