@@ -8,7 +8,7 @@
 
   const PUBLIC=new Set([
     'getDashboardStats','getFeaturedAwardees','getAwardeeList','getAlumniList',
-    'getAkademikList','getPrestasiList','getOrganisasiList','getAwardeeProfile','getDropdownOptions'
+    'getAkademikList','getPrestasiList','getOrganisasiList','getAwardeeProfile','getDropdownOptions','getAbsensiList'
   ]);
   const REFLECTION=new Set([
     'getPublicKajianReflectionForm','verifyKajianReflectionParticipant','submitKajianReflection'
@@ -49,8 +49,9 @@
   }
 
   function publicCall(name,params){
+    const wireName=name==='getAbsensiList'?'getPublicAttendance':name;
     return new Promise(resolve=>{
-      publicQueue.push({name,params:params==null?null:params,resolve});
+      publicQueue.push({name:wireName,params:params==null?null:params,resolve});
       if(!publicFlushScheduled){publicFlushScheduled=true;queueMicrotask(flushPublicQueue)}
     });
   }
