@@ -8,13 +8,14 @@ window.etosAuthClient=authClient;
 const legacy={signInPin:window.etosAuth.signInPin?.bind(window.etosAuth),getSession:window.etosAuth.getSession?.bind(window.etosAuth),signOut:window.etosAuth.signOut?.bind(window.etosAuth),openLogin:window.openLogin,goView:window.goView};
 let lastBridgeToken='',inviteSetupShown=false;
 const roleNames={superadmin:'Superadmin',admin:'Admin',facilitator:'Fasilitator',operator:'Operator',viewer:'Viewer'};
+const PIN_ONLY_VIEWS=new Set(['coaching','mentoring','profile','datacenter','settings','system']);
 const viewRoles={
  dashboard:['public','viewer','operator','facilitator','admin','superadmin'],
  directory:['public','viewer','operator','facilitator','admin','superadmin'],
  alumni:['public','viewer','operator','facilitator','admin','superadmin'],
  academic:['public','viewer','operator','facilitator','admin','superadmin'],
  achievements:['public','viewer','operator','facilitator','admin','superadmin'],
- attendance:['operator','facilitator','admin','superadmin'],
+ attendance:['public','viewer','operator','facilitator','admin','superadmin'],
  coaching:['facilitator','admin','superadmin'],
  mentoring:['facilitator','admin','superadmin'],
  profile:['facilitator','admin','superadmin'],
@@ -48,14 +49,14 @@ window.submitInvitePassword=async function(e){e.preventDefault();const p=String(
 function inviteFlag(){const q=new URLSearchParams(location.search),h=new URLSearchParams(String(location.hash||'').replace(/^#/,''));return q.get('type')==='invite'||h.get('type')==='invite'}
 async function maybeInviteSetup(){if(inviteSetupShown||!inviteFlag())return;ensureModals();for(let i=0;i<12;i++){const{data}=await authClient.auth.getSession();if(data?.session){inviteSetupShown=true;openModal('invite-password-modal');setTimeout(()=>document.getElementById('invite-password')?.focus(),100);return}await new Promise(r=>setTimeout(r,150))}}
 function roleOf(){if(!state?.auth)return'public';return String(state?.session?.kind==='pin'?'superadmin':state?.session?.role||state?.session?.profile?.role||state?.role||'viewer').toLowerCase()}
-function canView(view){const allowed=viewRoles[view];return !allowed||allowed.includes(roleOf())}
-function applyRoleUI(){const role=roleOf();document.querySelectorAll('.nav-btn[data-view]').forEach(b=>{const show=canView(b.dataset.view);b.style.display=show?'':'none';b.setAttribute('aria-hidden',show?'false':'true')});const ac=document.getElementById('access-control-card');if(ac)ac.style.display=(state?.session?.kind==='pin'||role==='superadmin')?'':'none'}
+function canView(view){if(PIN_ONLY_VIEWS.has(view))return state?.session?.kind==='pin';const allowed=viewRoles[view];return !allowed||allowed.includes(roleOf())}
+function applyRoleUI(){const role=roleOf();document.querySelectorAll('.nav-btn[data-view]').forEach(b=>{const view=b.dataset.view,show=PIN_ONLY_VIEWS.has(view)?true:canView(view);b.style.display=show?'':'none';b.setAttribute('aria-hidden',show?'false':'true');b.classList.toggle('pin-locked',PIN_ONLY_VIEWS.has(view)&&state?.session?.kind!=='pin')});const ac=document.getElementById('access-control-card');if(ac)ac.style.display=(state?.session?.kind==='pin'||role==='superadmin')?'':'none'}
 window.ETOSApplyRoleUI=applyRoleUI;
 window.checkAuth=async function(){const{data}=await getSession();state.auth=!!data?.session;state.session=data?.session||null;state.role=data?.session?.role||data?.session?.profile?.role||null;window.updateAuthUI?.()};
 const baseUpdate=window.updateAuthUI;
 window.updateAuthUI=function(){if(typeof baseUpdate==='function')baseUpdate();const role=roleOf(),mode=document.getElementById('system-mode'),text=document.getElementById('sidebar-auth-text');if(state.auth){if(mode)mode.textContent=state.session?.kind==='pin'?'Superadmin PIN':(roleNames[role]||role);if(text&&state.session?.kind==='user')text.textContent=`${state.session?.profile?.full_name||state.session?.user?.email||'Akun ETOS'} • ${roleNames[role]||role}`}applyRoleUI();window.lucide?.createIcons?.()};
 window.logout=async function(){await signOut();state.auth=false;state.session=null;state.role=null;state.afterAuth=null;window.updateAuthUI?.();if(!canView(state.view))await legacy.goView?.('dashboard');toast('Session ditutup.','success')};
-window.goView=async function(view,force=false){view=String(view||'').trim();if(!view)return;if(!canView(view)){if(roleOf()==='public'){state.afterAuth=()=>window.goView(view,force);window.openLogin?.();return}toast('Role '+(roleNames[roleOf()]||roleOf())+' tidak memiliki akses ke modul ini.','warn');return}return legacy.goView?.(view,force)};
+window.goView=async function(view,force=false){view=String(view||'').trim();if(!view)return;if(PIN_ONLY_VIEWS.has(view)&&state?.session?.kind!=='pin'){state.afterAuth=()=>window.goView(view,force);if(typeof window.openPinAccess==='function')window.openPinAccess();else legacy.openLogin?.();return}if(!canView(view)){if(roleOf()==='public'){state.afterAuth=()=>window.goView(view,force);window.openLogin?.();return}toast('Akses PIN fasilitator diperlukan untuk modul ini.','warn');return}return legacy.goView?.(view,force)};
 authClient.auth.onAuthStateChange((event,s)=>{if(['SIGNED_IN','TOKEN_REFRESHED','INITIAL_SESSION','USER_UPDATED'].includes(String(event||''))&&s)setTimeout(async()=>{try{await maybeInviteSetup();const p=await profileFor(s);if(p?.is_active&&state.auth&&state.session?.kind==='user'){await bridge(s,p);state.session=normalizedUser(s,p);state.role=state.session.role;window.updateAuthUI?.()}}catch(e){console.warn('[ETOS auth refresh]',e?.message||e)}},0)});
 const observer=new MutationObserver(ms=>{if(ms.some(m=>[...m.addedNodes].some(n=>n?.nodeType===1&&(n.matches?.('.nav-btn[data-view]')||n.querySelector?.('.nav-btn[data-view]')))))applyRoleUI()});
 const root=document.getElementById('sidebar')||document.body;observer.observe(root,{childList:true,subtree:true});
