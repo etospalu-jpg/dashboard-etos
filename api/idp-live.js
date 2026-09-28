@@ -33,7 +33,9 @@ module.exports=async function handler(req,res){
     if(req.method!=='POST')return out(res,405,{success:false,error:'Method not allowed'});
     const fn=String(req.body?.function||'getIDPOverview'),p=req.body?.params||{},force=!!p.forceRefresh;
     if(fn==='uploadIDPWorkbook')return out(res,200,{success:true,data:await replaceWorkbook(req,p)});
-    const accessRole=session.verify(req)?'superadmin':'public';
+    if(!session.verify(req))return out(res,401,{success:false,error:'PIN fasilitator diperlukan untuk membuka IDP.'});
+    session.credential(req);
+    const accessRole='superadmin';
     if(fn==='getIDPDetail'){const name=String(p.nama||p.name||'').trim();if(!name)return out(res,400,{success:false,error:'Nama Awardee diperlukan.'});const data=await detail(name,force);data.accessRole=accessRole;return out(res,200,{success:true,data})}
     if(fn!=='getIDPOverview')return out(res,400,{success:false,error:'Fungsi IDP tidak valid.'});
     const data=await overview(force);data.accessRole=accessRole;return out(res,200,{success:true,data});
