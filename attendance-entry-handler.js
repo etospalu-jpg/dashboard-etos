@@ -29,11 +29,15 @@ async function attendanceDetail(a,p){
   let path=`/rest/v1/attendance_sessions?period_id=eq.${encodeURIComponent(selected.uuid)}&select=id,activity_name,activity_date,target_cohort,agenda_id&order=activity_date.desc,created_at.desc`;
   if(from)path+=`&activity_date=gte.${encodeURIComponent(from)}`;
   if(to)path+=`&activity_date=lte.${encodeURIComponent(to)}`;
-  const sessions=await q(path,a.c),ids=(sessions||[]).map(x=>x.id);
+  const [sessions,activeAwards]=await Promise.all([q(path,a.c),q('/rest/v1/awardees?status=eq.Aktif&select=legacy_id,name,angkatan&order=angkatan.asc,name.asc',a.c)]),ids=(sessions||[]).map(x=>x.id);
   let records=[];
   if(ids.length)records=await q(`/rest/v1/attendance_records?session_id=in.(${ids.map(encodeURIComponent).join(',')})&select=session_id,status,checked_at,awardees!inner(legacy_id,name,angkatan)&order=checked_at.asc`,a.c);
   const grouped=new Map();
-  for(const s of sessions||[])grouped.set(s.id,{id:s.id,nama:s.activity_name,tanggal:s.activity_date,target:s.target_cohort||'Umum',agendaId:s.agenda_id||null,hadir:0,izin:0,sakit:0,alpa:0,total:0,records:[]});
+  for(const s of sessions||[]){
+    const target=String(s.target_cohort||'Umum');
+    const base=(activeAwards||[]).filter(x=>target.toLowerCase()==='umum'||String(x.angkatan||'')===target).map(x=>({id:x.legacy_id||'',nama:x.name||'—',angkatan:x.angkatan||'—',status:'Belum dicatat',checkedAt:null}));
+    grouped.set(s.id,{id:s.id,nama:s.activity_name,tanggal:s.activity_date,target,agendaId:s.agenda_id||null,hadir:0,izin:0,sakit:0,alpa:0,total:0,records:base});
+  }
   for(const r of records||[]){
     const s=grouped.get(r.session_id);if(!s)continue;
     const aw=Array.isArray(r.awardees)?r.awardees[0]:r.awardees;if(!aw)continue;
@@ -41,7 +45,9 @@ async function attendanceDetail(a,p){
     const key=status.toLowerCase();
     if(key==='hadir')s.hadir++;else if(key==='izin')s.izin++;else if(key==='sakit')s.sakit++;else if(key==='alpa'||key==='tidak hadir')s.alpa++;
     s.total++;
-    s.records.push({id:aw.legacy_id||'',nama:aw.name||'—',angkatan:aw.angkatan||'—',status,checkedAt:r.checked_at||null});
+    const row={id:aw.legacy_id||'',nama:aw.name||'—',angkatan:aw.angkatan||'—',status,checkedAt:r.checked_at||null};
+    const existing=s.records.findIndex(x=>(x.id&&x.id===row.id)||(!x.id&&x.nama===row.nama));
+    if(existing>=0)s.records[existing]=row;else s.records.push(row);
   }
   for(const s of grouped.values())s.records.sort((x,y)=>String(x.angkatan).localeCompare(String(y.angkatan))||String(x.nama).localeCompare(String(y.nama),'id'));
   return{periods:pp,selectedPeriod:selected,sessions:[...grouped.values()],from:from||null,to:to||null};
