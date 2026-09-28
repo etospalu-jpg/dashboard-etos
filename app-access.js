@@ -8,13 +8,13 @@ function wrapApi(){
  window.etosAPI.call=async function(name,params){
   if(name==='getIDPOverview'||name==='getIDPDetail'){
    const s=await currentSession();
-   if(!s)return{success:false,error:'Akses operasional diperlukan untuk IDP live.'};
+   if(!s)return{success:false,error:'Akses operasional diperlukan untuk IDP workbook.'};
    try{
     const r=await fetch('/api/idp-live',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({function:name,params:params||null})});
     const b=await r.json().catch(()=>({}));
-    if(!r.ok||b?.success===false)return{success:false,error:b?.error||'IDP live tidak tersedia.'};
+    if(!r.ok||b?.success===false)return{success:false,error:b?.error||'IDP workbook tidak tersedia.'};
     return b;
-   }catch(e){return{success:false,error:e?.message||'IDP live tidak tersedia.'}}
+   }catch(e){return{success:false,error:e?.message||'IDP workbook tidak tersedia.'}}
   }
   return original(name,params);
  };
