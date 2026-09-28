@@ -1,6 +1,5 @@
 const zlib=require('zlib');
 const session=require('./server-session');
-const drive=require('./idp-drive-fallback');
 const SOURCE_NAME='Palu-IDP KI.xlsx';
 const CACHE_MS=60000;
 let cache={row:null,book:null,t:0};
@@ -27,7 +26,20 @@ function meta(row){return{sourceName:row?.filename||SOURCE_NAME,sourceId:'palu-u
 function derivedItems(tabs){return tabs.map((s,i)=>({id:'idp-'+(i+1),nama:cleanName(s.title)||s.title,angkatan:cohortFromTitle(s.title),status:'Aktif',connected:true,sheetName:s.title,...(s.summary||statsEmpty())}))}
 function overviewBook(book,row,awardees){const tabs=usable(book),idx=new Map();for(const s of tabs){const k=norm(s.title);if(!idx.has(k))idx.set(k,[]);idx.get(k).push(s)}let items;if(Array.isArray(awardees)&&awardees.length){items=awardees.map(a=>{const ms=idx.get(norm(a.name||a.nama))||[],s=ms.length===1?ms[0]:null;return{id:a.legacy_id||a.id,nama:a.name||a.nama,angkatan:a.angkatan,status:a.status,connected:!!s,sheetName:s?.title||'',...(s?.summary||statsEmpty())}})}else items=derivedItems(tabs);return{...meta(row),totalActive:items.length,connected:items.filter(x=>x.connected).length,missing:items.filter(x=>!x.connected).length,items}}
 function detailBook(book,row,name,cohort=''){const tabs=usable(book),candidates=[norm(name),norm(`${name} (${cohort})`)].filter(Boolean),matches=tabs.filter(s=>candidates.includes(norm(s.title)));if(matches.length!==1)throw new Error(matches.length?'Nama tab IDP Palu ambigu.':'Tab IDP Palu tidak ditemukan.');const s=matches[0];return{nama:name,sheetName:s.title,...meta(row),values:s.values,summary:s.summary}}
-async function overview(awardees=[],force=false){const u=await uploaded(force);if(u)return overviewBook(u.book,u.row,awardees);const data=await drive.overview(awardees,force);if(!Array.isArray(awardees)||!awardees.length){const book=await drive.loadBook?.(force).catch?.(()=>null);if(book)return overviewBook(book,null,[])}data.fallback=false;data.sourceMode='drive-live-readonly';return data}
-async function detail(name,cohort='',force=false){const u=await uploaded(force);if(u)return detailBook(u.book,u.row,name,cohort);const data=await drive.detail(name,cohort,force);data.fallback=false;data.sourceMode='drive-live-readonly';return data}
-async function health(force=false){const u=await uploaded(force);if(u)return{edge:'healthy',source:'palu-idp',mode:'uploaded-palu-xlsx',sourceId:'palu-upload-active',title:u.row.filename||SOURCE_NAME,sourceModifiedAt:u.row.uploaded_at||null,uploadedAt:u.row.uploaded_at||null,fileSize:Number(u.row.file_size||0),sheetCount:usable(u.book).length,stale:false,fallback:false,refreshedAt:new Date().toISOString()};const d=await drive.health(force);return{...d,source:'palu-idp',fallback:false}}
+async function overview(awardees=[],force=false){
+  const u=await uploaded(force);
+  if(u)return overviewBook(u.book,u.row,awardees);
+  const items=Array.isArray(awardees)?awardees.map(a=>({id:a.legacy_id||a.id,nama:a.name||a.nama,angkatan:a.angkatan,status:a.status,connected:false,sheetName:'',...statsEmpty()})):[];
+  return{sourceName:SOURCE_NAME,sourceId:'palu-upload-active',sourceMode:'uploaded-required',sourceUrlHint:'Upload workbook IDP melalui Pengaturan',stale:false,fallback:false,totalActive:items.length,connected:0,missing:items.length,items};
+}
+async function detail(name,cohort='',force=false){
+  const u=await uploaded(force);
+  if(!u)throw new Error('Workbook IDP aktif belum diunggah.');
+  return detailBook(u.book,u.row,name,cohort);
+}
+async function health(force=false){
+  const u=await uploaded(force);
+  if(u)return{edge:'healthy',source:'palu-idp',mode:'uploaded-palu-xlsx',sourceId:'palu-upload-active',title:u.row.filename||SOURCE_NAME,sourceModifiedAt:u.row.uploaded_at||null,uploadedAt:u.row.uploaded_at||null,fileSize:Number(u.row.file_size||0),sheetCount:usable(u.book).length,stale:false,fallback:false,refreshedAt:new Date().toISOString()};
+  return{edge:'healthy',source:'palu-idp',mode:'uploaded-required',sourceId:'palu-upload-active',title:SOURCE_NAME,sheetCount:0,stale:false,fallback:false,refreshedAt:new Date().toISOString()};
+}
 module.exports={SOURCE_NAME,overview,detail,health,clearCache};
