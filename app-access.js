@@ -23,7 +23,7 @@ function wrapApi(){
 function protectAttendance(){
  const original=window.openAttendanceEntry;
  if(typeof original!=='function'||original.__etosProtectedV36)return;
- const fn=function(){const args=arguments,ctx=this;return window.requireAuth?window.requireAuth(()=>original.apply(ctx,args)):(window.state?.auth?original.apply(ctx,args):window.openLogin?.())};
+ const fn=function(){const args=arguments,ctx=this;let isPin=false;try{isPin=state?.session?.kind==='pin'}catch(_){}if(isPin)return original.apply(ctx,args);try{state.afterAuth=()=>original.apply(ctx,args)}catch(_){}if(typeof window.openPinAccess==='function')return window.openPinAccess();return window.openLogin?.()};
  fn.__etosProtectedV36=true;window.openAttendanceEntry=fn;
 }
 function init(){wrapApi();protectAttendance();setTimeout(()=>{wrapApi();protectAttendance()},500)}
