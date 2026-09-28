@@ -109,11 +109,11 @@ function exportRows(data){
    sessions.push({Tanggal:s.tanggal,Agenda:s.nama,Target:s.target,Hadir:s.hadir,Izin:s.izin,Sakit:s.sakit,Alpa:s.alpa,Total:s.total});
    for(const r of s.records||[]){
      detail.push({Tanggal:s.tanggal,Agenda:s.nama,'ID Awardee':r.id,Nama:r.nama,Angkatan:r.angkatan,Status:r.status});
-     const k=r.id||r.nama;if(!recap.has(k))recap.set(k,{'ID Awardee':r.id,Nama:r.nama,Angkatan:r.angkatan,Hadir:0,Izin:0,Sakit:0,Alpa:0,Total:0,'Kehadiran (%)':0});
-     const x=recap.get(k),st=String(r.status||'').toLowerCase();if(st==='hadir')x.Hadir++;else if(st==='izin')x.Izin++;else if(st==='sakit')x.Sakit++;else if(st==='alpa'||st==='tidak hadir')x.Alpa++;x.Total++;
+     const k=r.id||r.nama;if(!recap.has(k))recap.set(k,{'ID Awardee':r.id,Nama:r.nama,Angkatan:r.angkatan,Hadir:0,Izin:0,Sakit:0,Alpa:0,'Belum Dicatat':0,'Total Tercatat':0,'Kehadiran (%)':0});
+     const x=recap.get(k),st=String(r.status||'').toLowerCase();if(st==='hadir')x.Hadir++;else if(st==='izin')x.Izin++;else if(st==='sakit')x.Sakit++;else if(st==='alpa'||st==='tidak hadir')x.Alpa++;else x['Belum Dicatat']++;if(st==='hadir'||st==='izin'||st==='sakit'||st==='alpa'||st==='tidak hadir')x['Total Tercatat']++;
    }
  }
- for(const x of recap.values())x['Kehadiran (%)']=x.Total?Math.round(x.Hadir/x.Total*100):0;
+ for(const x of recap.values())x['Kehadiran (%)']=x['Total Tercatat']?Math.round(x.Hadir/x['Total Tercatat']*100):0;
  return{detail,sessions,recap:[...recap.values()]};
 }
 window.downloadAttendanceExcel=async function(){
@@ -121,7 +121,7 @@ window.downloadAttendanceExcel=async function(){
    window.showLoader?.(true);const data=await fetchDetail();render(data);if(!(data?.sessions||[]).length)throw new Error('Tidak ada data absensi pada rentang yang dipilih.');
    const XLSX=await ensureXLSX(),rows=exportRows(data),wb=XLSX.utils.book_new();
    const wsDetail=XLSX.utils.json_to_sheet(rows.detail),wsRecap=XLSX.utils.json_to_sheet(rows.recap),wsSessions=XLSX.utils.json_to_sheet(rows.sessions);
-   wsDetail['!cols']=[{wch:13},{wch:34},{wch:14},{wch:28},{wch:10},{wch:12}];wsRecap['!cols']=[{wch:14},{wch:28},{wch:10},{wch:9},{wch:9},{wch:9},{wch:9},{wch:9},{wch:15}];wsSessions['!cols']=[{wch:13},{wch:34},{wch:14},{wch:9},{wch:9},{wch:9},{wch:9},{wch:9}];
+   wsDetail['!cols']=[{wch:13},{wch:34},{wch:14},{wch:28},{wch:10},{wch:12}];wsRecap['!cols']=[{wch:14},{wch:28},{wch:10},{wch:9},{wch:9},{wch:9},{wch:9},{wch:14},{wch:14},{wch:15}];wsSessions['!cols']=[{wch:13},{wch:34},{wch:14},{wch:9},{wch:9},{wch:9},{wch:9},{wch:9}];
    XLSX.utils.book_append_sheet(wb,wsRecap,'Rekap Awardee');XLSX.utils.book_append_sheet(wb,wsSessions,'Rekap Agenda');XLSX.utils.book_append_sheet(wb,wsDetail,'Detail Absensi');
    const p=currentParams(),period=(data.selectedPeriod?.nama||'Periode').replace(/[^a-z0-9]+/gi,'_'),range=p.from||p.to?`_${p.from||'awal'}_sd_${p.to||'akhir'}`:'';
    XLSX.writeFile(wb,`Absensi_ETOS_Palu_${period}${range}.xlsx`,{compression:true});
