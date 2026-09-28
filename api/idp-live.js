@@ -29,7 +29,7 @@ async function replaceWorkbook(req,p){
 }
 module.exports=async function handler(req,res){
   try{
-    if(req.method==='GET'&&String(req.query?.source_health||'')==='1')return out(res,200,{success:true,data:await health(true)});
+    if(req.method==='GET'&&String(req.query?.source_health||'')==='1'){if(!session.verify(req))return out(res,401,{success:false,error:'PIN fasilitator diperlukan untuk status IDP.'});session.credential(req);return out(res,200,{success:true,data:await health(true)})};
     if(req.method!=='POST')return out(res,405,{success:false,error:'Method not allowed'});
     const fn=String(req.body?.function||'getIDPOverview'),p=req.body?.params||{},force=!!p.forceRefresh;
     if(fn==='uploadIDPWorkbook')return out(res,200,{success:true,data:await replaceWorkbook(req,p)});
