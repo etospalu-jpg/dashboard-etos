@@ -65,7 +65,10 @@ async function insights(c){
  };
 }
 async function reflectionHub(c,p){
- const from=String(p?.from||'').trim(),to=String(p?.to||'').trim(),period=await resolvePeriod(p?.periodeId,c);
+ const from=String(p?.from||'').trim(),to=String(p?.to||'').trim();
+ const periodRows=await q('/rest/v1/development_periods?select=id,legacy_id,name,start_date,end_date,status&order=start_date.desc.nullslast,created_at.desc',c);
+ let period=await resolvePeriod(p?.periodeId,c);
+ if(!period)period=(periodRows||[]).find(x=>String(x.status||'').toLowerCase()==='aktif')||(periodRows||[])[0]||null;
  if(from&&!dateOk(from))bad('Tanggal mulai tidak valid.');
  if(to&&!dateOk(to))bad('Tanggal selesai tidak valid.');
  if(from&&to&&to<from)bad('Tanggal selesai tidak boleh sebelum tanggal mulai.');
@@ -91,7 +94,7 @@ async function reflectionHub(c,p){
   g.responseCount=g.responses.length;
   g.pendingCount=Math.max(0,g.eligibleCount-g.responseCount);
  }
- return{period:period?{id:period.legacy_id||period.id,nama:period.name,mulai:period.start_date,selesai:period.end_date,status:period.status}:null,from:from||null,to:to||null,forms:[...grouped.values()]};
+ return{periods:(periodRows||[]).map(x=>({id:x.legacy_id||x.id,nama:x.name,mulai:x.start_date,selesai:x.end_date,status:x.status})),period:period?{id:period.legacy_id||period.id,nama:period.name,mulai:period.start_date,selesai:period.end_date,status:period.status}:null,from:from||null,to:to||null,forms:[...grouped.values()]};
 }
 module.exports=async function handler(req,res){
  if(req.method!=='POST')return out(res,405,{success:false,error:'Method not allowed'});
