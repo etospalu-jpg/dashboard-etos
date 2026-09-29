@@ -74,7 +74,7 @@
   if(window.etosAuth){
     window.etosAuth.signInPin=async function(pin){
       pin=String(pin||'').trim();
-      if(!/^\d{6}$/.test(pin))throw new Error('PIN harus terdiri dari 6 digit.');
+      if(!/^\d{8}$/.test(pin))throw new Error('PIN harus terdiri dari 8 digit.');
       const r=await fetch('/api/pin-login',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin})});
       const b=await r.json().catch(()=>({}));
       if(!r.ok||!b||b.success===false||!b.data?.session){

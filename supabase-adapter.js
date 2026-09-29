@@ -20,12 +20,13 @@ function startRealtimeSignals(){
     clearTimeout(realtimeTimer);
     realtimeTimer=setTimeout(()=>{
      try{
-      const active=String(document.querySelector('.view.active')?.id||'').replace(/^view-/,'');
-      const safe=new Set(['dashboard','directory','alumni','academic','achievements','attendance']);
-      const modalOpen=!!document.querySelector('.modal.open');
-      if(!modalOpen&&safe.has(active)&&typeof window.refreshCurrent==='function')window.refreshCurrent();
+      // Mark client data stale without reloading the whole active view.
+      // A full refresh here caused visible disappear/reappear flicker whenever
+      // realtime_signals changed while the user was reading a page.
+      if(typeof state!=='undefined'&&state?.cache)state.cache={};
+      realtimeEvent('etos:data-stale',{entity,revision:Number(row.revision)||0,changedAt:row.changed_at||null});
      }catch(_){}
-    },650);
+    },900);
    })
    .subscribe(status=>realtimeEvent('etos:realtime-status',{status:String(status||'')}));
  }catch(e){console.warn('[ETOS realtime]',friendlyError(e));realtimeEvent('etos:realtime-status',{status:'ERROR',error:friendlyError(e)})}
@@ -56,7 +57,7 @@ async function secureCall(name,params){const endpoint=name==='getAwardee360'?'/a
 const PUBLIC_FUNCTIONS=new Set(['getDashboardStats','getFeaturedAwardees','getAwardeeList','getAlumniList','getAkademikList','getPrestasiList','getOrganisasiList','getAwardeeProfile','getDropdownOptions']);
 const REFLECTION_FUNCTIONS=new Set(['getPublicKajianReflectionForm','verifyKajianReflectionParticipant','submitKajianReflection']);
 async function call(name,params){if(REFLECTION_FUNCTIONS.has(name))return reflectionCall(name,params);if(name==='getAbsensiList')return publicCall('getPublicAttendance',params);if(PUBLIC_FUNCTIONS.has(name))return publicCall(name,params);if(name==='logoutAbsensiAdmin'||name==='logoutFacilitatorAccess')return{success:true};return secureCall(name,params)}
-async function signInPin(pin){pin=String(pin||'').trim();if(!/^\d{6}$/.test(pin))throw new Error('PIN harus terdiri dari 6 digit.');const body=await fetchJson('/api/pin-login',{method:'POST',body:JSON.stringify({pin})});if(!body||body.success===false||!body.data?.session){const e=new Error(body?.error||'PIN tidak sesuai.');e.code=body?.code;e.credential_type=body?.credential_type;e.http_status=body?.http_status;throw e}return{session:body.data.session,firstSetup:false}}
+async function signInPin(pin){pin=String(pin||'').trim();if(!/^\d{8}$/.test(pin))throw new Error('PIN harus terdiri dari 8 digit.');const body=await fetchJson('/api/pin-login',{method:'POST',body:JSON.stringify({pin})});if(!body||body.success===false||!body.data?.session){const e=new Error(body?.error||'PIN tidak sesuai.');e.code=body?.code;e.credential_type=body?.credential_type;e.http_status=body?.http_status;throw e}return{session:body.data.session,firstSetup:false}}
 async function getSession(){const body=await fetchJson('/api/pin-login',{method:'GET'});return{data:{session:body?.data?.session||null}}}
 async function signOut(){await fetchJson('/api/pin-login',{method:'DELETE'});return{error:null}}
 function createRunner(){let successHandler=null,failureHandler=null;const target={withSuccessHandler(handler){successHandler=handler;return proxy},withFailureHandler(handler){failureHandler=handler;return proxy}};const proxy=new Proxy(target,{get(obj,prop){if(prop in obj)return obj[prop];return function(){const args=Array.prototype.slice.call(arguments);call(String(prop),args.length?args[0]:null).then(result=>{if(successHandler)successHandler(result)}).catch(error=>{if(failureHandler)failureHandler(error);else console.error('[ETOS Supabase Adapter]',prop,error)});return proxy}}});return proxy}
