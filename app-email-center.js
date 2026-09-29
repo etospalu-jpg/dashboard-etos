@@ -13,6 +13,8 @@ function ensure(){
  let v=document.getElementById('view-communication');if(!v){v=document.createElement('section');v.id='view-communication';v.className='view';host.appendChild(v)}
  const nav=document.querySelector('#sidebar nav');
  if(nav&&!nav.querySelector('[data-view="communication"]')){const b=document.createElement('button');b.className='nav-btn';b.dataset.view='communication';b.innerHTML='<i data-lucide="mail" class="w-4 h-4"></i>Komunikasi<span class="nav-dot"></span>';const a=nav.querySelector('[data-view="attendance"]');if(a?.nextSibling)nav.insertBefore(b,a.nextSibling);else nav.appendChild(b)}
+ const settingsView=document.getElementById('view-settings');
+ if(settingsView&&!document.getElementById('email-settings-shortcut')){const box=document.createElement('div');box.id='email-settings-shortcut';box.className='card p-5 md:p-6 mb-5';box.innerHTML='<div class="flex flex-col md:flex-row md:items-center justify-between gap-4"><div><div class="eyebrow">Communication</div><h3 class="section-title text-[20px] mt-2">Email Center</h3><p class="text-[10px] text-[#7b8981] mt-2">Kelola sender, domain, template, reminder, dan riwayat email ETOS ID Palu.</p></div><button class="btn btn-primary" onclick="openEmailCenter()"><i data-lucide="mail" class="w-4 h-4"></i>Buka Email Center</button></div>';settingsView.prepend(box)}
  return v
 }
 function tabs(){return '<div class="flex gap-2 overflow-x-auto pb-1">'+[['compose','Tulis Email','send'],['templates','Template','file-text'],['history','Riwayat','history'],['setup','Setup Domain','settings-2']].map(x=>'<button class="btn '+(tab===x[0]?'btn-primary':'btn-soft')+' shrink-0" onclick="setEmailTab(\''+x[0]+'\')"><i data-lucide="'+x[2]+'" class="w-4 h-4"></i>'+x[1]+'</button>').join('')+'</div>'}
