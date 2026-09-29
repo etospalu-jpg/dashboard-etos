@@ -33,6 +33,7 @@ async function loadAttendance(force=false){
   });
   const sm=data?.summary||{},total=sm.total!=null?num(sm.total):raw.reduce((s,x)=>s+num(x.total),0),hadir=sm.hadir!=null?num(sm.hadir):raw.reduce((s,x)=>s+num(x.h),0),izin=sm.izin!=null?num(sm.izin):raw.reduce((s,x)=>s+num(x.i),0),sakit=sm.sakit!=null?num(sm.sakit):raw.reduce((s,x)=>s+num(x.s),0),alpa=sm.alpa!=null?num(sm.alpa):raw.reduce((s,x)=>s+num(x.a),0);
   document.getElementById('attendance-summary').innerHTML=[['Total Catatan',total],['Hadir',hadir],['Izin',izin],['Sakit',sakit],['Alpa',alpa]].map(([l,v])=>`<div class="card-flat p-4"><div class="text-[9px] uppercase tracking-[.12em] font-bold text-[#88958e]">${l}</div><div class="metric-number text-[25px] font-extrabold mt-2">${v}</div></div>`).join('');
+  document.getElementById('attendance-awardee-summary-table')?.classList.remove('hidden');
   document.getElementById('attendance-body').innerHTML=items.length?items.map(x=>{
     const hasRecord=num(x.total)>0||x.recorded===true,pct=hasRecord?num(x.pct):null;
     const presence=hasRecord?`<span class="pill ${pct>=80?'pill-green':'pill-gold'}">${pct}%</span>`:'<span class="pill pill-gray">Belum dicatat</span>';
