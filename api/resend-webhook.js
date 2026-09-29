@@ -1,8 +1,6 @@
 const crypto=require('crypto');
 const session=require('../server-session');
 
-module.exports.config={api:{bodyParser:false}};
-
 function out(res,status,body){
   res.status(status).setHeader('Content-Type','application/json; charset=utf-8');
   res.setHeader('Cache-Control','no-store');
@@ -50,7 +48,7 @@ function statusFor(type){
   };
   return m[type]||type.replace(/^email\./,'');
 }
-module.exports=async function handler(req,res){
+async function handler(req,res){
   if(req.method!=='POST')return out(res,405,{ok:false});
   try{
     const payload=await rawBody(req),id=String(req.headers['svix-id']||''),timestamp=String(req.headers['svix-timestamp']||''),signature=String(req.headers['svix-signature']||''),secret=await webhookSecret();
@@ -68,4 +66,6 @@ module.exports=async function handler(req,res){
     console.error('[resend-webhook]',e);
     return out(res,500,{ok:false});
   }
-};
+}
+handler.config={api:{bodyParser:false}};
+module.exports=handler;
