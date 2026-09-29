@@ -88,6 +88,7 @@ function render(data){
     <div><div class="text-[12px] font-extrabold">${e(s.nama||'Agenda')}</div><div class="text-[9px] text-[#849189] mt-1">${e(fmt(s.tanggal))} · Target ${e(s.target||'Umum')}</div></div>
     <div class="flex flex-wrap gap-2"><span class="pill pill-green">Hadir ${Number(s.hadir)||0}</span><span class="pill pill-gray">Izin ${Number(s.izin)||0}</span><span class="pill pill-gold">Sakit ${Number(s.sakit)||0}</span><span class="pill pill-gray">Alpa ${Number(s.alpa)||0}</span><span class="pill pill-gray">Klik detail</span></div>
    </summary>
+   <div class="border-t border-[#e8eeea] p-3 flex justify-end"><button type="button" class="btn btn-soft" onclick="event.stopPropagation();openEmailCenter(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify({name:'Email '+(s.nama||'Agenda'),audienceType:'attendance_status',filter:{sessionId:s.id,statuses:['Hadir']},context:{agenda:s.nama||'',tanggal:s.tanggal||''}}))}')))"><i data-lucide="mail-plus" class="w-4 h-4"></i>Email Peserta Hadir</button></div>
    <div class="table-wrap border-t border-[#e8eeea]"><table class="data-table"><thead><tr><th>Awardee</th><th>Angkatan</th><th>Status</th></tr></thead><tbody>${(s.records||[]).map(r=>`<tr><td><div class="font-semibold">${e(r.nama)}</div><div class="text-[9px] text-[#8a968f] mt-1">${e(r.id||'')}</div></td><td>${e(r.angkatan||'—')}</td><td>${badge(r.status)}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Belum ada peserta.</td></tr>'}</tbody></table></div>
   </details>`).join('')}</div>`;
 }
