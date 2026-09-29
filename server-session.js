@@ -13,7 +13,7 @@ function secret(){return normalize(process.env.SUPABASE_SECRET_KEY||process.env.
 function kind(k){return k.startsWith('sb_secret_')?'secret':k.startsWith('eyJ')?'legacy':k?'unknown':'missing'}
 function b64(v){return Buffer.from(v).toString('base64url')}
 function unb64(v){return Buffer.from(v,'base64url').toString('utf8')}
-function signingKey(){const s=secret();return crypto.createHash('sha256').update('ETOS-PIN-SESSION|'+s+'|e811d29b1b60cc0f4ffc2e65ffc4b14c38415da9c7b1cc73f73a97c67725a490').digest()}
+function signingKey(){const s=secret();return crypto.createHash('sha256').update('ETOS-PIN-SESSION|'+s+'|8d4e988c539f7276845499fb84f85e3878249d26270b5e49cb9237e929be3edf').digest()}
 function sign(v){return crypto.createHmac('sha256',signingKey()).update(v).digest('base64url')}
 function createToken(){const now=Math.floor(Date.now()/1000);const p=b64(JSON.stringify({iat:now,exp:now+MAX_AGE,role:'superadmin',scope:'etos-operational',n:crypto.randomBytes(12).toString('hex')}));return p+'.'+sign(p)}
 function cookies(req){const out={};String(req.headers?.cookie||'').split(';').forEach(x=>{const i=x.indexOf('=');if(i>0){try{out[x.slice(0,i).trim()]=decodeURIComponent(x.slice(i+1).trim())}catch{}}});return out}

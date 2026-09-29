@@ -1,8 +1,8 @@
 (function(){
 'use strict';
 if(window.ETOS_PIN_POLICY_V365)return;window.ETOS_PIN_POLICY_V365=true;
-const PIN_VIEWS=new Set(['mentoring','profile','system','datacenter','settings']);
-const VIEW_TITLES={dashboard:'Dashboard',directory:'Direktori Awardee',alumni:'Tracking Alumni',academic:'Monitoring Akademik',attendance:'Absensi Pembinaan',coaching:'Coaching & IDP',achievements:'Prestasi Awardee',mentoring:'Jurnal Pendampingan',profile:'Profil Fasilitator',system:'System Center',datacenter:'Data Center',settings:'Pengaturan'};
+const PIN_VIEWS=new Set(['mentoring','profile','system','datacenter','settings','communication']);
+const VIEW_TITLES={dashboard:'Dashboard',directory:'Direktori Awardee',alumni:'Tracking Alumni',academic:'Monitoring Akademik',attendance:'Absensi Pembinaan',coaching:'Coaching & IDP',achievements:'Prestasi Awardee',mentoring:'Jurnal Pendampingan',profile:'Profil Fasilitator',system:'System Center',datacenter:'Data Center',settings:'Pengaturan',communication:'Email Center'};
 const VIEW_MODULES={attendance:['app-restore-attendance'],coaching:['app-restore-idp','app-idp-upload-v365'],mentoring:['app-mentoring-journal','app-mentoring-cases'],system:['app-system'],datacenter:['app-data-center'],settings:['app-admin','app-access-control']};
 function appState(){try{return typeof state!=='undefined'?state:null}catch(_){return null}}
 function pinReady(){return appState()?.session?.kind==='pin'}
