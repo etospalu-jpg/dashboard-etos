@@ -29,16 +29,16 @@ async function loadAttendance(force=false){
   const items=active.map(a=>{
     const key=String(a.id||a.legacy_id||''),name=String(a.nama||a.name||'');
     const hit=byId.get(key)||byName.get(name.trim().toLowerCase());
-    return hit||{id:key,nama:name,angkatan:a.angkatan,h:0,i:0,s:0,a:0,total:0,pct:null,recorded:false};
+    return hit||{id:key,nama:name,angkatan:a.angkatan,h:0,i:0,s:0,a:0,total:0,eligible:0,pct:null,recorded:false};
   });
   const sm=data?.summary||{},total=sm.total!=null?num(sm.total):raw.reduce((s,x)=>s+num(x.total),0),hadir=sm.hadir!=null?num(sm.hadir):raw.reduce((s,x)=>s+num(x.h),0),izin=sm.izin!=null?num(sm.izin):raw.reduce((s,x)=>s+num(x.i),0),sakit=sm.sakit!=null?num(sm.sakit):raw.reduce((s,x)=>s+num(x.s),0),alpa=sm.alpa!=null?num(sm.alpa):raw.reduce((s,x)=>s+num(x.a),0);
   document.getElementById('attendance-summary').innerHTML=[['Total Catatan',total],['Hadir',hadir],['Izin',izin],['Sakit',sakit],['Alpa',alpa]].map(([l,v])=>`<div class="card-flat p-4"><div class="text-[9px] uppercase tracking-[.12em] font-bold text-[#88958e]">${l}</div><div class="metric-number text-[25px] font-extrabold mt-2">${v}</div></div>`).join('');
   document.getElementById('attendance-awardee-summary-table')?.classList.remove('hidden');
   document.getElementById('attendance-body').innerHTML=items.length?items.map(x=>{
-    const hasRecord=num(x.total)>0||x.recorded===true,pct=hasRecord?num(x.pct):null;
-    const presence=hasRecord?`<span class="pill ${pct>=80?'pill-green':'pill-gold'}">${pct}%</span>`:'<span class="pill pill-gray">Belum dicatat</span>';
-    return `<tr><td class="font-semibold">${esc(x.nama)}</td><td>${esc(x.angkatan||'—')}</td><td>${num(x.h)}</td><td>${num(x.i)}</td><td>${num(x.s)}</td><td>${num(x.a)}</td><td>${presence}</td></tr>`;
-  }).join(''):'<tr><td colspan="7" class="empty">Belum ada Awardee aktif.</td></tr>';
+    const eligible=num(x.eligible),pct=eligible>0?num(x.pct):null;
+    const presence=eligible>0?`<span class="pill ${pct>=80?'pill-green':'pill-gold'}">${pct}%</span>`:'<span class="pill pill-gray">Belum ada kegiatan</span>';
+    return `<tr><td class="font-semibold">${esc(x.nama)}</td><td>${esc(x.angkatan||'—')}</td><td>${eligible}</td><td>${num(x.h)}</td><td>${num(x.i)}</td><td>${num(x.s)}</td><td>${num(x.a)}</td><td>${presence}</td></tr>`;
+  }).join(''):'<tr><td colspan="8" class="empty">Belum ada Awardee aktif.</td></tr>';
 }
 async function openAttendanceEntry(){const opts=await api('getAbsensiEntryOptions',{},true);state.attendanceOptions=opts;document.getElementById('attendance-form-period').innerHTML=(opts.periods||[]).map(x=>`<option value="${esc(x.id)}">${esc(x.nama||x.name||x.id)}</option>`).join('');document.getElementById('attendance-form-target').innerHTML='<option>Umum</option>'+(opts.cohorts||[]).map(x=>`<option>${esc(x)}</option>`).join('');document.getElementById('attendance-form-date').value=new Date().toISOString().slice(0,10);document.getElementById('attendance-entry-list').innerHTML=(opts.awardees||[]).map(x=>`<div class="px-4 py-3 flex items-center gap-3"><div class="flex-1"><div class="text-[12px] font-bold">${esc(x.nama)}</div><div class="text-[10px] text-[#87948d] mt-1">${esc(x.angkatan||'')}</div></div><select class="input select !w-[120px] attendance-status" data-id="${esc(x.id)}"><option value="">—</option><option>Hadir</option><option>Izin</option><option>Sakit</option><option>Alpa</option></select></div>`).join('');openModal('attendance-modal')}
 async function saveAttendance(e){e.preventDefault();const statuses={};document.querySelectorAll('.attendance-status').forEach(s=>{if(s.value)statuses[s.dataset.id]=s.value});const payload={periodeId:document.getElementById('attendance-form-period').value,namaKegiatan:document.getElementById('attendance-form-agenda').value,tanggal:document.getElementById('attendance-form-date').value,targetAngkatan:document.getElementById('attendance-form-target').value,statuses};try{showLoader(true);const r=await etosAPI.call('saveAbsensiEntry',payload);if(r.success===false)throw new Error(r.error);closeModal('attendance-modal');state.cache={};toast('Absensi berhasil disimpan.');loadAttendance(true)}catch(err){toast(err.message,'error')}finally{showLoader(false)}}
