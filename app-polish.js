@@ -3,7 +3,7 @@
 const SYNC_KEY='etos-media-sync-audited-v1';
 const PIN_VIEWS=new Set(['coaching','mentoring','profile','system','datacenter','settings']);
 function fileId(url){const s=String(url||'');const m=s.match(/\/d\/([A-Za-z0-9_-]+)/)||s.match(/[?&]id=([A-Za-z0-9_-]+)/);return m?m[1]:''}
-function photoUrl(url){const s=String(url||'').trim();if(!s)return'';if(/supabase\.co\/storage\/v1\/object\//i.test(s))return s;const id=fileId(s);if(id&&/drive\.google\.com/i.test(s))return `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w700`;return s}
+function photoUrl(url){const s=String(url||'').trim();if(!s)return'';if(/supabase\.co\/storage\/v1\/object\//i.test(s))return s;const id=fileId(s);if(id&&/drive\.google\.com/i.test(s))return `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1600`;return s}
 window.etosMedia={fileId,photoUrl};
 function appState(){try{return typeof state!=='undefined'?state:null}catch{return null}}
 function pinReady(){return appState()?.session?.kind==='pin'}
