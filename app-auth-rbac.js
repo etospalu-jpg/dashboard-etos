@@ -8,7 +8,7 @@ window.etosAuthClient=authClient;
 const legacy={signInPin:window.etosAuth.signInPin?.bind(window.etosAuth),getSession:window.etosAuth.getSession?.bind(window.etosAuth),signOut:window.etosAuth.signOut?.bind(window.etosAuth),openLogin:window.openLogin,goView:window.goView};
 let lastBridgeToken='',inviteSetupShown=false;
 const roleNames={superadmin:'Superadmin',admin:'Admin',facilitator:'Fasilitator',operator:'Operator',viewer:'Viewer'};
-const PIN_ONLY_VIEWS=new Set(['coaching','mentoring','profile','datacenter','settings','system']);
+const PIN_ONLY_VIEWS=new Set(['coaching','mentoring','profile','datacenter','settings','system','communication']);
 const viewRoles={
  dashboard:['public','viewer','operator','facilitator','admin','superadmin'],
  directory:['public','viewer','operator','facilitator','admin','superadmin'],
@@ -21,7 +21,8 @@ const viewRoles={
  profile:['facilitator','admin','superadmin'],
  datacenter:['operator','facilitator','admin','superadmin'],
  settings:['operator','facilitator','admin','superadmin'],
- system:['admin','superadmin']
+ system:['admin','superadmin'],
+ communication:['superadmin']
 };
 function normalizedPin(s){if(!s)return null;return{...s,kind:'pin',role:'superadmin',profile:{role:'superadmin',is_active:true,full_name:'ETOS ID Palu Superadmin'}}}
 async function profileFor(s){if(!s?.user?.id)return null;const{data,error}=await authClient.from('profiles').select('id,full_name,email,phone,role,is_active,last_login_at').eq('id',s.user.id).maybeSingle();if(error)throw error;return data||null}
