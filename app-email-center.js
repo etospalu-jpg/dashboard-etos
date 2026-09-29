@@ -6,7 +6,7 @@ const E=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 function isPin(){try{return state?.session?.kind==='pin'}catch{return false}}
 function T(m,t){if(typeof toast==='function')toast(m,t||'')}
 function Gate(next){try{state.afterAuth=next}catch(_){}if(typeof window.openPinAccess==='function')window.openPinAccess();else window.openLogin?.()}
-async function api(action,data){const r=await fetch('/api/email-center',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,data:data||{}})}),b=await r.json().catch(()=>({}));if(!r.ok||b.success===false)throw new Error(b.error||'Email Center gagal memproses permintaan.');return b.data}
+async function api(action,data){const r=await fetch('/api/secure',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({function:'emailCenter',params:{action,data:data||{}}})}),b=await r.json().catch(()=>({}));if(!r.ok||b.success===false)throw new Error(b.error||'Email Center gagal memproses permintaan.');return b.data}
 function fmt(v){if(!v)return'—';try{return new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Makassar'}).format(new Date(v))+' WITA'}catch{return v}}
 function ensure(){
  const host=document.querySelector('.content-pad');if(!host)return null;
