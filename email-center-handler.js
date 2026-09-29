@@ -56,7 +56,10 @@ async function providerState(c,refresh=false){
       })});
     }catch(e){
       providerReachable=false;
-      if(e.status===401||e.status===403)domainStatus='key_invalid';
+      // A domain-restricted Resend sending key is intentionally unable to
+      // access domain-management endpoints. Keep the persisted domain state
+      // instead of incorrectly labeling the valid sending key as invalid.
+      if(e.status===401||e.status===403)domainStatus=s?.domain_status||'not_started';
     }
   }
   return{keyConfigured:!!key,providerReachable,domainStatus,ready:!!key&&domainStatus==='verified'};
@@ -170,7 +173,14 @@ async function verifyDomain(c){
   const s=await settings(c),key=await providerKey(c);
   if(!key)bad('Simpan Resend API key terlebih dahulu.',409);
   if(!s?.provider_domain_id)bad('ID domain Resend belum tersimpan.',409);
-  try{await resend('/domains/'+encodeURIComponent(s.provider_domain_id)+'/verify',key,{method:'POST',body:'{}'})}catch(e){if(e.status!==409)throw e}
+  try{
+    await resend('/domains/'+encodeURIComponent(s.provider_domain_id)+'/verify',key,{method:'POST',body:'{}'});
+  }catch(e){
+    // Sending-only keys cannot manage domains. Verification can still be
+    // triggered from the Resend account while this dashboard keeps using the
+    // least-privilege key for email delivery.
+    if(![401,403,409].includes(Number(e.status)))throw e;
+  }
   return providerState(c,true);
 }
 async function saveTemplate(c,p){
