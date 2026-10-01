@@ -1,8 +1,9 @@
 {
   "name": "etos-id-palu-dashboard",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.1.1",
   "scripts": {
+    "build": "npm run build:css",
     "build:css": "tailwindcss -i ./tailwind.input.css -o ./tailwind.generated.css --minify"
   },
   "dependencies": {
