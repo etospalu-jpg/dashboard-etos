@@ -3,7 +3,7 @@ const path=require('path');
 const root=__dirname,out=path.join(root,'public');
 fs.rmSync(out,{recursive:true,force:true});fs.mkdirSync(out,{recursive:true});
 const allowed=new Set(['.html','.js','.css','.svg','.png','.jpg','.jpeg','.webp','.ico','.xml','.txt','.webmanifest']);
-const skip=new Set(['build-static.js','tailwind.input.css','tailwind.config.js']);
+const skip=new Set(['build-static.js','tailwind.input.css','tailwind.config.js','package.json','vercel.json']);
 for(const name of fs.readdirSync(root)){
   const src=path.join(root,name);if(!fs.statSync(src).isFile()||skip.has(name)||!allowed.has(path.extname(name).toLowerCase()))continue;
   fs.copyFileSync(src,path.join(out,name));
