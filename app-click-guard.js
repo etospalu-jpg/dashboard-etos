@@ -22,6 +22,18 @@
     };
   }
 
+  window.etosButtonBusy=function(btn,on,label){
+    if(!btn)return;
+    if(on){
+      if(btn.dataset.etosBusy==='1')return false;
+      btn.dataset.etosBusy='1';btn.dataset.etosHtml=btn.innerHTML;btn.disabled=true;btn.setAttribute('aria-busy','true');btn.classList.add('etos-busy');
+      btn.innerHTML='<span class="etos-btn-spinner" aria-hidden="true"></span><span>'+String(label||'Memproses')+'…</span>';
+    }else{
+      btn.dataset.etosBusy='0';btn.disabled=false;btn.removeAttribute('aria-busy');btn.classList.remove('etos-busy');if(btn.dataset.etosHtml){btn.innerHTML=btn.dataset.etosHtml;delete btn.dataset.etosHtml}window.lucide?.createIcons?.();
+    }
+    return true;
+  };
+
   const style=document.createElement('style');
   style.id='etos-click-guard-style';
   style.textContent=`
@@ -32,6 +44,11 @@
     #awardee-drawer.open .drawer-panel{position:relative;z-index:2;pointer-events:auto!important}
     #awardee-drawer-close{position:relative;z-index:30;pointer-events:auto!important;touch-action:manipulation}
     [inert]{pointer-events:auto!important}
+    .btn,.nav-btn,[role="button"]{touch-action:manipulation}
+    .btn.etos-tap,.nav-btn.etos-tap{transform:scale(.965)!important;filter:brightness(.98)}
+    .btn.etos-busy{cursor:wait;opacity:.88;pointer-events:none}
+    .etos-btn-spinner{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:999px;display:inline-block;animation:etosBtnSpin .65s linear infinite}
+    @keyframes etosBtnSpin{to{transform:rotate(360deg)}}
   `;
   document.head.appendChild(style);
 
@@ -47,6 +64,10 @@
     }
     document.querySelectorAll('.modal:not(.open),.drawer:not(.open),.backdrop:not(.open)').forEach(el=>{el.style.pointerEvents='none'});
   }
+
+  document.addEventListener('pointerdown',e=>{const b=e.target?.closest?.('.btn,.nav-btn,[role="button"]');if(!b||b.disabled)return;b.classList.add('etos-tap');setTimeout(()=>b.classList.remove('etos-tap'),170)},{passive:true});
+  document.addEventListener('pointerup',e=>e.target?.closest?.('.btn,.nav-btn,[role="button"]')?.classList.remove('etos-tap'),{passive:true});
+  document.addEventListener('pointercancel',e=>e.target?.closest?.('.btn,.nav-btn,[role="button"]')?.classList.remove('etos-tap'),{passive:true});
 
   document.addEventListener('click',e=>{
     const nav=e.target?.closest?.('.nav-btn[data-view]');
