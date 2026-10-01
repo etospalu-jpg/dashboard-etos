@@ -15,11 +15,14 @@ let banner=null;
 function standalone(){
   return !!(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
 }
+function read(key){
+  try{return localStorage.getItem(key)}catch(_){return null}
+}
 function installed(){
-  return standalone()||localStorage.getItem(INSTALLED_KEY)==='1';
+  return standalone()||read(INSTALLED_KEY)==='1';
 }
 function dismissed(){
-  return localStorage.getItem(DISMISSED_KEY)==='1';
+  return read(DISMISSED_KEY)==='1';
 }
 function setInstalled(){
   try{localStorage.setItem(INSTALLED_KEY,'1');localStorage.removeItem(DISMISSED_KEY)}catch(_){}
@@ -130,9 +133,10 @@ function makeBanner(mode){
     }
     if(mode==='safari'){
       const note=banner&&banner.querySelector('.etos-pwa-note');
-      if(note)note.innerHTML='<b>Di Safari:</b> buka menu <b>File</b> → <b>Add to Dock / Tambahkan ke Dock</b> → klik <b>Add</b>.';
       const btn=banner&&banner.querySelector('.etos-pwa-install');
-      if(btn)btn.textContent='Sudah Paham';
+      if(btn&&btn.dataset.etosSafariReady==='1'){setDismissed();return}
+      if(note)note.innerHTML='<b>Di Safari:</b> buka menu <b>File</b> → <b>Add to Dock / Tambahkan ke Dock</b> → klik <b>Add</b>.';
+      if(btn){btn.dataset.etosSafariReady='1';btn.textContent='Mengerti'}
       return;
     }
     setDismissed();
