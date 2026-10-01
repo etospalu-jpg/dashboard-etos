@@ -40,3 +40,7 @@ Dashboard, Direktori Awardee, Tracking Alumni, Akademik, dan Prestasi dapat memi
 Perubahan dikerjakan dan diverifikasi di branch terlebih dahulu. Production dipromosikan hanya setelah migration database, quality gate, dan verifikasi runtime selesai.
 
 Jangan menaruh service-role key atau secret server di repository. Browser hanya boleh menggunakan Supabase publishable key.
+
+## Progressive Web App
+
+Dashboard mendukung instalasi sebagai PWA di browser desktop yang kompatibel. Chrome/Edge memakai install prompt browser; Safari macOS menggunakan Add to Dock. Service worker menyediakan app shell dan halaman offline, sedangkan data operasional tetap membutuhkan koneksi ke Supabase.
