@@ -23,11 +23,7 @@ async function identify(){
  if(!state.user){hide('workspace');show('login');return}
  try{
   const found=unwrap(await sb.from('readmap_memberships').select('awardee_id').eq('user_id',state.user.id).maybeSingle());
-  if(found)state.awardee=found.awardee_id;
-  else{
-   const result=unwrap(await sb.rpc('readmap_claim_account'));
-   state.awardee=result?.[0]?.awardee_id;
-  }
+  state.awardee=found?.awardee_id||null;
   if(!state.awardee)throw Error('Akun belum terhubung dengan data Etoser.');
   hide('login');show('workspace');await loadAll();notice('');
  }catch(e){hide('workspace');show('login');err(e);await sb.auth.signOut();state.user=null}
@@ -52,8 +48,7 @@ function render(){
  $('stats').innerHTML=[['Halaman dilaporkan',total],['Buku selesai',complete],['Video selesai',state.videos.filter(x=>x.status==='Selesai').length]].map(([k,v])=>'<div class="metric"><b>'+v+'</b><small>'+k+'</small></div>').join('');
  $('videos-list').innerHTML=state.videos.length?state.videos.map(v=>{const p=nextStatus(v);return '<div class="item"><img class="thumb" loading="lazy" src="https://i.ytimg.com/vi/'+safe(v.youtube_id)+'/hqdefault.jpg" alt="Thumbnail video"><strong>'+safe(v.title)+'</strong><small>'+safe(p.status)+' · '+p.display+'% diputar di dashboard</small><button data-play="'+safe(v.id)+'">Tonton / Lanjutkan</button></div>'}).join(''):'Belum ada video.';
 }
-on('send-code','submit',async e=>{e.preventDefault();if(!sb)return notice('Layanan login belum dapat dimuat.');const email=$('email').value.trim().toLowerCase();try{const x=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true,emailRedirectTo:location.origin+'/readmap.html'}});unwrap(x);show('verify-code');notice('Jika email valid, kode masuk telah dikirim. Periksa kotak masuk.')}catch(e){err(e)}});
-on('verify-code','submit',async e=>{e.preventDefault();try{unwrap(await sb.auth.verifyOtp({email:$('email').value.trim().toLowerCase(),token:$('code').value.trim(),type:'email'}));await identify()}catch(e){err(e)}});
+on('member-login','submit',async e=>{e.preventDefault();if(!sb)return notice('Layanan login belum dapat dimuat.');const raw=$('username').value.trim().toUpperCase();const pin=$('pin').value.trim();if(!/^ETOS26-[A-F0-9]{10}$/.test(raw)||!/^\d{10}$/.test(pin))return notice('Periksa username dan PIN pribadi Anda.');const button=e.target.querySelector('button[type=submit]');button.disabled=true;try{const email=raw.toLowerCase()+'@readmap.etosidpalu.com';unwrap(await sb.auth.signInWithPassword({email,password:pin}));$('pin').value='';await identify()}catch(error){notice('Username atau PIN tidak sesuai. Hubungi pengelola jika memerlukan reset.')}finally{button.disabled=false}});
 on('signout','click',async()=>{await flushVideo();await sb.auth.signOut();state.awardee=null;state.user=null;hide('workspace');show('login');notice('Anda telah keluar.')});
 on('book-form','submit',async e=>{e.preventDefault();try{unwrap(await sb.from('readmap_books').insert({awardee_id:member(),title:$('book-title').value.trim(),author:$('book-author').value.trim()||null,category:$('book-category').value,total_pages:Number($('book-total').value)||null}));$('book-form').reset();await loadAll();notice('Buku berhasil ditambahkan.')}catch(e){err(e)}});
 on('entry-mode','change',()=>{const range=$('entry-mode').value==='rentang';$('range-inputs').hidden=!range;$('amount-input').hidden=range});
