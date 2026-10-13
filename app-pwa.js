@@ -179,8 +179,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(installed()){setInstalled();return}
   if(!installSurface||dismissed())return;
   if(isIOS)waitForShell('ios');
-  else if(isIOS)waitForShell('ios');
-    else if(isSafari)waitForShell('safari');
+  else if(isSafari)waitForShell('safari');
   else if(isMac&&isFirefox)waitForShell('firefox');
   else if(!isChromium)waitForShell('browser');
 });
@@ -190,6 +189,7 @@ window.ETOSPWA={
   showInstall(){
     try{localStorage.removeItem(DISMISSED_KEY)}catch(_){}
     if(deferredPrompt)waitForShell('native');
+    else if(isIOS)waitForShell('ios');
     else if(isSafari)waitForShell('safari');
     else if(isMac&&isFirefox)waitForShell('firefox');
     else waitForShell('browser');
