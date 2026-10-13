@@ -87,7 +87,7 @@ async function openVideo(id){
  await readyYoutube();
  state.player=new YT.Player('yt-player',{width:'100%',height:'100%',videoId:v.youtube_id,playerVars:{playsinline:1,rel:0,origin:location.origin},events:{
   onReady:ev=>{const d=Math.round(ev.target.getDuration()||0);v.duration_seconds=d||v.duration_seconds;if(v.last_position_seconds>0)ev.target.seekTo(v.last_position_seconds,true);$('player-status').textContent='Pemutar siap · Lanjutkan dari posisi tersimpan.'},
-  onStateChange:ev=>{if(ev.data===YT.PlayerState.PLAYING){state.lastTime=ev.target.getCurrentTime();tickVideo()}else {state.lastTime=null;if(ticker){clearInterval(ticker);ticker=null}flushVideo().catch(err)}if(ev.data===YT.PlayerState.ENDED){if(ticker){clearInterval(ticker);ticker=null}v.ended=true;flushVideo().catch(err)}},
+  onStateChange:ev=>{if(ev.data===YT.PlayerState.PLAYING){state.lastTime=ev.target.getCurrentTime();tickVideo()}else {state.lastTime=null;if(ticker){clearInterval(ticker);ticker=null}if(ev.data===YT.PlayerState.ENDED)v.ended=true;flushVideo().catch(err)}},
   onError:()=>{$('player-status').textContent='Video tidak dapat diputar tertanam. Progres tidak dihitung.'}
  }});
 }
@@ -105,15 +105,20 @@ function tickVideo(){
  },1000);
 }
 async function flushVideo(){
- const v=state.activeVideo;if(!v||state.saving||!state.awardee)return;
- state.saving=true;state.saveAt=Date.now();
- try{
-  const p=nextStatus({...v,watched_intervals:state.intervals});
-  const status=(v.ended&&p.ratio>=.9)?'Selesai':v.status==='Selesai'?'Selesai':p.status;
-  const patch={watched_intervals:state.intervals,duration_seconds:v.duration_seconds||0,last_position_seconds:Math.round(state.player?.getCurrentTime?.()||v.last_position_seconds||0),status,last_watched_at:new Date().toISOString(),updated_at:new Date().toISOString()};
+ const v=state.activeVideo;if(!v||!state.awardee)return;
+ if(state.videoSavePromise)await state.videoSavePromise.catch(()=>{});
+ const save=(async()=>{
+  state.saveAt=Date.now();
+  const segments=state.intervals.map(x=>[Number(x[0]),Number(x[1])]);
+  const p=nextStatus({...v,watched_intervals:segments});
+  const status=v.ended&&p.ratio>=.9?'Selesai':v.status==='Selesai'?'Selesai':p.status;
+  const pos=state.player?.getCurrentTime?.();
+  const patch={watched_intervals:segments,duration_seconds:v.duration_seconds||0,last_position_seconds:Number.isFinite(pos)&&pos>=0?Math.round(pos):v.last_position_seconds||0,status,last_watched_at:new Date().toISOString(),updated_at:new Date().toISOString()};
   unwrap(await sb.from('readmap_videos').update(patch).eq('id',v.id).eq('awardee_id',state.awardee));
   Object.assign(v,patch);render();
- }finally{state.saving=false}
+ })();
+ state.videoSavePromise=save;
+ try{await save}finally{if(state.videoSavePromise===save)state.videoSavePromise=null}
 }
 on('save-insight','click',async()=>{try{if(!state.activeVideo)throw Error('Pilih video dahulu');await flushVideo();const insight=$('video-insight').value.trim();unwrap(await sb.from('readmap_videos').update({insight,updated_at:new Date().toISOString()}).eq('id',state.activeVideo.id));state.activeVideo.insight=insight;notice('Pembelajaran video tersimpan.')}catch(e){err(e)}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flushVideo().catch(()=>{})});
