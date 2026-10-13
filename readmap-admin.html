@@ -1,9 +1,26 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pengelolaan Akun · ETOS READMAP</title><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/readmap.css?v=36.26"></head><body><main class="wrap">
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pengelolaan Akun · ETOS READMAP</title><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/readmap.css?v=36.27"></head><body><main class="wrap">
 <header class="brand"><img src="/brand-etos.svg" alt="ETOS ID Palu"><a href="/">Kembali ke Dashboard ↗</a></header>
 <section class="hero"><div class="eyebrow">KHUSUS SUPERADMIN · ETOS PALU</div><h1>Kelola Akun<br><em>READMAP.</em></h1><p>Username dan PIN acak dibuat khusus untuk Etoser aktif, tanpa mengubah akun fasilitator.</p></section>
 <div id="notice" role="status" aria-live="polite"></div>
 <section class="card"><h2>Akun Etoser</h2><p id="summary">Memeriksa akses...</p>
-<button id="generate" disabled>Buat Akun Etoser Belum Aktif</button> <button class="secondary" id="download" disabled>Unduh Daftar Kredensial Baru</button>
+<div class="toolbar" style="flex-wrap:wrap;justify-content:flex-start">
+ <button id="generate" disabled>Buat Akun Etoser Belum Aktif</button>
+ <button class="secondary" id="download" disabled>Unduh PIN Baru (CSV)</button>
+ <button id="reset-all" class="secondary" disabled>Reset & Unduh PIN Semua Etoser</button>
+ </div>
+ <div id="pin-result" class="card" hidden style="padding:18px;margin-top:18px;background:#f4f8f1;border-color:#c7ddc6">
+ <h3 style="font-size:17px;margin:0 0 6px">PIN Baru Berhasil Dibuat</h3>
+ <p id="pin-name" style="margin:0 0 6px"></p>
+ <p id="pin-username" style="font-weight:700;margin:0 0 6px"></p>
+ <label style="max-width:320px">PIN terbaru<input id="pin-value" type="password" readonly autocomplete="off" value="" aria-label="PIN terbaru"></label>
+ <div class="toolbar" style="flex-wrap:wrap;justify-content:flex-start">
+ <button type="button" id="pin-toggle" class="secondary">Tampilkan PIN</button>
+ <button type="button" id="pin-copy" class="secondary">Salin PIN</button>
+ </div>
+ <p style="margin:12px 0 0">PIN ini hanya tersedia selama halaman tetap terbuka. Unduh atau salin sebelum menutup halaman.</p>
+ </div>
+ <p><strong>Sudah terlanjur dibuat tetapi PIN hilang?</strong> Gunakan <strong>Reset & Unduh PIN Semua Etoser</strong> untuk menerbitkan PIN baru bagi seluruh Etoser aktif sekaligus. Ini akan mengganti PIN lama. Untuk satu orang, klik <strong>Reset PIN</strong> pada akunnya.</p>
+ <p id="reset-progress" role="status" aria-live="polite"></p>
 <p><strong>Keamanan:</strong> PIN hanya terlihat saat pertama dibuat atau direset. Setelah file disimpan, hapus salinan yang tidak diperlukan. Bagikan setiap akun secara pribadi, bukan dalam grup publik.</p>
 <div class="list" id="member-list"></div></section><section class="card"><div class="toolbar"><div><h2>Monitoring READMAP</h2><p>Ringkasan literasi Etoser aktif untuk pembinaan dan benchmarking.</p></div><button id="reload-overview" class="secondary">Perbarui Data</button></div><div id="overview-stats" class="stats"></div><div class="split"><div><h3>Halaman Dibaca per Pekan</h3><div id="overview-weeks" class="category-chart"></div></div><div><h3>Arah Kategori Bacaan</h3><div id="overview-categories" class="category-chart"></div></div></div><h3 style="margin-top:20px">Perkembangan per Etoser</h3><div id="overview-members" class="list"></div></section><footer>Daftar ini hanya dapat dibuka ketika sesi PIN Superadmin Dashboard ETOS masih aktif.</footer></main>
-<script defer src="/readmap-admin.js?v=36.26"></script></body></html>
+<script defer src="/readmap-admin.js?v=36.27"></script></body></html>
