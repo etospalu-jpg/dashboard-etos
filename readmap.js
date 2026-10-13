@@ -16,6 +16,7 @@ const show=id=>$(id).hidden=false;
 const hide=id=>$(id).hidden=true;
 function videoId(raw){try{let text=String(raw||'').trim();if(!/^https?:\/\//i.test(text))text='https://'+text;const u=new URL(text);const host=u.hostname.toLowerCase().replace(/^www\./,'');let id=null;if(['youtube.com','m.youtube.com','music.youtube.com','youtube-nocookie.com'].includes(host)){const p=u.pathname.split('/').filter(Boolean);id=['shorts','embed','live','v'].includes(p[0])?p[1]:u.searchParams.get('v')}else if(host==='youtu.be'){id=u.pathname.split('/').filter(Boolean)[0]}return /^[A-Za-z0-9_-]{11}$/.test(id||'')?id:null}catch{return null}}
 const imageUrl=id=>'https://i.ytimg.com/vi/'+id+'/hqdefault.jpg';
+const thumbnailFallback=(img,id)=>{if(!img)return;img.onerror=()=>{img.onerror=null;img.src='https://i.ytimg.com/vi/'+id+'/mqdefault.jpg';};};
 function emptyState(symbol,title,desc){return '<div class="empty-state"><span class="empty-icon">'+symbol+'</span><strong>'+safe(title)+'</strong><p>'+safe(desc)+'</p></div>'}
 function nextStatus(v){const segments=Array.isArray(v.watched_intervals)?v.watched_intervals:[];const duration=v.duration_seconds||0;const watched=segments.reduce((a,x)=>a+Math.max(0,x[1]-x[0]),0);const ratio=duration?Math.min(1,watched/duration):0;return{ratio,display:Math.round(ratio*100),status:v.status==='Selesai'||(ratio>=.9&&v.ended)?'Selesai':watched>0?'Sedang Belajar':'Belum Dimulai'}}
 function merge(xs){const sorted=xs.map(x=>[Math.max(0,Number(x[0])||0),Math.max(0,Number(x[1])||0)]).filter(x=>x[1]>x[0]).sort((a,b)=>a[0]-b[0]);return sorted.reduce((a,x)=>{const last=a[a.length-1];if(last&&x[0]<=last[1]+.35)last[1]=Math.max(last[1],x[1]);else a.push(x);return a},[])}
@@ -89,9 +90,10 @@ on('youtube-url','input',()=>{
  const id=videoId($('youtube-url').value);
  if(!id){hide('video-preview');return}
  const img=$('video-preview-image');
- img.src=imageUrl(id);img.onerror=()=>{img.onerror=null;img.src='https://i.ytimg.com/vi/'+id+'/mqdefault.jpg';};
+ img.onload=null;img.onerror=null;thumbnailFallback(img,id);img.src=imageUrl(id);
  $('video-preview-title').textContent='Video '+id;
- $('video-preview-status').textContent='Thumbnail asli berhasil dikenali · siap disimpan';
+ $('video-preview-status').textContent='Memuat thumbnail dari YouTube...';
+ img.onload=()=>{$('video-preview-status').textContent='Thumbnail YouTube siap · simpan untuk menambah ke playlist';};
  show('video-preview');
 });
 
