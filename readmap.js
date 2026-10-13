@@ -127,8 +127,23 @@ on('leave-demo','click',exitDemo);
 on('reset-demo','click',async()=>{if(!confirm('Ulangi Mode Demo dari data contoh awal? Semua perubahan demo di browser ini akan direset.'))return;const fixture=window.READMAP_DEMO.reset(currentWeek);Object.assign(state,{books:fixture.books,entries:fixture.entries,videos:fixture.videos});await refreshCovers();render();notice('Mode Demo kembali ke 5 buku dan 5 video contoh.');});
 on('book-cover','change',()=>{clearCoverPreview();const file=$('book-cover').files?.[0];if(!file)return;if(!file.type.startsWith('image/'))return notice('Pilih file gambar JPG, PNG, atau WebP.');state.coverPreviewUrl=URL.createObjectURL(file);$('book-cover-preview').src=state.coverPreviewUrl;show('book-cover-preview');$('cover-placeholder').hidden=true;notice('');});
 on('member-login','submit',async e=>{e.preventDefault();if(!sb)return notice('Layanan login belum dapat dimuat.');const raw=$('username').value.trim().toUpperCase();const pin=$('pin').value.trim();if(!/^ETOS26-[A-F0-9]{10}$/.test(raw)||!/^\d{10}$/.test(pin))return notice('Periksa username dan PIN pribadi Anda.');const button=e.target.querySelector('button[type=submit]');button.disabled=true;try{const email=raw.toLowerCase()+'@readmap.etosidpalu.com';unwrap(await sb.auth.signInWithPassword({email,password:pin}));$('pin').value='';await identify()}catch(error){notice('Username atau PIN tidak sesuai. Hubungi pengelola jika memerlukan reset.')}finally{button.disabled=false}});
-on('signout','click',async()=>{await flushVideo();await sb.auth.signOut();state.awardee=null;state.user=null;hide('workspace');show('login');notice('Anda telah keluar.')});
-on('book-form','submit',async e=>{e.preventDefault();try{unwrap(await sb.from('readmap_books').insert({awardee_id:member(),title:$('book-title').value.trim(),author:$('book-author').value.trim()||null,category:$('book-category').value,total_pages:Number($('book-total').value)||null}));$('book-form').reset();await loadAll();notice('Buku berhasil ditambahkan.')}catch(e){err(e)}});
+on('signout','click',async()=>{
+ if(isDemo()){exitDemo();return}
+ await flushVideo();await sb.auth.signOut();state.awardee=null;state.user=null;hide('workspace');show('login');notice('Kamu berhasil keluar.');
+});
+on('book-form','submit',async e=>{
+ e.preventDefault();const btn=e.target.querySelector('button[type=submit]');btn.disabled=true;let newCover=null;
+ try{
+  const title=$('book-title').value.trim(),file=$('book-cover').files?.[0];
+  if(title.length<2)throw Error('Judul buku minimal dua karakter.');
+  if(file)newCover=await uploadCover(file);
+  const book={awardee_id:member(),title,author:$('book-author').value.trim()||null,category:$('book-category').value,total_pages:Number($('book-total').value)||null,cover_path:newCover};
+  if(isDemo()){state.books.unshift({...book,id:newId(),status:'Sedang Dibaca'});demoPersist();await refreshCovers();render();}
+  else{const response=await sb.from('readmap_books').insert(book);unwrap(response);await loadAll()}
+  e.target.reset();clearCoverPreview();notice('Buku berhasil ditambahkan ke rak bukumu.');
+ }catch(error){if(newCover&&!isDemo())await deleteStoredCover(newCover);err(error)}
+ finally{btn.disabled=false}
+});
 on('entry-mode','change',()=>{const range=$('entry-mode').value==='rentang';$('range-inputs').hidden=!range;$('amount-input').hidden=range});
 on('reading-form','submit',async e=>{e.preventDefault();try{
  const mode=$('entry-mode').value,from=Number($('from-page').value),to=Number($('to-page').value);
@@ -136,10 +151,42 @@ on('reading-form','submit',async e=>{e.preventDefault();try{
  if(!Number.isInteger(pages)||pages<1||pages>20000||(mode==='rentang'&&(!Number.isInteger(from)||from<1||to>20000)))throw Error('Periksa jumlah halaman.');
  const bookId=$('entry-book').value;if(!bookId)throw Error('Tambahkan buku terlebih dahulu.');
  const payload={awardee_id:member(),book_id:bookId,week_start:currentWeek,input_mode:mode,from_page:mode==='rentang'?from:null,to_page:mode==='rentang'?to:null,pages_read:pages,insight:$('entry-insight').value.trim()};
- unwrap(await sb.from('readmap_reading_entries').upsert(payload,{onConflict:'awardee_id,week_start,book_id'}));
- $('entry-insight').value='';await loadAll();notice('Laporan pekanan tersimpan.');
- }catch(e){err(e)}});
-$('books-list').addEventListener('click',async e=>{const id=e.target.dataset.finish;if(!id)return;const b=state.books.find(x=>x.id===id);if(!b)return;try{unwrap(await sb.from('readmap_books').update({status:b.status==='Selesai'?'Sedang Dibaca':'Selesai',updated_at:new Date().toISOString()}).eq('id',id));await loadAll()}catch(e){err(e)}});
+ if(payload.insight.length<8)throw Error('Tulis sedikitnya satu kalimat pembelajaran.');
+ if(isDemo()){
+  const index=state.entries.findIndex(v=>v.book_id===bookId&&v.week_start===currentWeek);
+  if(index>=0)Object.assign(state.entries[index],payload);
+  else state.entries.unshift({...payload,id:newId()});
+  demoPersist();render();
+ }else{
+  unwrap(await sb.from('readmap_reading_entries').upsert(payload,{onConflict:'awardee_id,week_start,book_id'}));
+  await loadAll();
+ }
+ $('entry-insight').value='';notice('Laporan pekanan tersimpan.');
+ }catch(error){err(error)}});
+$('books-list').addEventListener('click',async e=>{
+ const button=e.target.closest('button');if(!button)return;
+ const id=button.dataset.finish||button.dataset.deleteBook;
+ if(!id)return;
+ const b=state.books.find(x=>x.id===id);if(!b)return;
+ if(button.dataset.deleteBook){
+  const reports=state.entries.filter(x=>x.book_id===id).length;
+  if(!confirm('Hapus buku "'+b.title+'" dari rak?'+(reports?' '+reports+' catatan bacaan terkait juga akan dihapus.':'')))return;
+  button.disabled=true;
+  try{
+   if(isDemo()){state.books=state.books.filter(x=>x.id!==id);state.entries=state.entries.filter(x=>x.book_id!==id);demoPersist();await loadAll();}
+   else {unwrap(await sb.from('readmap_books').delete().eq('id',id).eq('awardee_id',member()));await deleteStoredCover(b.cover_path);await loadAll();}
+   notice('Buku berhasil dihapus.');
+  }catch(error){err(error)}finally{button.disabled=false}
+ }else{
+  button.disabled=true;
+  try{
+   const status=b.status==='Selesai'?'Sedang Dibaca':'Selesai';
+   if(isDemo()){b.status=status;demoPersist();render();}
+   else{unwrap(await sb.from('readmap_books').update({status,updated_at:new Date().toISOString()}).eq('id',id).eq('awardee_id',member()));await loadAll();}
+   notice('Status buku diperbarui.');
+  }catch(error){err(error)}finally{button.disabled=false}
+ }
+});
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t===b));const videos=b.dataset.tab==='videos';$('videos-panel').hidden=!videos;$('books-panel').hidden=videos}));
 
 function selectTab(tab){const isVideo=tab==='videos';document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));$('videos-panel').hidden=!isVideo;$('books-panel').hidden=isVideo}
