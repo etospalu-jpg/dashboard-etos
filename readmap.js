@@ -320,12 +320,13 @@ function scrollToApp(id){
  if(target)requestAnimationFrame(()=>target.scrollIntoView({behavior:'smooth',block:'start'}));
 }
 function jumpTo(tab,target){
+ if($('workspace').hidden){scrollToApp('login');return}
  selectTab(tab);
  scrollToApp(target||(tab==='videos'?'video-add-card':'reading-entry-card'));
 }
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{
  selectTab(b.dataset.tab);
- scrollToApp('books-panel'===b.dataset.tab+'-panel'?'books-panel':'videos-panel');
+ scrollToApp(b.dataset.tab==='books'?'books-panel':'videos-panel');
 }));
 document.querySelectorAll('[data-mobile-view]').forEach(b=>b.addEventListener('click',()=>{
  const view=b.dataset.mobileView;
