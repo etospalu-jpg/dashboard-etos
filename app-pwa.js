@@ -1,14 +1,15 @@
 (function(){
 'use strict';
-const VERSION='36.25';
+const VERSION='36.26';
 const DISMISSED_KEY='etos:pwa:install-dismissed:v1';
 const INSTALLED_KEY='etos:pwa:installed:v1';
 const ua=navigator.userAgent||'';
 const isMac=/Macintosh|Mac OS X/i.test(ua);
+const isIOS=/iPhone|iPad|iPod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const isSafari=isMac&&/Safari/i.test(ua)&&!/Chrome|Chromium|CriOS|Edg|OPR|Firefox|FxiOS/i.test(ua);
 const isFirefox=/Firefox|FxiOS/i.test(ua);
 const isChromium=/Chrome|Chromium|CriOS|Edg|OPR/i.test(ua);
-const installSurface=location.pathname==='/'||location.pathname==='/index.html';
+const installSurface=['/','/index.html','/readmap.html'].includes(location.pathname);
 let deferredPrompt=null;
 let banner=null;
 
@@ -71,6 +72,7 @@ function modeCopy(mode){
     action:'Install Aplikasi',
     note:'Instalasi menggunakan fitur resmi browser. Data Awardee tetap tersimpan aman di Supabase.'
   };
+  if(mode==='ios')return{eyebrow:'iPhone · iPad',title:'Pasang ETOS Palu di Layar Utama',desc:'Gunakan ETOS READMAP seperti aplikasi dari layar utama perangkat. Semua progres tersimpan di akun masing-masing.',action:'Cara Pasang',note:'Di Safari: Bagikan → Tambahkan ke Layar Utama → Tambah.'};
   if(mode==='safari')return{
     eyebrow:'Safari · macOS',
     title:'Jadikan ETOS aplikasi di MacBook',
@@ -131,6 +133,7 @@ function makeBanner(mode){
       }catch(_){setDismissed()}
       return;
     }
+    if(mode==='ios'){const note=banner&&banner.querySelector('.etos-pwa-note');const btn=banner&&banner.querySelector('.etos-pwa-install');if(note)note.innerHTML='Di Safari pilih <b>Bagikan</b> → <b>Tambahkan ke Layar Utama</b> → <b>Tambah</b>.';if(btn){btn.textContent='Mengerti';btn.onclick=setDismissed}return;}
     if(mode==='safari'){
       const note=banner&&banner.querySelector('.etos-pwa-note');
       const btn=banner&&banner.querySelector('.etos-pwa-install');
@@ -175,7 +178,9 @@ window.addEventListener('load',registerSW,{once:true});
 document.addEventListener('DOMContentLoaded',()=>{
   if(installed()){setInstalled();return}
   if(!installSurface||dismissed())return;
-  if(isSafari)waitForShell('safari');
+  if(isIOS)waitForShell('ios');
+  else if(isIOS)waitForShell('ios');
+    else if(isSafari)waitForShell('safari');
   else if(isMac&&isFirefox)waitForShell('firefox');
   else if(!isChromium)waitForShell('browser');
 });
