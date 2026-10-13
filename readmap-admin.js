@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id),records=[];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function tell(msg){$('notice').textContent=msg||''}
 async function request(action,body){
- const r=await fetch('/api/readmap-admin',{method:action?'POST':'GET',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:action?JSON.stringify({action,...body}):undefined});
+ const r=await fetch('/api/secure',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({function:'readmapAdmin',params:{action:action||'list',...(body||{})}})});
  const data=await r.json().catch(()=>({}));
  if(!r.ok)throw Error(data.error||'Permintaan tidak berhasil.');return data;
 }
