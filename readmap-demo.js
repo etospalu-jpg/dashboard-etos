@@ -6,11 +6,11 @@ function fixture(week){
  const weeks=Array.from({length:7},(_,i)=>{const d=new Date(week+'T12:00:00+08:00');d.setUTCDate(d.getUTCDate()-7*(6-i));return d.toLocaleDateString('sv-SE',{timeZone:'Asia/Makassar'})});
  const covers=id=>'https://covers.openlibrary.org/b/isbn/'+id+'-L.jpg';
  const books=[
- {id:'demo-b1',title:'Atomic Habits',author:'James Clear',category:'Pengembangan Diri',total_pages:320,status:'Selesai',cover_path:covers('9780735211292')},
- {id:'demo-b2',title:'The Psychology of Money',author:'Morgan Housel',category:'Bisnis & Karier',total_pages:256,status:'Selesai',cover_path:covers('9780857197689')},
- {id:'demo-b3',title:'Deep Work',author:'Cal Newport',category:'Pengembangan Diri',total_pages:304,status:'Sedang Dibaca',cover_path:covers('9781455586691')},
- {id:'demo-b4',title:'Start With Why',author:'Simon Sinek',category:'Kepemimpinan',total_pages:256,status:'Sedang Dibaca',cover_path:covers('9781591846444')},
- {id:'demo-b5',title:'The 7 Habits of Highly Effective People',author:'Stephen R. Covey',category:'Kepemimpinan',total_pages:432,status:'Sedang Dibaca',cover_path:covers('9781982137274')}
+ {id:'demo-b1',current_page:320,title:'Atomic Habits',author:'James Clear',category:'Pengembangan Diri',total_pages:320,status:'Selesai',cover_path:covers('9780735211292')},
+ {id:'demo-b2',current_page:256,title:'The Psychology of Money',author:'Morgan Housel',category:'Bisnis & Karier',total_pages:256,status:'Selesai',cover_path:covers('9780857197689')},
+ {id:'demo-b3',current_page:146,title:'Deep Work',author:'Cal Newport',category:'Pengembangan Diri',total_pages:304,status:'Sedang Dibaca',cover_path:covers('9781455586691')},
+ {id:'demo-b4',current_page:83,title:'Start With Why',author:'Simon Sinek',category:'Kepemimpinan',total_pages:256,status:'Sedang Dibaca',cover_path:covers('9781591846444')},
+ {id:'demo-b5',current_page:50,title:'The 7 Habits of Highly Effective People',author:'Stephen R. Covey',category:'Kepemimpinan',total_pages:432,status:'Sedang Dibaca',cover_path:covers('9781982137274')}
  ];
  const sample=[
  ['demo-b1',weeks[0],37,'Kebiasaan kecil yang konsisten lebih kuat daripada perubahan besar yang hanya sesaat.'],
@@ -31,7 +31,7 @@ function fixture(week){
  ].map(v=>({...v,awardee_id:'demo',thumbnail_url:'https://i.ytimg.com/vi/'+v.youtube_id+'/hqdefault.jpg'}));
  return {books,entries,videos};
 }
-function load(week){try{const value=localStorage.getItem(KEY);if(value){const o=JSON.parse(value);if(Array.isArray(o.books)&&Array.isArray(o.entries)&&Array.isArray(o.videos))return o}}catch(_){}return fixture(week)}
+function load(week){try{const value=localStorage.getItem(KEY);if(value){const o=JSON.parse(value);if(Array.isArray(o.books)&&Array.isArray(o.entries)&&Array.isArray(o.videos)){const defaults=fixture(week);o.books.forEach(b=>{if(b.current_page===undefined){const match=defaults.books.find(x=>x.id===b.id);b.current_page=match?.current_page??0}});return o}}}catch(_){}return fixture(week)}
 function save(o){try{localStorage.setItem(KEY,JSON.stringify({books:o.books,entries:o.entries,videos:o.videos}))}catch(_){}}
 function reset(week){try{localStorage.removeItem(KEY)}catch(_){}return fixture(week)}
 window.READMAP_DEMO={load,save,reset,clone};
