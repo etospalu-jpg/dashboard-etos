@@ -95,7 +95,7 @@ function videoId(raw){
 const imageUrl=id=>'https://i.ytimg.com/vi/'+id+'/hqdefault.jpg';
 const thumbnailFallback=(img,id)=>{if(!img)return;img.onerror=()=>{img.onerror=null;img.src='https://i.ytimg.com/vi/'+id+'/mqdefault.jpg';};};
 function emptyState(symbol,title,desc){return '<div class="empty-state"><span class="empty-icon">'+symbol+'</span><strong>'+safe(title)+'</strong><p>'+safe(desc)+'</p></div>'}
-function nextStatus(v){const segments=Array.isArray(v.watched_intervals)?v.watched_intervals:[];const duration=v.duration_seconds||0;const watched=segments.reduce((a,x)=>a+Math.max(0,x[1]-x[0]),0);const ratio=duration?Math.min(1,watched/duration):0;return{ratio,display:Math.round(ratio*100),status:v.status==='Selesai'||(ratio>=.9&&v.ended)?'Selesai':watched>0?'Sedang Belajar':'Belum Dimulai'}}
+function nextStatus(v){const d=Math.max(0,Number(v.duration_seconds)||0);const intervals=merge(Array.isArray(v.watched_intervals)?v.watched_intervals:[]);const watched=intervals.reduce((sum,[a,b])=>sum+Math.max(0,d?Math.min(d,b)-Math.min(d,a):b-a),0);const ratio=d?Math.min(1,watched/d):0;return{ratio,display:Math.round(ratio*100),status:v.status==='Selesai'||(ratio>=.9&&v.ended)?'Selesai':watched>0?'Sedang Belajar':'Belum Dimulai'}}
 function merge(xs){const sorted=xs.map(x=>[Math.max(0,Number(x[0])||0),Math.max(0,Number(x[1])||0)]).filter(x=>x[1]>x[0]).sort((a,b)=>a[0]-b[0]);return sorted.reduce((a,x)=>{const last=a[a.length-1];if(last&&x[0]<=last[1]+.35)last[1]=Math.max(last[1],x[1]);else a.push(x);return a},[])}
 
 function bookProgress(b){
@@ -142,7 +142,9 @@ async function loadAll(){
 }
 function render(){
  $('week-label').textContent='Pekan mulai Senin, '+currentWeek; $('week-chip').textContent='Pekan '+currentWeek.slice(8)+'/'+currentWeek.slice(5,7);
+ const previouslySelected=$('entry-book').value;
  $('entry-book').innerHTML=state.books.map(b=>'<option value="'+safe(b.id)+'">'+safe(b.title)+'</option>').join('');
+ if(state.books.some(b=>b.id===previouslySelected))$('entry-book').value=previouslySelected;
  $('books-list').innerHTML=state.books.length?state.books.map(bookCard).join(''):emptyState('📚','Rak bukumu masih kosong','Tambahkan buku pertama dan unggah fotonya, supaya perjalanan bacamu makin hidup.');
  $('books-list').querySelectorAll('.book-art img').forEach(img=>{img.addEventListener('error',()=>img.remove(),{once:true})});
  $('reading-list').innerHTML=state.entries.length?state.entries.map(e=>{const b=state.books.find(x=>x.id===e.book_id);return '<div class="item"><strong>'+safe(b?.title||'Buku')+'</strong><small>'+safe(e.week_start)+' · '+e.pages_read+' halaman</small><p>'+safe(e.insight)+'</p></div>'}).join('') :emptyState('✍️','Belum ada catatan pekanan','Mulai catat satu hal menarik dari bacaanmu pekan ini.');
@@ -164,6 +166,7 @@ function render(){
  $('category-chart').innerHTML=categories.size?[...categories].sort((a,b)=>b[1]-a[1]).map(([cat,n])=>'<div class="cat-row"><span>'+safe(cat)+'</span><div><div style="width:'+Math.round(100*n/Math.max(1,...categories.values()))+'%"></div></div><strong>'+n+' hlm</strong></div>').join('') :'<p class="empty-state">Kategori bacaan favoritmu akan terlihat setelah kamu mengisi laporan.</p>';
  $('videos-list').innerHTML=state.videos.length?state.videos.map(v=>{const p=nextStatus(v);return '<div class="item video-card"><img class="thumb" loading="lazy" src="'+imageUrl(v.youtube_id)+'" alt="Thumbnail YouTube: '+safe(v.title)+'" referrerpolicy="no-referrer"><div class="video-card-content"><strong>'+safe(v.title)+'</strong><div class="completion-title"><span>'+safe(p.status)+'</span><b data-video-pct="'+safe(v.id)+'">'+(v.duration_seconds?p.display+'%':'—')+'</b></div><div class="video-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+p.display+'" aria-label="Persentase ditonton"><i data-video-bar="'+safe(v.id)+'" style="width:'+p.display+'%"></i></div><small>'+(v.duration_seconds?'Sudah ditonton '+p.display+'% dari durasi video':'Durasi terdeteksi setelah video diputar')+'</small><button data-play="'+safe(v.id)+'">▶ '+(p.display?'Lanjutkan menonton':'Mulai menonton')+'</button><button class="secondary" data-delete-video="'+safe(v.id)+'" style="margin-left:6px" title="Hapus video dari koleksi">Hapus</button></div></div>'}).join(''):emptyState('▶','Playlist belajarmu masih kosong','Tempel link YouTube favorit, thumbnail asli akan muncul otomatis di sini.');
  renderContinue();
+ updateReadingForm();
 }
 on('enter-demo','click',enterDemo);
 on('open-demo-account','click',()=>{if(!isDemo())enterDemo()});
@@ -207,7 +210,7 @@ function selectReadingBook(){
  const b=selectedBook();
  if(!b)return updateReadingForm();
  const p=bookProgress(b);
- const next=Math.max(1,p.current+1);
+ const next=p.total&&p.current>=p.total?1:Math.max(1,p.current+1);
  $('from-page').value=Math.min(20000,next);
  $('to-page').value=Math.min(p.total||20000,Math.max(next,next+9));
  $('entry-current-page').value=p.current||'';
@@ -349,7 +352,7 @@ async function openVideo(id){
  await flushVideo();if(ticker){clearInterval(ticker);ticker=null}state.player?.destroy?.();$('player-card').querySelector('.player').innerHTML='<div id="yt-player"></div>';state.player=null;state.lastTime=null;
  const v=state.videos.find(x=>x.id===id);if(!v)return;
  state.activeVideo=v;state.intervals=merge(v.watched_intervals||[]);
- show('player-card');$('player-title').textContent=v.title;$('video-insight').value=v.insight||'';$('player-status').textContent='Menyiapkan video...';
+ show('player-card');$('player-title').textContent=v.title;$('video-insight').value=v.insight||'';$('player-status').textContent='Menyiapkan video...';renderPlayerProgress({...v,watched_intervals:state.intervals});
  await readyYoutube();
  state.player=new YT.Player('yt-player',{width:'100%',height:'100%',videoId:v.youtube_id,playerVars:{playsinline:1,rel:0,origin:location.origin},events:{
   onReady:ev=>{const d=Math.round(ev.target.getDuration()||0);v.duration_seconds=d||v.duration_seconds;if(v.last_position_seconds>0)ev.target.seekTo(v.last_position_seconds,true);$('player-status').textContent='Pemutar siap · Lanjutkan dari posisi tersimpan.'},
@@ -358,6 +361,20 @@ async function openVideo(id){
  }});
 }
 let ticker=null;
+function renderPlayerProgress(v){
+ const p=nextStatus(v);
+ $('player-progress-pct').textContent=v.duration_seconds?p.display+'%':'—';
+ $('player-progress-bar').style.width=(v.duration_seconds?p.display:0)+'%';
+ $('player-progress-caption').textContent=v.duration_seconds
+  ?'Bagian yang benar-benar diputar: '+p.display+'% · '+p.status
+  :'Durasi dan persentase tersedia setelah pemutar siap.';
+ if(v.id){
+  const el=[...$('videos-list').querySelectorAll('[data-video-pct]')].find(x=>x.dataset.videoPct===v.id);
+  const bar=[...$('videos-list').querySelectorAll('[data-video-bar]')].find(x=>x.dataset.videoBar===v.id);
+  if(el)el.textContent=v.duration_seconds?p.display+'%':'—';
+  if(bar)bar.style.width=p.display+'%';
+ }
+}
 function tickVideo(){
  if(ticker)clearInterval(ticker);
  ticker=setInterval(()=>{
@@ -367,6 +384,7 @@ function tickVideo(){
   const v=state.activeVideo;v.duration_seconds=Math.round(state.player.getDuration()||v.duration_seconds||0);
   const p=nextStatus({...v,watched_intervals:state.intervals});
   $('player-status').textContent='Tercatat '+p.display+'% · '+p.status;
+  renderPlayerProgress({...v,watched_intervals:state.intervals});
   if(Date.now()-state.saveAt>12000)flushVideo().catch(err);
  },1000);
 }
@@ -381,7 +399,7 @@ async function flushVideo(){
   const pos=state.player?.getCurrentTime?.();
   const patch={watched_intervals:segments,duration_seconds:v.duration_seconds||0,last_position_seconds:Number.isFinite(pos)&&pos>=0?Math.round(pos):v.last_position_seconds||0,status,last_watched_at:new Date().toISOString(),updated_at:new Date().toISOString()};
   if(!isDemo())unwrap(await sb.from('readmap_videos').update(patch).eq('id',v.id).eq('awardee_id',state.awardee));
-  Object.assign(v,patch);demoPersist();render();
+  Object.assign(v,patch);demoPersist();render();renderPlayerProgress(v);
  })();
  state.videoSavePromise=save;
  try{await save}finally{if(state.videoSavePromise===save)state.videoSavePromise=null}
