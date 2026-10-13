@@ -97,6 +97,27 @@ const thumbnailFallback=(img,id)=>{if(!img)return;img.onerror=()=>{img.onerror=n
 function emptyState(symbol,title,desc){return '<div class="empty-state"><span class="empty-icon">'+symbol+'</span><strong>'+safe(title)+'</strong><p>'+safe(desc)+'</p></div>'}
 function nextStatus(v){const segments=Array.isArray(v.watched_intervals)?v.watched_intervals:[];const duration=v.duration_seconds||0;const watched=segments.reduce((a,x)=>a+Math.max(0,x[1]-x[0]),0);const ratio=duration?Math.min(1,watched/duration):0;return{ratio,display:Math.round(ratio*100),status:v.status==='Selesai'||(ratio>=.9&&v.ended)?'Selesai':watched>0?'Sedang Belajar':'Belum Dimulai'}}
 function merge(xs){const sorted=xs.map(x=>[Math.max(0,Number(x[0])||0),Math.max(0,Number(x[1])||0)]).filter(x=>x[1]>x[0]).sort((a,b)=>a[0]-b[0]);return sorted.reduce((a,x)=>{const last=a[a.length-1];if(last&&x[0]<=last[1]+.35)last[1]=Math.max(last[1],x[1]);else a.push(x);return a},[])}
+
+function bookProgress(b){
+ const total=Number(b.total_pages)||0;
+ const current=Math.max(0,Number(b.current_page)||0);
+ return {total,current:total?Math.min(current,total):current,percent:total?Math.min(100,Math.round(current/total*100)):null};
+}
+function progressHTML(p,label){
+ return '<div class="completion-track" role="progressbar" aria-label="'+safe(label)+'" aria-valuemin="0" aria-valuemax="100"'+(p==null?'':' aria-valuenow="'+p+'"')+'><span style="width:'+(p??0)+'%"></span></div>';
+}
+function bookCard(b){
+ const p=bookProgress(b),url=coverUrl(b);
+ const img=url?'<img loading="lazy" src="'+safe(url)+'" alt="Sampul '+safe(b.title)+'">':'';
+ return '<article class="item book-item" data-book-card="'+safe(b.id)+'"><div class="book-art"><span class="book-placeholder">📖</span>'+img+'</div><div class="book-detail"><strong>'+safe(b.title)+'</strong><small>'+safe(b.author||'Penulis tidak dicantumkan')+'</small><span class="book-label">'+safe(b.category)+'</span><div class="completion-title"><span>Progres membaca</span><b>'+(p.percent==null?'—':p.percent+'%')+'</b></div>'+progressHTML(p.percent,'Penyelesaian '+b.title)+'<small class="completion-detail">'+(p.total?p.current+' / '+p.total+' halaman':'Posisi '+p.current+' · Total halaman belum diisi')+'</small><small class="completion-state">'+safe(b.status)+'</small><div class="card-actions"><button class="secondary" data-edit-book="'+safe(b.id)+'">Ubah Progres</button><button class="secondary" data-finish="'+safe(b.id)+'">'+(b.status==='Selesai'?'Baca Lagi':'Tandai Selesai')+'</button><button class="delete-button" data-delete-book="'+safe(b.id)+'">Hapus</button></div><form class="book-position-editor" hidden><label>Halaman terakhir dibaca<input type="number" min="0" max="20000" data-current required value="'+p.current+'"></label><label>Total halaman buku<input type="number" min="1" max="20000" data-total required value="'+(p.total||'')+'"></label><small>Persentase dihitung dari halaman terakhir ÷ total halaman. Bisa diperbarui kapan saja.</small><button type="submit" data-save-book="'+safe(b.id)+'">Simpan Progres</button></form></div></article>';
+}
+function renderContinue(){
+ const books=state.books.filter(x=>x.status!=='Selesai').slice(0,2);
+ const videos=state.videos.filter(x=>x.status!=='Selesai').slice(0,2);
+ const parts=books.map(b=>{const p=bookProgress(b);return '<div class="journey-item"><span class="journey-icon">📖</span><div class="journey-copy"><span class="kicker">BUKU · SEDANG DIBACA</span><strong>'+safe(b.title)+'</strong><div class="journey-percent">'+(p.percent==null?'Total halaman belum diisi':p.percent+'% selesai')+'</div>'+progressHTML(p.percent,'Progres '+b.title)+'<small>'+(p.total?p.current+' / '+p.total+' halaman':'Masukkan total halaman buku')+'</small></div><button data-continue-book="'+safe(b.id)+'" aria-label="Buka buku '+safe(b.title)+'">↗</button></div>'});
+ parts.push(...videos.map(v=>{const p=nextStatus(v);return '<div class="journey-item"><span class="journey-icon">▶</span><div class="journey-copy"><span class="kicker">VIDEO · SEDANG DIPELAJARI</span><strong>'+safe(v.title)+'</strong><div class="journey-percent">'+(v.duration_seconds?p.display+'% ditonton':'Mulai video untuk tracking')+'</div>'+progressHTML(v.duration_seconds?p.display:null,'Progres '+v.title)+'<small>'+safe(p.status)+'</small></div><button data-continue-video="'+safe(v.id)+'" aria-label="Lanjutkan video '+safe(v.title)+'">▶</button></div>'}));
+ $('continue-items').innerHTML=parts.length?parts.join(''):emptyState('✦','Belum ada yang dilanjutkan','Tambahkan buku atau video untuk melihat progresmu di sini.');
+}
 function member(){if(!state.awardee)throw Error('Akun belum terhubung dengan Etoser.');return state.awardee}
 async function identify(){
  const {data}=await sb.auth.getUser();state.user=data.user;
