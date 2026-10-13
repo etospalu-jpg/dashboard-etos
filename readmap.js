@@ -329,7 +329,7 @@ document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()
 }));
 document.querySelectorAll('[data-mobile-view]').forEach(b=>b.addEventListener('click',()=>{
  const view=b.dataset.mobileView;
- if(view==='home'){updateAppNavigation('home');scrollToApp('workspace');return}
+ if(view==='home'){updateAppNavigation('home');window.scrollTo({top:0,behavior:'smooth'});return}
  if(view==='insights'){updateAppNavigation('insights');scrollToApp('learning-insights');return}
  selectTab(view);scrollToApp(view==='books'?'books-panel':'videos-panel');
 }));
