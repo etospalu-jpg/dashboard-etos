@@ -184,17 +184,58 @@ on('book-form','submit',async e=>{
   const book={awardee_id:member(),title,author:$('book-author').value.trim()||null,category:$('book-category').value,total_pages:Number($('book-total').value)||null,cover_path:newCover};
   if(isDemo()){state.books.unshift({...book,id:newId(),status:'Sedang Dibaca'});demoPersist();await refreshCovers();render();}
   else{const response=await sb.from('readmap_books').insert(book);unwrap(response);await loadAll()}
-  e.target.reset();clearCoverPreview();notice('Buku berhasil ditambahkan ke rak bukumu.');
+  e.target.reset();clearCoverPreview();selectReadingBook();notice('Buku berhasil ditambahkan ke rak bukumu.');
  }catch(error){if(newCover&&!isDemo())await deleteStoredCover(newCover);err(error)}
  finally{btn.disabled=false}
 });
-on('entry-mode','change',()=>{const range=$('entry-mode').value==='rentang';$('range-inputs').hidden=!range;$('amount-input').hidden=range});
+
+function selectedBook(){return state.books.find(b=>b.id===$('entry-book').value)}
+function updateReadingForm(){
+ const mode=$('entry-mode').value,range=mode==='rentang';
+ $('range-inputs').hidden=!range;$('amount-input').hidden=range;$('reading-position-label').hidden=range;
+ const b=selectedBook();
+ if(!b){$('reading-progress-preview').textContent='Tambahkan buku dahulu untuk mulai mencatat.';return}
+ const p=bookProgress(b);
+ const v=range?Number($('to-page').value):($('entry-current-page').value!==''?Number($('entry-current-page').value):p.current);
+ const candidate=Number.isFinite(v)?Math.max(p.current,v):p.current;
+ const percent=p.total?Math.round(Math.min(1,candidate/p.total)*100):null;
+ $('reading-progress-preview').textContent=p.total
+  ?'Progres buku: '+Math.min(candidate,p.total)+' / '+p.total+' halaman'+(percent!==null?' · '+percent+'%':'')
+  :'Total halaman buku belum diisi. Lengkapi di Rak Buku untuk menampilkan persen.';
+}
+function selectReadingBook(){
+ const b=selectedBook();
+ if(!b)return updateReadingForm();
+ const p=bookProgress(b);
+ const next=Math.max(1,p.current+1);
+ $('from-page').value=Math.min(20000,next);
+ $('to-page').value=Math.min(p.total||20000,Math.max(next,next+9));
+ $('entry-current-page').value=p.current||'';
+ updateReadingForm();
+}
+on('entry-mode','change',updateReadingForm);
+on('entry-book','change',selectReadingBook);
+for(const k of ['from-page','to-page','pages-read','entry-current-page'])on(k,'input',updateReadingForm);
+async function saveBookPosition(b,position,total){
+ if(!Number.isInteger(position)||!Number.isInteger(total)||total<1||total>20000||position<0||position>total)throw Error('Periksa posisi dan total halaman (0 sampai total halaman).');
+ const status=position>=total?'Selesai':'Sedang Dibaca';
+ if(isDemo()){Object.assign(b,{current_page:position,total_pages:total,status});demoPersist();render();}
+ else{unwrap(await sb.from('readmap_books').update({current_page:position,total_pages:total,status,updated_at:new Date().toISOString()}).eq('id',b.id).eq('awardee_id',member()));await loadAll()}
+}
+
 on('reading-form','submit',async e=>{e.preventDefault();try{
  const mode=$('entry-mode').value,from=Number($('from-page').value),to=Number($('to-page').value);
  const pages=mode==='rentang'?to-from+1:Number($('pages-read').value);
  if(!Number.isInteger(pages)||pages<1||pages>20000||(mode==='rentang'&&(!Number.isInteger(from)||from<1||to>20000)))throw Error('Periksa jumlah halaman.');
  const bookId=$('entry-book').value;if(!bookId)throw Error('Tambahkan buku terlebih dahulu.');
  const payload={awardee_id:member(),book_id:bookId,week_start:currentWeek,input_mode:mode,from_page:mode==='rentang'?from:null,to_page:mode==='rentang'?to:null,pages_read:pages,insight:$('entry-insight').value.trim()};
+ const b=state.books.find(x=>x.id===bookId);
+ const rawPosition=$('entry-current-page').value;
+ const proposed=mode==='rentang'?to:rawPosition!==''?Number(rawPosition):null;
+ if(proposed!==null&&(!Number.isInteger(proposed)||proposed<0||proposed>20000))throw Error('Posisi halaman terakhir belum valid.');
+ if(proposed!==null&&b.total_pages&&proposed>b.total_pages)throw Error('Posisi halaman melewati total halaman buku. Perbarui total halaman di Rak Buku jika berbeda.');
+ const position=proposed===null?null:Math.max(Number(b.current_page)||0,proposed);
+
  if(payload.insight.length<8)throw Error('Tulis sedikitnya satu kalimat pembelajaran.');
  if(isDemo()){
   const index=state.entries.findIndex(v=>v.book_id===bookId&&v.week_start===currentWeek);
@@ -205,13 +246,28 @@ on('reading-form','submit',async e=>{e.preventDefault();try{
   unwrap(await sb.from('readmap_reading_entries').upsert(payload,{onConflict:'awardee_id,week_start,book_id'}));
   await loadAll();
  }
- $('entry-insight').value='';notice('Laporan pekanan tersimpan.');
+
+ if(position!==null&&position>(Number(b.current_page)||0)){
+  const changes={current_page:position,updated_at:new Date().toISOString()};
+  if(b.total_pages&&position>=b.total_pages)changes.status='Selesai';
+  if(isDemo()){Object.assign(b,changes);demoPersist();render();}
+  else{
+   const result=await sb.from('readmap_books').update(changes).eq('id',bookId).eq('awardee_id',member());
+   if(result.error){notice('Laporan tersimpan, tetapi progres buku belum diperbarui: '+result.error.message);return}
+   await loadAll();
+  }
+ }
+ $('entry-insight').value='';
+ updateReadingForm();
+ notice('Laporan tersimpan.'+(position===null?' Isi posisi halaman terakhir untuk menghitung persentase buku.':' Progres bukumu juga diperbarui.'));
+
  }catch(error){err(error)}});
 $('books-list').addEventListener('click',async e=>{
  const button=e.target.closest('button');if(!button)return;
- const id=button.dataset.finish||button.dataset.deleteBook;
+ const id=button.dataset.finish||button.dataset.deleteBook||button.dataset.editBook;
  if(!id)return;
  const b=state.books.find(x=>x.id===id);if(!b)return;
+ if(button.dataset.editBook){const editor=button.closest('article').querySelector('.book-position-editor');editor.hidden=!editor.hidden;if(!editor.hidden)editor.querySelector('[data-current]').focus();return;}
  if(button.dataset.deleteBook){
   const reports=state.entries.filter(x=>x.book_id===id).length;
   if(!confirm('Hapus buku "'+b.title+'" dari rak?'+(reports?' '+reports+' catatan bacaan terkait juga akan dihapus.':'')))return;
@@ -225,10 +281,31 @@ $('books-list').addEventListener('click',async e=>{
   button.disabled=true;
   try{
    const status=b.status==='Selesai'?'Sedang Dibaca':'Selesai';
-   if(isDemo()){b.status=status;demoPersist();render();}
-   else{unwrap(await sb.from('readmap_books').update({status,updated_at:new Date().toISOString()}).eq('id',id).eq('awardee_id',member()));await loadAll();}
+   const changes={status,updated_at:new Date().toISOString()};
+   if(status==='Selesai'&&b.total_pages)changes.current_page=b.total_pages;
+   if(isDemo()){Object.assign(b,changes);demoPersist();render();}
+   else{unwrap(await sb.from('readmap_books').update(changes).eq('id',id).eq('awardee_id',member()));await loadAll();}
    notice('Status buku diperbarui.');
   }catch(error){err(error)}finally{button.disabled=false}
+ }
+});
+
+$('books-list').addEventListener('submit',async e=>{
+ const form=e.target.closest('.book-position-editor');if(!form)return;
+ e.preventDefault();const article=form.closest('article'),id=article?.dataset.bookCard;
+ const b=state.books.find(x=>x.id===id);if(!b)return;
+ const button=form.querySelector('[data-save-book]');button.disabled=true;
+ try{
+  await saveBookPosition(b,Number(form.querySelector('[data-current]').value),Number(form.querySelector('[data-total]').value));
+  selectReadingBook();notice('Progres '+b.title+' berhasil diperbarui.');
+ }catch(error){err(error)}finally{button.disabled=false}
+});
+$('continue-items').addEventListener('click',async e=>{
+ const button=e.target.closest('button');if(!button)return;
+ if(button.dataset.continueBook){
+  selectTab('books');requestAnimationFrame(()=>{const article=[...$('books-list').querySelectorAll('[data-book-card]')].find(x=>x.dataset.bookCard===button.dataset.continueBook);article?.scrollIntoView({behavior:'smooth',block:'center'})});
+ }else if(button.dataset.continueVideo){
+  selectTab('videos');try{await openVideo(button.dataset.continueVideo);$('player-card').scrollIntoView({behavior:'smooth',block:'start'})}catch(error){err(error)}
  }
 });
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t===b));const videos=b.dataset.tab==='videos';$('videos-panel').hidden=!videos;$('books-panel').hidden=videos}));
