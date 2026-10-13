@@ -24,7 +24,7 @@ async function roster(db){
  const awardees=check(await db.from('awardees').select('id,name,angkatan,status').ilike('status','aktif').order('name'));
  const members=check(await db.from('readmap_memberships').select('user_id,awardee_id,username'));
  const mapped=new Map((members||[]).map(x=>[x.awardee_id,x]));
- return {awardees:awardees||[],members:members||[],mapped};
+ return {awardees:awardees||[],members:members||[],mapped,activeCount:(awardees||[]).filter(x=>mapped.has(x.id)).length};
 }
 async function createAccount(db,a){
  for(let retries=0;retries<4;retries++){
@@ -52,7 +52,7 @@ module.exports=async function handler(req,res){
  try{
   const db=admin(),data=await roster(db);
   if(req.method==='GET'){
-   return respond(res,200,{total:data.awardees.length,active:data.members.length,
+   return respond(res,200,{total:data.awardees.length,active:data.activeCount,
     members:data.awardees.map(a=>({name:a.name,angkatan:a.angkatan||'',username:data.mapped.get(a.id)?.username||null,provisioned:data.mapped.has(a.id)}))});
   }
   const action=String(req.body?.action||'');
@@ -63,7 +63,7 @@ module.exports=async function handler(req,res){
     try{issued.push(await createAccount(db,a))}
     catch(e){errors.push({name:a.name,message:'Gagal membuat akun. Periksa log server tanpa mencatat PIN.'});}
    }
-   return respond(res,200,{issued,errors,remaining:Math.max(0,data.awardees.length-data.members.length-issued.length)});
+   return respond(res,200,{issued,errors,remaining:Math.max(0,data.awardees.length-data.activeCount-issued.length)});
   }
   if(action==='reset'){
    const username=String(req.body?.username||'').toUpperCase();
