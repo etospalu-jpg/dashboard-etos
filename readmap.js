@@ -67,7 +67,21 @@ const currentWeek=dateWeek();
 const unwrap=(value)=>{if(value.error)throw value.error;return value.data};
 const show=id=>$(id).hidden=false;
 const hide=id=>$(id).hidden=true;
-function videoId(raw){try{let text=String(raw||'').trim();if(!/^https?:\/\//i.test(text))text='https://'+text;const u=new URL(text);const host=u.hostname.toLowerCase().replace(/^www\./,'');let id=null;if(['youtube.com','m.youtube.com','music.youtube.com','youtube-nocookie.com'].includes(host)){const p=u.pathname.split('/').filter(Boolean);id=['shorts','embed','live','v'].includes(p[0])?p[1]:u.searchParams.get('v')}else if(host==='youtu.be'){id=u.pathname.split('/').filter(Boolean)[0]}return /^[A-Za-z0-9_-]{11}$/.test(id||'')?id:null}catch{return null}}
+function videoId(raw){
+ try{
+  let input=String(raw||'').trim();
+  const match=input.match(/(?:https?:\/\/)?(?:(?:www|m|music)\.)?(?:youtube\.com|youtube-nocookie\.com|youtu\.be)\/[^\s<>\"']+/i);
+  if(match)input=match[0];
+  if(!/^https?:\/\//i.test(input))input='https://'+input;
+  const u=new URL(input),host=u.hostname.toLowerCase().replace(/^www\./,'');
+  let id=null;
+  if(['youtube.com','m.youtube.com','music.youtube.com','youtube-nocookie.com'].includes(host)){
+   const p=u.pathname.split('/').filter(Boolean);
+   id=['shorts','embed','live','v'].includes(p[0])?p[1]:u.searchParams.get('v');
+  }else if(host==='youtu.be'){id=u.pathname.split('/').filter(Boolean)[0]}
+  return /^[A-Za-z0-9_-]{11}$/.test(id||'')?id:null;
+ }catch{return null}
+}
 const imageUrl=id=>'https://i.ytimg.com/vi/'+id+'/hqdefault.jpg';
 const thumbnailFallback=(img,id)=>{if(!img)return;img.onerror=()=>{img.onerror=null;img.src='https://i.ytimg.com/vi/'+id+'/mqdefault.jpg';};};
 function emptyState(symbol,title,desc){return '<div class="empty-state"><span class="empty-icon">'+symbol+'</span><strong>'+safe(title)+'</strong><p>'+safe(desc)+'</p></div>'}
@@ -206,8 +220,23 @@ on('youtube-url','input',()=>{
  show('video-preview');
 });
 
-on('video-form','submit',async e=>{e.preventDefault();const id=videoId($('youtube-url').value);if(!id)return notice('Link YouTube belum valid. Gunakan tautan video, youtu.be, live, atau Shorts.');const btn=e.target.querySelector('button[type=submit]');btn.disabled=true;try{const title=$('video-title').value.trim();if(!title)throw Error('Isi nama video terlebih dahulu.');unwrap(await sb.from('readmap_videos').upsert({awardee_id:member(),youtube_id:id,title,thumbnail_url:imageUrl(id)},{onConflict:'awardee_id,youtube_id',ignoreDuplicates:true}));$('video-form').reset();hide('video-preview');await loadAll();notice('Video berhasil ditambahkan ke ruang belajarmu.')}catch(error){err(error)}finally{btn.disabled=false}});
-$('videos-list').addEventListener('click',async e=>{const el=e.target.closest('button');if(!el)return;const id=el.dataset.play;if(id){try{await openVideo(id);$('player-card').scrollIntoView({behavior:'smooth',block:'start'})}catch(error){err(error)}return;}const deleteId=el.dataset.deleteVideo;if(deleteId){const v=state.videos.find(x=>x.id===deleteId);if(!v||!confirm('Hapus video "'+v.title+'" dari koleksimu?'))return;try{if(state.activeVideo?.id===deleteId){await flushVideo();state.player?.destroy?.();state.player=null;state.activeVideo=null;hide('player-card')}unwrap(await sb.from('readmap_videos').delete().eq('id',deleteId).eq('awardee_id',member()));await loadAll();notice('Video dihapus dari koleksi.')}catch(error){err(error)}}});
+on('video-form','submit',async e=>{
+ e.preventDefault();
+ const id=videoId($('youtube-url').value);
+ if(!id){$('youtube-hint').textContent='Tautan belum dikenali. Salin kembali dari tombol Bagikan di video YouTube, bukan link playlist atau channel.';$('youtube-hint').classList.add('hint-error');return}
+ $('youtube-hint').classList.remove('hint-error');
+ const btn=e.target.querySelector('button[type=submit]');btn.disabled=true;
+ try{
+  const title=$('video-title').value.trim();if(!title)throw Error('Tulis judul video agar mudah dikenali.');
+  if(state.videos.some(v=>v.youtube_id===id)){notice('Video ini sudah ada di koleksimu. Lihat di bagian Video Saya.');return}
+  const v={awardee_id:member(),youtube_id:id,title,thumbnail_url:imageUrl(id),duration_seconds:0,last_position_seconds:0,watched_intervals:[],status:'Belum Dimulai'};
+  if(isDemo()){state.videos.unshift({...v,id:newId()});demoPersist();render();}
+  else{unwrap(await sb.from('readmap_videos').insert({awardee_id:v.awardee_id,youtube_id:id,title,thumbnail_url:v.thumbnail_url}));await loadAll();}
+  e.target.reset();hide('video-preview');$('youtube-hint').textContent='Tautan video tersimpan. Pilih Tonton untuk membuka pemutar READMAP.';
+  notice('Video masuk ke playlist belajar. Thumbnail asli YouTube ditampilkan otomatis.');
+ }catch(error){err(error)}finally{btn.disabled=false}
+});
+$('videos-list').addEventListener('click',async e=>{const el=e.target.closest('button');if(!el)return;const id=el.dataset.play;if(id){try{await openVideo(id);$('player-card').scrollIntoView({behavior:'smooth',block:'start'})}catch(error){err(error)}return;}const deleteId=el.dataset.deleteVideo;if(deleteId){const v=state.videos.find(x=>x.id===deleteId);if(!v||!confirm('Hapus video "'+v.title+'" dari koleksimu?'))return;try{if(state.activeVideo?.id===deleteId){await flushVideo();state.player?.destroy?.();state.player=null;state.activeVideo=null;hide('player-card')}if(isDemo()){state.videos=state.videos.filter(x=>x.id!==deleteId);demoPersist();await loadAll()}else{unwrap(await sb.from('readmap_videos').delete().eq('id',deleteId).eq('awardee_id',member()));await loadAll()}notice('Video dihapus dari koleksi.')}catch(error){err(error)}}});
 function readyYoutube(){return new Promise((resolve,reject)=>{if(window.YT?.Player)return resolve();const old=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{old?.();resolve()};if(!document.querySelector('script[data-yt]')){const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';s.dataset.yt='1';s.onerror=()=>reject(Error('Pemutar video gagal dimuat'));document.head.appendChild(s)}})}
 async function openVideo(id){
  await flushVideo();if(ticker){clearInterval(ticker);ticker=null}state.player?.destroy?.();$('player-card').querySelector('.player').innerHTML='<div id="yt-player"></div>';state.player=null;state.lastTime=null;
@@ -244,13 +273,13 @@ async function flushVideo(){
   const status=v.ended&&p.ratio>=.9?'Selesai':v.status==='Selesai'?'Selesai':p.status;
   const pos=state.player?.getCurrentTime?.();
   const patch={watched_intervals:segments,duration_seconds:v.duration_seconds||0,last_position_seconds:Number.isFinite(pos)&&pos>=0?Math.round(pos):v.last_position_seconds||0,status,last_watched_at:new Date().toISOString(),updated_at:new Date().toISOString()};
-  unwrap(await sb.from('readmap_videos').update(patch).eq('id',v.id).eq('awardee_id',state.awardee));
-  Object.assign(v,patch);render();
+  if(!isDemo())unwrap(await sb.from('readmap_videos').update(patch).eq('id',v.id).eq('awardee_id',state.awardee));
+  Object.assign(v,patch);demoPersist();render();
  })();
  state.videoSavePromise=save;
  try{await save}finally{if(state.videoSavePromise===save)state.videoSavePromise=null}
 }
-on('save-insight','click',async()=>{try{if(!state.activeVideo)throw Error('Pilih video dahulu');await flushVideo();const insight=$('video-insight').value.trim();unwrap(await sb.from('readmap_videos').update({insight,updated_at:new Date().toISOString()}).eq('id',state.activeVideo.id));state.activeVideo.insight=insight;notice('Pembelajaran video tersimpan.')}catch(e){err(e)}});
+on('save-insight','click',async()=>{try{if(!state.activeVideo)throw Error('Pilih video dahulu');await flushVideo();const insight=$('video-insight').value.trim();if(!isDemo())unwrap(await sb.from('readmap_videos').update({insight,updated_at:new Date().toISOString()}).eq('id',state.activeVideo.id));state.activeVideo.insight=insight;notice('Pembelajaran video tersimpan.')}catch(e){err(e)}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flushVideo().catch(()=>{})});
 window.addEventListener('pagehide',()=>{flushVideo().catch(()=>{})});
 if(!sb)notice('Koneksi Supabase gagal dimuat. Periksa jaringan.');else identify().catch(err);
