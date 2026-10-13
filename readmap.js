@@ -46,6 +46,19 @@ function render(){
  const total=state.entries.reduce((a,e)=>a+Number(e.pages_read||0),0);
  const complete=state.books.filter(b=>b.status==='Selesai').length;
  $('stats').innerHTML=[['Halaman dilaporkan',total],['Buku selesai',complete],['Video selesai',state.videos.filter(x=>x.status==='Selesai').length]].map(([k,v])=>'<div class="metric"><b>'+v+'</b><small>'+k+'</small></div>').join('');
+ const weekly=new Map();
+ for(let i=7;i>=0;i--){
+  const d=new Date(currentWeek+'T12:00:00+08:00');
+  d.setUTCDate(d.getUTCDate()-7*i);
+  const date=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Makassar',year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+  weekly.set(date,0);
+ }
+ state.entries.forEach(e=>{if(weekly.has(e.week_start))weekly.set(e.week_start,weekly.get(e.week_start)+Number(e.pages_read||0))});
+ const highs=Math.max(1,...weekly.values());
+ $('reading-chart').innerHTML=[...weekly].map(([k,v])=>'<div class="chart-week" title="'+safe(k)+' · '+v+' halaman"><span class="chart-value">'+v+'</span><div class="chart-track"><div class="chart-bar" style="height:'+Math.max(3,Math.round(100*v/highs))+'%"></div></div><small>'+safe(k.slice(5))+'</small></div>').join('');
+ const categories=new Map();
+ state.entries.forEach(e=>{const b=state.books.find(x=>x.id===e.book_id);if(b)categories.set(b.category,(categories.get(b.category)||0)+Number(e.pages_read||0))});
+ $('category-chart').innerHTML=categories.size?[...categories].sort((a,b)=>b[1]-a[1]).map(([cat,n])=>'<div class="cat-row"><span>'+safe(cat)+'</span><div><div style="width:'+Math.round(100*n/Math.max(1,...categories.values()))+'%"></div></div><strong>'+n+' hlm</strong></div>').join(''):'Belum ada data kategori bacaan.';
  $('videos-list').innerHTML=state.videos.length?state.videos.map(v=>{const p=nextStatus(v);return '<div class="item"><img class="thumb" loading="lazy" src="https://i.ytimg.com/vi/'+safe(v.youtube_id)+'/hqdefault.jpg" alt="Thumbnail video"><strong>'+safe(v.title)+'</strong><small>'+safe(p.status)+' · '+p.display+'% diputar di dashboard</small><button data-play="'+safe(v.id)+'">Tonton / Lanjutkan</button></div>'}).join(''):'Belum ada video.';
 }
 on('member-login','submit',async e=>{e.preventDefault();if(!sb)return notice('Layanan login belum dapat dimuat.');const raw=$('username').value.trim().toUpperCase();const pin=$('pin').value.trim();if(!/^ETOS26-[A-F0-9]{10}$/.test(raw)||!/^\d{10}$/.test(pin))return notice('Periksa username dan PIN pribadi Anda.');const button=e.target.querySelector('button[type=submit]');button.disabled=true;try{const email=raw.toLowerCase()+'@readmap.etosidpalu.com';unwrap(await sb.auth.signInWithPassword({email,password:pin}));$('pin').value='';await identify()}catch(error){notice('Username atau PIN tidak sesuai. Hubungi pengelola jika memerlukan reset.')}finally{button.disabled=false}});
