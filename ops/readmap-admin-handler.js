@@ -14,7 +14,7 @@ function respond(res,status,data){
 function admin(){
  const key=session.secret();
  if(!['secret','legacy'].includes(session.kind(key)))throw Error('Kunci server Supabase tidak siap.');
- return createClient(session.PROJECT_URL,key,{auth:{autoRefreshToken:false,persistSession:false}});
+ return createClient(session.PROJECT_URL,key,{auth:{autoRefreshToken:false,persistSession:false},global:{fetch:session.proxyFetch}});
 }
 function check(result){if(result.error)throw result.error;return result.data}
 function randUsername(){return 'ETOS26-'+crypto.randomBytes(5).toString('hex').toUpperCase()}
@@ -49,6 +49,11 @@ async function createAccount(db,a){
 module.exports=async function handler(req,res){
  if(req.method!=='POST')return respond(res,405,{error:'Metode tidak tersedia'});
  if(!session.verify(req)||!session.originAllowed(req))return respond(res,401,{error:'Akses Superadmin diperlukan'});
+ // Initialize the existing verified PIN cookie request-context. All Supabase
+ // admin calls must travel through the established server-data-proxy, never
+ // directly with the Vercel key (Supabase returns HTTP 401 on direct access).
+ const credential=session.credential(req);
+ if(!credential?.server)return respond(res,401,{error:'Sesi Superadmin tidak valid.'});
  try{
   const db=admin(),data=await roster(db);
   if(String(req.body?.params?.action||'')==='list'){
@@ -98,5 +103,5 @@ module.exports=async function handler(req,res){
    return respond(res,200,{name:a.name,angkatan:a.angkatan||'',username,pin});
   }
   return respond(res,400,{error:'Aksi tidak dikenal.'});
- }catch(e){console.error('[READMAP provision]',e?.code||e?.name||'error');return respond(res,500,{error:'Pengelolaan akun belum siap. Pastikan migration dan Supabase Auth tersedia.'});}
+ }catch(e){console.error('[READMAP admin]',{code:String(e?.code||'unknown').slice(0,60),status:Number(e?.status||0),name:String(e?.name||'Error').slice(0,60)});return respond(res,500,{error:'Pengelolaan akun belum siap. Pastikan migration dan Supabase Auth tersedia.'});}
 };
