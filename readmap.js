@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const sb=window.supabase?.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'etos-readmap-auth-v1'}});
 const state={user:null,awardee:null,books:[],entries:[],videos:[],player:null,activeVideo:null,intervals:[],lastTime:null,lastSample:0,saveAt:0,saving:false};
 const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const notice=s=>{$('notice').textContent=s||''};
+const notice=s=>{const el=$('notice');el.textContent=s||'';el.hidden=!s;if(s)el.scrollIntoView({behavior:'smooth',block:'nearest'});};
 const on=(id,event,fn)=>$(id).addEventListener(event,fn);
 const err=e=>notice(e?.message||String(e));
 const dateWeek=()=>{const d=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Makassar'}));const offset=(d.getDay()+6)%7;d.setDate(d.getDate()-offset);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
@@ -14,7 +14,9 @@ const currentWeek=dateWeek();
 const unwrap=(value)=>{if(value.error)throw value.error;return value.data};
 const show=id=>$(id).hidden=false;
 const hide=id=>$(id).hidden=true;
-function videoId(raw){try{const u=new URL(raw);const host=u.hostname.replace(/^www\./,'').toLowerCase();let id=null;if(['youtube.com','m.youtube.com','music.youtube.com','youtube-nocookie.com'].includes(host)){id=u.pathname.startsWith('/shorts/')||u.pathname.startsWith('/embed/')?u.pathname.split('/')[2]:u.searchParams.get('v')}else if(host==='youtu.be'){id=u.pathname.split('/')[1]}return /^[A-Za-z0-9_-]{11}$/.test(id||'')?id:null}catch{return null}}
+function videoId(raw){try{let text=String(raw||'').trim();if(!/^https?:\/\//i.test(text))text='https://'+text;const u=new URL(text);const host=u.hostname.toLowerCase().replace(/^www\./,'');let id=null;if(['youtube.com','m.youtube.com','music.youtube.com','youtube-nocookie.com'].includes(host)){const p=u.pathname.split('/').filter(Boolean);id=['shorts','embed','live','v'].includes(p[0])?p[1]:u.searchParams.get('v')}else if(host==='youtu.be'){id=u.pathname.split('/').filter(Boolean)[0]}return /^[A-Za-z0-9_-]{11}$/.test(id||'')?id:null}catch{return null}}
+const imageUrl=id=>'https://i.ytimg.com/vi/'+id+'/hqdefault.jpg';
+function emptyState(symbol,title,desc){return '<div class="empty-state"><span class="empty-icon">'+symbol+'</span><strong>'+safe(title)+'</strong><p>'+safe(desc)+'</p></div>'}
 function nextStatus(v){const segments=Array.isArray(v.watched_intervals)?v.watched_intervals:[];const duration=v.duration_seconds||0;const watched=segments.reduce((a,x)=>a+Math.max(0,x[1]-x[0]),0);const ratio=duration?Math.min(1,watched/duration):0;return{ratio,display:Math.round(ratio*100),status:v.status==='Selesai'||(ratio>=.9&&v.ended)?'Selesai':watched>0?'Sedang Belajar':'Belum Dimulai'}}
 function merge(xs){const sorted=xs.map(x=>[Math.max(0,Number(x[0])||0),Math.max(0,Number(x[1])||0)]).filter(x=>x[1]>x[0]).sort((a,b)=>a[0]-b[0]);return sorted.reduce((a,x)=>{const last=a[a.length-1];if(last&&x[0]<=last[1]+.35)last[1]=Math.max(last[1],x[1]);else a.push(x);return a},[])}
 function member(){if(!state.awardee)throw Error('Akun belum terhubung dengan Etoser.');return state.awardee}
@@ -39,10 +41,10 @@ async function loadAll(){
  render();
 }
 function render(){
- $('week-label').textContent='Pekan mulai Senin, '+currentWeek;
+ $('week-label').textContent='Pekan mulai Senin, '+currentWeek; $('week-chip').textContent='Pekan '+currentWeek.slice(8)+'/'+currentWeek.slice(5,7);
  $('entry-book').innerHTML=state.books.map(b=>'<option value="'+safe(b.id)+'">'+safe(b.title)+'</option>').join('');
- $('books-list').innerHTML=state.books.length?state.books.map(b=>'<div class="item"><strong>'+safe(b.title)+'</strong><small>'+safe(b.category)+' · '+safe(b.status)+(b.total_pages?' · '+b.total_pages+' halaman':'')+'</small><button class="secondary" data-finish="'+safe(b.id)+'">'+(b.status==='Selesai'?'Tandai Dibaca Lagi':'Tandai Selesai')+'</button></div>').join(''):'Belum ada buku.';
- $('reading-list').innerHTML=state.entries.length?state.entries.map(e=>{const b=state.books.find(x=>x.id===e.book_id);return '<div class="item"><strong>'+safe(b?.title||'Buku')+'</strong><small>'+safe(e.week_start)+' · '+e.pages_read+' halaman</small><p>'+safe(e.insight)+'</p></div>'}).join(''):'Belum ada laporan.';
+ $('books-list').innerHTML=state.books.length?state.books.map(b=>'<div class="item"><strong>'+safe(b.title)+'</strong><small>'+safe(b.category)+' · '+safe(b.status)+(b.total_pages?' · '+b.total_pages+' halaman':'')+'</small><button class="secondary" data-finish="'+safe(b.id)+'">'+(b.status==='Selesai'?'Tandai Dibaca Lagi':'Tandai Selesai')+'</button></div>').join('') :emptyState('📚','Rak bukumu masih kosong','Tambahkan buku pertamamu, lalu catat halaman yang kamu baca.');
+ $('reading-list').innerHTML=state.entries.length?state.entries.map(e=>{const b=state.books.find(x=>x.id===e.book_id);return '<div class="item"><strong>'+safe(b?.title||'Buku')+'</strong><small>'+safe(e.week_start)+' · '+e.pages_read+' halaman</small><p>'+safe(e.insight)+'</p></div>'}).join('') :emptyState('✍️','Belum ada catatan pekanan','Mulai catat satu hal menarik dari bacaanmu pekan ini.');
  const total=state.entries.reduce((a,e)=>a+Number(e.pages_read||0),0);
  const complete=state.books.filter(b=>b.status==='Selesai').length;
  $('stats').innerHTML=[['Halaman dilaporkan',total],['Buku selesai',complete],['Video selesai',state.videos.filter(x=>x.status==='Selesai').length]].map(([k,v])=>'<div class="metric"><b>'+v+'</b><small>'+k+'</small></div>').join('');
@@ -58,8 +60,8 @@ function render(){
  $('reading-chart').innerHTML=[...weekly].map(([k,v])=>'<div class="chart-week" title="'+safe(k)+' · '+v+' halaman"><span class="chart-value">'+v+'</span><div class="chart-track"><div class="chart-bar" style="height:'+Math.max(3,Math.round(100*v/highs))+'%"></div></div><small>'+safe(k.slice(5))+'</small></div>').join('');
  const categories=new Map();
  state.entries.forEach(e=>{const b=state.books.find(x=>x.id===e.book_id);if(b)categories.set(b.category,(categories.get(b.category)||0)+Number(e.pages_read||0))});
- $('category-chart').innerHTML=categories.size?[...categories].sort((a,b)=>b[1]-a[1]).map(([cat,n])=>'<div class="cat-row"><span>'+safe(cat)+'</span><div><div style="width:'+Math.round(100*n/Math.max(1,...categories.values()))+'%"></div></div><strong>'+n+' hlm</strong></div>').join(''):'Belum ada data kategori bacaan.';
- $('videos-list').innerHTML=state.videos.length?state.videos.map(v=>{const p=nextStatus(v);return '<div class="item"><img class="thumb" loading="lazy" src="https://i.ytimg.com/vi/'+safe(v.youtube_id)+'/hqdefault.jpg" alt="Thumbnail video"><strong>'+safe(v.title)+'</strong><small>'+safe(p.status)+' · '+p.display+'% diputar di dashboard</small><button data-play="'+safe(v.id)+'">Tonton / Lanjutkan</button></div>'}).join(''):'Belum ada video.';
+ $('category-chart').innerHTML=categories.size?[...categories].sort((a,b)=>b[1]-a[1]).map(([cat,n])=>'<div class="cat-row"><span>'+safe(cat)+'</span><div><div style="width:'+Math.round(100*n/Math.max(1,...categories.values()))+'%"></div></div><strong>'+n+' hlm</strong></div>').join('') :'<p class="empty-state">Kategori bacaan favoritmu akan terlihat setelah kamu mengisi laporan.</p>';
+ $('videos-list').innerHTML=state.videos.length?state.videos.map(v=>{const p=nextStatus(v);return '<div class="item video-card"><img class="thumb" loading="lazy" src="'+imageUrl(v.youtube_id)+'" alt="Thumbnail YouTube: '+safe(v.title)+'" referrerpolicy="no-referrer"><div class="video-card-content"><strong>'+safe(v.title)+'</strong><small>'+safe(p.status)+' · '+p.display+'% diputar di READMAP</small><div class="video-progress" aria-label="Progres '+p.display+' persen"><i style="width:'+p.display+'%"></i></div><button data-play="'+safe(v.id)+'">▶ '+(p.display?'Lanjutkan menonton':'Mulai menonton')+'</button><button class="secondary" data-delete-video="'+safe(v.id)+'" style="margin-left:6px" title="Hapus video dari koleksi">Hapus</button></div></div>'}).join(''):emptyState('▶','Playlist belajarmu masih kosong','Tempel link YouTube favorit, thumbnail asli akan muncul otomatis di sini.');
 }
 on('member-login','submit',async e=>{e.preventDefault();if(!sb)return notice('Layanan login belum dapat dimuat.');const raw=$('username').value.trim().toUpperCase();const pin=$('pin').value.trim();if(!/^ETOS26-[A-F0-9]{10}$/.test(raw)||!/^\d{10}$/.test(pin))return notice('Periksa username dan PIN pribadi Anda.');const button=e.target.querySelector('button[type=submit]');button.disabled=true;try{const email=raw.toLowerCase()+'@readmap.etosidpalu.com';unwrap(await sb.auth.signInWithPassword({email,password:pin}));$('pin').value='';await identify()}catch(error){notice('Username atau PIN tidak sesuai. Hubungi pengelola jika memerlukan reset.')}finally{button.disabled=false}});
 on('signout','click',async()=>{await flushVideo();await sb.auth.signOut();state.awardee=null;state.user=null;hide('workspace');show('login');notice('Anda telah keluar.')});
@@ -76,8 +78,25 @@ on('reading-form','submit',async e=>{e.preventDefault();try{
  }catch(e){err(e)}});
 $('books-list').addEventListener('click',async e=>{const id=e.target.dataset.finish;if(!id)return;const b=state.books.find(x=>x.id===id);if(!b)return;try{unwrap(await sb.from('readmap_books').update({status:b.status==='Selesai'?'Sedang Dibaca':'Selesai',updated_at:new Date().toISOString()}).eq('id',id));await loadAll()}catch(e){err(e)}});
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t===b));const videos=b.dataset.tab==='videos';$('videos-panel').hidden=!videos;$('books-panel').hidden=videos}));
-on('video-form','submit',async e=>{e.preventDefault();try{const id=videoId($('youtube-url').value);if(!id)throw Error('Masukkan tautan video YouTube yang valid.');unwrap(await sb.from('readmap_videos').upsert({awardee_id:member(),youtube_id:id,title:$('video-title').value.trim(),thumbnail_url:'https://i.ytimg.com/vi/'+id+'/hqdefault.jpg'},{onConflict:'awardee_id,youtube_id',ignoreDuplicates:true}));$('video-form').reset();await loadAll();notice('Video ditambahkan.')}catch(e){err(e)}});
-$('videos-list').addEventListener('click',async e=>{const id=e.target.dataset.play;if(!id)return;try{await openVideo(id)}catch(e){err(e)}});
+
+function selectTab(tab){const isVideo=tab==='videos';document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));$('videos-panel').hidden=!isVideo;$('books-panel').hidden=isVideo}
+function jumpTo(tab,target){selectTab(tab);requestAnimationFrame(()=>$((target|| (tab==='videos'?'video-add-card':'reading-entry-card')))?.scrollIntoView({behavior:'smooth',block:'start'}));}
+on('hero-book','click',()=>jumpTo('books','reading-entry-card'));
+on('hero-video','click',()=>jumpTo('videos','video-add-card'));
+on('quick-book','click',()=>jumpTo('books',state.books.length?'reading-entry-card':'book-add-card'));
+on('quick-video','click',()=>jumpTo('videos','video-add-card'));
+on('youtube-url','input',()=>{
+ const id=videoId($('youtube-url').value);
+ if(!id){hide('video-preview');return}
+ const img=$('video-preview-image');
+ img.src=imageUrl(id);img.onerror=()=>{img.onerror=null;img.src='https://i.ytimg.com/vi/'+id+'/mqdefault.jpg';};
+ $('video-preview-title').textContent='Video '+id;
+ $('video-preview-status').textContent='Thumbnail asli berhasil dikenali · siap disimpan';
+ show('video-preview');
+});
+
+on('video-form','submit',async e=>{e.preventDefault();const id=videoId($('youtube-url').value);if(!id)return notice('Link YouTube belum valid. Gunakan tautan video, youtu.be, live, atau Shorts.');const btn=e.target.querySelector('button[type=submit]');btn.disabled=true;try{const title=$('video-title').value.trim();if(!title)throw Error('Isi nama video terlebih dahulu.');unwrap(await sb.from('readmap_videos').upsert({awardee_id:member(),youtube_id:id,title,thumbnail_url:imageUrl(id)},{onConflict:'awardee_id,youtube_id',ignoreDuplicates:true}));$('video-form').reset();hide('video-preview');await loadAll();notice('Video berhasil ditambahkan ke ruang belajarmu.')}catch(error){err(error)}finally{btn.disabled=false}});
+$('videos-list').addEventListener('click',async e=>{const el=e.target.closest('button');if(!el)return;const id=el.dataset.play;if(id){try{await openVideo(id);$('player-card').scrollIntoView({behavior:'smooth',block:'start'})}catch(error){err(error)}return;}const deleteId=el.dataset.deleteVideo;if(deleteId){const v=state.videos.find(x=>x.id===deleteId);if(!v||!confirm('Hapus video "'+v.title+'" dari koleksimu?'))return;try{if(state.activeVideo?.id===deleteId){await flushVideo();state.player?.destroy?.();state.player=null;state.activeVideo=null;hide('player-card')}unwrap(await sb.from('readmap_videos').delete().eq('id',deleteId).eq('awardee_id',member()));await loadAll();notice('Video dihapus dari koleksi.')}catch(error){err(error)}}});
 function readyYoutube(){return new Promise((resolve,reject)=>{if(window.YT?.Player)return resolve();const old=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{old?.();resolve()};if(!document.querySelector('script[data-yt]')){const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';s.dataset.yt='1';s.onerror=()=>reject(Error('Pemutar video gagal dimuat'));document.head.appendChild(s)}})}
 async function openVideo(id){
  await flushVideo();if(ticker){clearInterval(ticker);ticker=null}state.player?.destroy?.();$('player-card').querySelector('.player').innerHTML='<div id="yt-player"></div>';state.player=null;state.lastTime=null;
