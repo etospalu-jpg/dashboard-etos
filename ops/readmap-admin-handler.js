@@ -56,6 +56,28 @@ module.exports=async function handler(req,res){
     members:data.awardees.map(a=>({name:a.name,angkatan:a.angkatan||'',username:data.mapped.get(a.id)?.username||null,provisioned:data.mapped.has(a.id)}))});
   }
   const action=String(req.body?.params?.action||'');
+  if(action==='overview'){
+   const [br,rr,vr]=await Promise.all([
+    db.from('readmap_books').select('awardee_id,id,category,status'),
+    db.from('readmap_reading_entries').select('awardee_id,week_start,pages_read,book_id'),
+    db.from('readmap_videos').select('awardee_id,status,duration_seconds,watched_intervals')
+   ]);
+   const books=check(br)||[],entries=check(rr)||[],videos=check(vr)||[];
+   const categories={};const map=new Map(books.map(x=>[x.id,x]));
+   const weekly={},perAwardee={};
+   function row(id){return perAwardee[id]||(perAwardee[id]={pages:0,booksFinished:0,videosFinished:0,reportedWeeks:new Set(),lastWeek:null})}
+   for(const book of books){if(book.status==='Selesai')row(book.awardee_id).booksFinished++;}
+   for(const entry of entries){
+    const x=row(entry.awardee_id);x.pages+=Number(entry.pages_read||0);
+    x.reportedWeeks.add(entry.week_start);if(!x.lastWeek||entry.week_start>x.lastWeek)x.lastWeek=entry.week_start;
+    weekly[entry.week_start]=(weekly[entry.week_start]||0)+Number(entry.pages_read||0);
+    const category=map.get(entry.book_id)?.category||'Lainnya';
+    categories[category]=(categories[category]||0)+Number(entry.pages_read||0);
+   }
+   for(const video of videos){if(video.status==='Selesai')row(video.awardee_id).videosFinished++;}
+   const members=data.awardees.map(a=>{const x=row(a.id);return {name:a.name,angkatan:a.angkatan||'',username:data.mapped.get(a.id)?.username||'',pages:x.pages,booksFinished:x.booksFinished,videosFinished:x.videosFinished,weeks:x.reportedWeeks.size,lastWeek:x.lastWeek}});
+   return respond(res,200,{totals:{awardees:data.awardees.length,members:data.activeCount,books:books.length,booksFinished:books.filter(b=>b.status==='Selesai').length,pages:entries.reduce((n,e)=>n+Number(e.pages_read||0),0),readingReports:entries.length,videos:videos.length,videosFinished:videos.filter(v=>v.status==='Selesai').length},weekly,categories,members});
+  }
   if(action==='provision'){
    const pending=data.awardees.filter(a=>!data.mapped.has(a.id)).slice(0,5);
    const issued=[],errors=[];
