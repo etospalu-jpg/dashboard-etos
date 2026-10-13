@@ -1,9 +1,9 @@
 /* ETOS READMAP - awardee-owned reading and video progress. */
 (()=>{'use strict';
-const URL='https://weklmapqizeldfdalbgs.supabase.co';
+const SUPABASE_URL='https://weklmapqizeldfdalbgs.supabase.co';
 const KEY='sb_publishable_cFm2Jvj2jvFyKcxbGniVWw_PL2SL7HC';
 const $=id=>document.getElementById(id);
-const sb=window.supabase?.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'etos-readmap-auth-v1'}});
+const sb=window.supabase?.createClient(SUPABASE_URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'etos-readmap-auth-v1'}});
 const state={user:null,awardee:null,books:[],entries:[],videos:[],player:null,activeVideo:null,intervals:[],lastTime:null,lastSample:0,saveAt:0,saving:false,demo:false,coverUrls:{},coverPreviewUrl:null};
 
 function demoPersist(){if(state.demo)window.READMAP_DEMO?.save(state)}
