@@ -23,14 +23,24 @@ async function refreshCovers(){
 }
 async function compressedCover(file){
  if(!file)return null;
- if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Sampul harus berupa JPG, PNG, atau WebP.');
- if(file.size>5*1024*1024)throw Error('Ukuran sampul maksimal 5 MB.');
- const img=await createImageBitmap(file);
+ const allowed=['image/jpeg','image/png','image/webp','image/heic','image/heif'];
+ if(!allowed.includes(file.type)&&!/\.(jpg|jpeg|png|webp|heic|heif)$/i.test(file.name||''))throw Error('Gunakan foto sampul JPG, PNG, WebP, atau foto dari galeri.');
+ if(file.size>15*1024*1024)throw Error('Ukuran foto awal maksimal 15 MB.');
+ let img,url=null;
+ try{
+  if(typeof createImageBitmap==='function')img=await createImageBitmap(file);
+ }catch(_){}
+ if(!img){
+  url=URL.createObjectURL(file);
+  try{img=await new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('Foto tidak bisa dibaca. Coba kirim screenshot sampul dalam JPG atau PNG.'));image.src=url;})}
+  finally{URL.revokeObjectURL(url)}
+ }
  const scale=Math.min(1,760/img.width,1050/img.height);
  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));
- const ctx=canvas.getContext('2d');if(!ctx)throw Error('Gambar tidak dapat diproses di perangkat ini.');
+ const ctx=canvas.getContext('2d');if(!ctx)throw Error('Foto tidak dapat diproses di perangkat ini.');
  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);img.close?.();
  const blob=await new Promise((resolve,reject)=>canvas.toBlob(x=>x?resolve(x):reject(Error('Gagal mengolah foto sampul.')),'image/webp',0.82));
+ if(blob.size>5*1024*1024||blob.type!=='image/webp')throw Error('Perangkat tidak dapat mengompres foto. Gunakan screenshot dalam JPG/PNG.');
  return blob;
 }
 async function uploadCover(file){
@@ -140,7 +150,7 @@ on('enter-demo','click',enterDemo);
 on('open-demo-account','click',()=>{if(!isDemo())enterDemo()});
 on('leave-demo','click',exitDemo);
 on('reset-demo','click',async()=>{if(!confirm('Ulangi Mode Demo dari data contoh awal? Semua perubahan demo di browser ini akan direset.'))return;const fixture=window.READMAP_DEMO.reset(currentWeek);Object.assign(state,{books:fixture.books,entries:fixture.entries,videos:fixture.videos});await refreshCovers();render();notice('Mode Demo kembali ke 5 buku dan 5 video contoh.');});
-on('book-cover','change',()=>{clearCoverPreview();const file=$('book-cover').files?.[0];if(!file)return;if(!file.type.startsWith('image/'))return notice('Pilih file gambar JPG, PNG, atau WebP.');state.coverPreviewUrl=URL.createObjectURL(file);$('book-cover-preview').src=state.coverPreviewUrl;show('book-cover-preview');$('cover-placeholder').hidden=true;notice('');});
+on('book-cover','change',()=>{clearCoverPreview();const file=$('book-cover').files?.[0];if(!file)return;if(!file.type.startsWith('image/')&&!/\.(jpg|jpeg|png|webp|heic|heif)$/i.test(file.name))return notice('Pilih foto atau screenshot sampul dari galeri.');state.coverPreviewUrl=URL.createObjectURL(file);$('book-cover-preview').src=state.coverPreviewUrl;show('book-cover-preview');$('cover-placeholder').hidden=true;notice('');});
 on('member-login','submit',async e=>{e.preventDefault();if(!sb)return notice('Layanan login belum dapat dimuat.');const raw=$('username').value.trim().toUpperCase();const pin=$('pin').value.trim();if(!/^ETOS26-[A-F0-9]{10}$/.test(raw)||!/^\d{10}$/.test(pin))return notice('Periksa username dan PIN pribadi Anda.');const button=e.target.querySelector('button[type=submit]');button.disabled=true;try{const email=raw.toLowerCase()+'@readmap.etosidpalu.com';unwrap(await sb.auth.signInWithPassword({email,password:pin}));$('pin').value='';await identify()}catch(error){notice('Username atau PIN tidak sesuai. Hubungi pengelola jika memerlukan reset.')}finally{button.disabled=false}});
 on('signout','click',async()=>{
  if(isDemo()){exitDemo();return}
