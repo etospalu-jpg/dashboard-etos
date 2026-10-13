@@ -40,7 +40,7 @@ $('member-list').addEventListener('click',async e=>{
 $('download').addEventListener('click',()=>{
  if(!records.length)return;
  const rows=[['Nama Etoser','Angkatan','Username','PIN'],...records.map(x=>[x.name,x.angkatan,x.username,x.pin])];
- const csv='\uFEFF'+rows.map(cols=>cols.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
+ const csv='\uFEFF'+rows.map(cols=>cols.map(v=>'"'+String(v??'').replace(/^[=+@\-]/,m=>"'"+m).replace(/"/g,'""')+'"').join(',')).join('\r\n');
  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download='READMAP-kredensial-baru-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
  tell('File kredensial berhasil disiapkan. Simpan dan bagikan secara pribadi. Hapus file setelah distribusi.');
