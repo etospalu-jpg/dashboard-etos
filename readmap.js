@@ -72,14 +72,14 @@ on('video-form','submit',async e=>{e.preventDefault();try{const id=videoId($('yo
 $('videos-list').addEventListener('click',async e=>{const id=e.target.dataset.play;if(!id)return;try{await openVideo(id)}catch(e){err(e)}});
 function readyYoutube(){return new Promise((resolve,reject)=>{if(window.YT?.Player)return resolve();const old=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{old?.();resolve()};if(!document.querySelector('script[data-yt]')){const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';s.dataset.yt='1';s.onerror=()=>reject(Error('Pemutar video gagal dimuat'));document.head.appendChild(s)}})}
 async function openVideo(id){
- await flushVideo();state.player?.destroy?.();state.player=null;state.lastTime=null;
+ await flushVideo();if(ticker){clearInterval(ticker);ticker=null}state.player?.destroy?.();state.player=null;state.lastTime=null;
  const v=state.videos.find(x=>x.id===id);if(!v)return;
  state.activeVideo=v;state.intervals=merge(v.watched_intervals||[]);
  show('player-card');$('player-title').textContent=v.title;$('video-insight').value=v.insight||'';$('player-status').textContent='Menyiapkan video...';
  await readyYoutube();
  state.player=new YT.Player('yt-player',{width:'100%',height:'100%',videoId:v.youtube_id,playerVars:{playsinline:1,rel:0,origin:location.origin},events:{
   onReady:ev=>{const d=Math.round(ev.target.getDuration()||0);v.duration_seconds=d||v.duration_seconds;if(v.last_position_seconds>0)ev.target.seekTo(v.last_position_seconds,true);$('player-status').textContent='Pemutar siap · Lanjutkan dari posisi tersimpan.'},
-  onStateChange:ev=>{if(ev.data===YT.PlayerState.PLAYING){state.lastTime=ev.target.getCurrentTime();tickVideo()}else {state.lastTime=null;flushVideo().catch(err)}if(ev.data===YT.PlayerState.ENDED){v.ended=true;flushVideo().catch(err)}},
+  onStateChange:ev=>{if(ev.data===YT.PlayerState.PLAYING){state.lastTime=ev.target.getCurrentTime();tickVideo()}else {state.lastTime=null;if(ticker){clearInterval(ticker);ticker=null}flushVideo().catch(err)}if(ev.data===YT.PlayerState.ENDED){v.ended=true;flushVideo().catch(err)}},
   onError:()=>{$('player-status').textContent='Video tidak dapat diputar tertanam. Progres tidak dihitung.'}
  }});
 }
@@ -97,7 +97,6 @@ function tickVideo(){
  },1000);
 }
 async function flushVideo(){
- if(ticker){clearInterval(ticker);ticker=null}
  const v=state.activeVideo;if(!v||state.saving||!state.awardee)return;
  state.saving=true;state.saveAt=Date.now();
  try{
