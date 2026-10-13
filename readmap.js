@@ -111,13 +111,6 @@ function bookCard(b){
  const img=url?'<img loading="lazy" src="'+safe(url)+'" alt="Sampul '+safe(b.title)+'">':'';
  return '<article class="item book-item" data-book-card="'+safe(b.id)+'"><div class="book-art"><span class="book-placeholder">📖</span>'+img+'</div><div class="book-detail"><strong>'+safe(b.title)+'</strong><small>'+safe(b.author||'Penulis tidak dicantumkan')+'</small><span class="book-label">'+safe(b.category)+'</span><div class="completion-title"><span>Progres membaca</span><b>'+(p.percent==null?'—':p.percent+'%')+'</b></div>'+progressHTML(p.percent,'Penyelesaian '+b.title)+'<small class="completion-detail">'+(p.total?p.current+' / '+p.total+' halaman':'Posisi '+p.current+' · Total halaman belum diisi')+'</small><small class="completion-state">'+safe(b.status)+'</small><div class="card-actions"><button class="secondary" data-edit-book="'+safe(b.id)+'">Ubah Progres</button><button class="secondary" data-finish="'+safe(b.id)+'">'+(b.status==='Selesai'?'Baca Lagi':'Tandai Selesai')+'</button><button class="delete-button" data-delete-book="'+safe(b.id)+'">Hapus</button></div><form class="book-position-editor" hidden><label>Halaman terakhir dibaca<input type="number" min="0" max="20000" data-current required value="'+p.current+'"></label><label>Total halaman buku<input type="number" min="1" max="20000" data-total required value="'+(p.total||'')+'"></label><small>Persentase dihitung dari halaman terakhir ÷ total halaman. Bisa diperbarui kapan saja.</small><button type="submit" data-save-book="'+safe(b.id)+'">Simpan Progres</button></form></div></article>';
 }
-function renderContinue(){
- const books=state.books.filter(x=>x.status!=='Selesai').slice(0,2);
- const videos=state.videos.filter(x=>x.status!=='Selesai').slice(0,2);
- const parts=books.map(b=>{const p=bookProgress(b);return '<div class="journey-item"><span class="journey-icon">📖</span><div class="journey-copy"><span class="kicker">BUKU · SEDANG DIBACA</span><strong>'+safe(b.title)+'</strong><div class="journey-percent">'+(p.percent==null?'Total halaman belum diisi':p.percent+'% selesai')+'</div>'+progressHTML(p.percent,'Progres '+b.title)+'<small>'+(p.total?p.current+' / '+p.total+' halaman':'Masukkan total halaman buku')+'</small></div><button data-continue-book="'+safe(b.id)+'" aria-label="Buka buku '+safe(b.title)+'">↗</button></div>'});
- parts.push(...videos.map(v=>{const p=nextStatus(v);return '<div class="journey-item"><span class="journey-icon">▶</span><div class="journey-copy"><span class="kicker">VIDEO · SEDANG DIPELAJARI</span><strong>'+safe(v.title)+'</strong><div class="journey-percent">'+(v.duration_seconds?p.display+'% ditonton':'Mulai video untuk tracking')+'</div>'+progressHTML(v.duration_seconds?p.display:null,'Progres '+v.title)+'<small>'+safe(p.status)+'</small></div><button data-continue-video="'+safe(v.id)+'" aria-label="Lanjutkan video '+safe(v.title)+'">▶</button></div>'}));
- $('continue-items').innerHTML=parts.length?parts.join(''):emptyState('✦','Belum ada yang dilanjutkan','Tambahkan buku atau video untuk melihat progresmu di sini.');
-}
 function member(){if(!state.awardee)throw Error('Akun belum terhubung dengan Etoser.');return state.awardee}
 async function identify(){
  const {data}=await sb.auth.getUser();state.user=data.user;
@@ -165,7 +158,6 @@ function render(){
  state.entries.forEach(e=>{const b=state.books.find(x=>x.id===e.book_id);if(b)categories.set(b.category,(categories.get(b.category)||0)+Number(e.pages_read||0))});
  $('category-chart').innerHTML=categories.size?[...categories].sort((a,b)=>b[1]-a[1]).map(([cat,n])=>'<div class="cat-row"><span>'+safe(cat)+'</span><div><div style="width:'+Math.round(100*n/Math.max(1,...categories.values()))+'%"></div></div><strong>'+n+' hlm</strong></div>').join('') :'<p class="empty-state">Kategori bacaan favoritmu akan terlihat setelah kamu mengisi laporan.</p>';
  $('videos-list').innerHTML=state.videos.length?state.videos.map(v=>{const p=nextStatus(v);return '<div class="item video-card"><img class="thumb" loading="lazy" src="'+imageUrl(v.youtube_id)+'" alt="Thumbnail YouTube: '+safe(v.title)+'" referrerpolicy="no-referrer"><div class="video-card-content"><strong>'+safe(v.title)+'</strong><div class="completion-title"><span>'+safe(p.status)+'</span><b data-video-pct="'+safe(v.id)+'">'+(v.duration_seconds?p.display+'%':'—')+'</b></div><div class="video-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+p.display+'" aria-label="Persentase ditonton"><i data-video-bar="'+safe(v.id)+'" style="width:'+p.display+'%"></i></div><small>'+(v.duration_seconds?'Sudah ditonton '+p.display+'% dari durasi video':'Durasi terdeteksi setelah video diputar')+'</small><button data-play="'+safe(v.id)+'">▶ '+(p.display?'Lanjutkan menonton':'Mulai menonton')+'</button><button class="secondary" data-delete-video="'+safe(v.id)+'" style="margin-left:6px" title="Hapus video dari koleksi">Hapus</button></div></div>'}).join(''):emptyState('▶','Playlist belajarmu masih kosong','Tempel link YouTube favorit, thumbnail asli akan muncul otomatis di sini.');
- renderContinue();
  updateReadingForm();
 }
 on('enter-demo','click',enterDemo);
@@ -303,22 +295,50 @@ $('books-list').addEventListener('submit',async e=>{
   selectReadingBook();notice('Progres '+b.title+' berhasil diperbarui.');
  }catch(error){err(error)}finally{button.disabled=false}
 });
-$('continue-items').addEventListener('click',async e=>{
- const button=e.target.closest('button');if(!button)return;
- if(button.dataset.continueBook){
-  selectTab('books');requestAnimationFrame(()=>{const article=[...$('books-list').querySelectorAll('[data-book-card]')].find(x=>x.dataset.bookCard===button.dataset.continueBook);article?.scrollIntoView({behavior:'smooth',block:'center'})});
- }else if(button.dataset.continueVideo){
-  selectTab('videos');try{await openVideo(button.dataset.continueVideo);$('player-card').scrollIntoView({behavior:'smooth',block:'start'})}catch(error){err(error)}
- }
-});
-document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t===b));const videos=b.dataset.tab==='videos';$('videos-panel').hidden=!videos;$('books-panel').hidden=videos}));
 
-function selectTab(tab){const isVideo=tab==='videos';document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));$('videos-panel').hidden=!isVideo;$('books-panel').hidden=isVideo}
-function jumpTo(tab,target){selectTab(tab);requestAnimationFrame(()=>$((target|| (tab==='videos'?'video-add-card':'reading-entry-card')))?.scrollIntoView({behavior:'smooth',block:'start'}));}
-on('hero-book','click',()=>jumpTo('books','reading-entry-card'));
+function updateAppNavigation(view){
+ document.querySelectorAll('[data-mobile-view]').forEach(button=>{
+  const active=button.dataset.mobileView===view;
+  button.classList.toggle('is-active',active);
+  if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');
+ });
+}
+function selectTab(tab){
+ const isVideo=tab==='videos';
+ document.querySelectorAll('[data-tab]').forEach(t=>{
+  const active=t.dataset.tab===tab;
+  t.classList.toggle('active',active);
+  t.setAttribute('aria-selected',active?'true':'false');
+  t.tabIndex=active?0:-1;
+ });
+ $('videos-panel').hidden=!isVideo;
+ $('books-panel').hidden=isVideo;
+ updateAppNavigation(isVideo?'videos':'books');
+}
+function scrollToApp(id){
+ const target=$(id);
+ if(target)requestAnimationFrame(()=>target.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+function jumpTo(tab,target){
+ selectTab(tab);
+ scrollToApp(target||(tab==='videos'?'video-add-card':'reading-entry-card'));
+}
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{
+ selectTab(b.dataset.tab);
+ scrollToApp('books-panel'===b.dataset.tab+'-panel'?'books-panel':'videos-panel');
+}));
+document.querySelectorAll('[data-mobile-view]').forEach(b=>b.addEventListener('click',()=>{
+ const view=b.dataset.mobileView;
+ if(view==='home'){updateAppNavigation('home');scrollToApp('workspace');return}
+ if(view==='insights'){updateAppNavigation('insights');scrollToApp('learning-insights');return}
+ selectTab(view);scrollToApp(view==='books'?'books-panel':'videos-panel');
+}));
+on('hero-book','click',()=>jumpTo('books',state.books.length?'reading-entry-card':'book-add-card'));
 on('hero-video','click',()=>jumpTo('videos','video-add-card'));
 on('quick-book','click',()=>jumpTo('books',state.books.length?'reading-entry-card':'book-add-card'));
 on('quick-video','click',()=>jumpTo('videos','video-add-card'));
+on('shelf-add-book','click',()=>jumpTo('books','book-add-card'));
+on('shelf-add-video','click',()=>jumpTo('videos','video-add-card'));
 on('youtube-url','input',()=>{
  const id=videoId($('youtube-url').value);
  if(!id){hide('video-preview');return}
