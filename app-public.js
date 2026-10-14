@@ -15,8 +15,9 @@ function renderAchievements(){const q=document.getElementById('achievement-searc
 
 async function loadAttendance(force=false){
   const selected=document.getElementById('attendance-period')?.value||null;
+  const source=document.getElementById('attendance-source')?.value||'semua';
   const [data,list]=await Promise.all([
-    api('getAbsensiList',selected?{periodeId:selected}:null,force),
+    api('getAbsensiList',{...(selected?{periodeId:selected}:{}),source},force),
     state.directory?.length&&!force?Promise.resolve(state.directory):api('getAwardeeList',null,force).catch(()=>state.directory||[])
   ]);
   state.attendanceOptions=data;
@@ -35,7 +36,7 @@ async function loadAttendance(force=false){
   document.getElementById('attendance-summary').innerHTML=[['Total Catatan',total],['Hadir',hadir],['Izin',izin],['Sakit',sakit],['Alpa',alpa]].map(([l,v])=>`<div class="card-flat p-4"><div class="text-[9px] uppercase tracking-[.12em] font-bold text-[#70839a]">${l}</div><div class="metric-number text-[25px] font-extrabold mt-2">${v}</div></div>`).join('');
   document.getElementById('attendance-awardee-summary-table')?.classList.remove('hidden');
   document.getElementById('attendance-body').innerHTML=items.length?items.map(x=>{
-    const eligible=num(x.eligible),pct=eligible>0?num(x.pct):null;
+    const eligible=num(x.eligible??x.total),pct=eligible>0?num(x.pct):null;
     const presence=eligible>0?`<span class="pill ${pct>=80?'pill-green':'pill-gold'}">${pct}%</span>`:'<span class="pill pill-gray">Belum ada kegiatan</span>';
     return `<tr><td class="font-semibold">${esc(x.nama)}</td><td>${esc(x.angkatan||'—')}</td><td>${eligible}</td><td>${num(x.h)}</td><td>${num(x.i)}</td><td>${num(x.s)}</td><td>${num(x.a)}</td><td>${presence}</td></tr>`;
   }).join(''):'<tr><td colspan="8" class="empty">Belum ada Awardee aktif.</td></tr>';
