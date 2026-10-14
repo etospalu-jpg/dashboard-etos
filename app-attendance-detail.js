@@ -13,17 +13,17 @@ function ensureActions(){
  const view=document.getElementById('view-attendance');if(!view||document.getElementById('attendance-private-actions'))return;
  const x=document.createElement('div');x.id='attendance-private-actions';x.className='grid md:grid-cols-3 gap-3 mt-4';
  x.innerHTML=`
- <button class="card p-5 text-left hover:border-[#9bb9aa] transition" onclick="openAttendanceDetail()">
-  <div class="flex items-start gap-3"><div class="w-10 h-10 rounded-xl bg-[#e8f1ed] text-[#0f6248] flex items-center justify-center"><i data-lucide="table-properties" class="w-4 h-4"></i></div>
-  <div><div class="text-[11px] font-extrabold">Lihat Detail Absensi</div><div class="text-[9px] text-[#849189] mt-1 leading-4">Peserta per agenda, filter tanggal/bulan/periode, dan export Excel.</div></div><i data-lucide="lock-keyhole" class="w-4 h-4 ml-auto text-[#849189]"></i></div>
+ <button class="card p-5 text-left hover:border-[#a8c4e7] transition" onclick="openAttendanceDetail()">
+  <div class="flex items-start gap-3"><div class="w-10 h-10 rounded-xl bg-[#e9f1fb] text-[#315f96] flex items-center justify-center"><i data-lucide="table-properties" class="w-4 h-4"></i></div>
+  <div><div class="text-[11px] font-extrabold">Lihat Detail Absensi</div><div class="text-[9px] text-[#70849a] mt-1 leading-4">Peserta per agenda, filter tanggal/bulan/periode, dan export Excel.</div></div><i data-lucide="lock-keyhole" class="w-4 h-4 ml-auto text-[#70849a]"></i></div>
  </button>
- <button class="card p-5 text-left hover:border-[#9bb9aa] transition" onclick="openReflectionHub()">
+ <button class="card p-5 text-left hover:border-[#a8c4e7] transition" onclick="openReflectionHub()">
   <div class="flex items-start gap-3"><div class="w-10 h-10 rounded-xl bg-[#f2eee6] text-[#8b7047] flex items-center justify-center"><i data-lucide="message-square-text" class="w-4 h-4"></i></div>
-  <div><div class="text-[11px] font-extrabold">Lihat Refleksi Kajian</div><div class="text-[9px] text-[#849189] mt-1 leading-4">Jawaban refleksi per agenda dan temuan fasilitator.</div></div><i data-lucide="lock-keyhole" class="w-4 h-4 ml-auto text-[#849189]"></i></div>
+  <div><div class="text-[11px] font-extrabold">Lihat Refleksi Kajian</div><div class="text-[9px] text-[#70849a] mt-1 leading-4">Jawaban refleksi per agenda dan temuan fasilitator.</div></div><i data-lucide="lock-keyhole" class="w-4 h-4 ml-auto text-[#70849a]"></i></div>
  </button>
- <button class="card p-5 text-left hover:border-[#9bb9aa] transition" onclick="openEmailCenter()">
+ <button class="card p-5 text-left hover:border-[#a8c4e7] transition" onclick="openEmailCenter()">
   <div class="flex items-start gap-3"><div class="w-10 h-10 rounded-xl bg-[#eaf0f7] text-[#31577d] flex items-center justify-center"><i data-lucide="mail-plus" class="w-4 h-4"></i></div>
-  <div><div class="text-[11px] font-extrabold">Kirim Email / Reminder</div><div class="text-[9px] text-[#849189] mt-1 leading-4">Agenda, refleksi, laporan, atau pesan ke Awardee.</div></div><i data-lucide="lock-keyhole" class="w-4 h-4 ml-auto text-[#849189]"></i></div>
+  <div><div class="text-[11px] font-extrabold">Kirim Email / Reminder</div><div class="text-[9px] text-[#70849a] mt-1 leading-4">Agenda, refleksi, laporan, atau pesan ke Awardee.</div></div><i data-lucide="lock-keyhole" class="w-4 h-4 ml-auto text-[#70849a]"></i></div>
  </button>`;
  view.appendChild(x);window.lucide?.createIcons?.();
 }
@@ -32,18 +32,18 @@ function ensurePanel(){
  const panel=document.createElement('section');panel.id='attendance-detail-panel';panel.className='mt-4 hidden';
  panel.innerHTML=`
  <div class="card overflow-hidden">
-  <div class="p-5 md:p-6 border-b border-[#e8eeea]">
+  <div class="p-5 md:p-6 border-b border-[#e3eaf4]">
    <div class="flex flex-col xl:flex-row xl:items-end justify-between gap-4">
-    <div><div class="eyebrow">Fasilitator · PIN</div><h3 class="section-title text-[20px] mt-2">Detail Absensi</h3><p class="text-[10px] text-[#7b8981] mt-2">Pilih cakupan data. Peserta per agenda baru terbuka ketika agenda diklik.</p></div>
+    <div><div class="eyebrow">Fasilitator · PIN</div><h3 class="section-title text-[20px] mt-2">Detail Absensi</h3><p class="text-[10px] text-[#70849b] mt-2">Pilih cakupan data. Peserta per agenda baru terbuka ketika agenda diklik.</p></div>
     <div class="flex flex-wrap gap-2"><button class="btn btn-soft" type="button" onclick="closeAttendanceDetail()"><i data-lucide="x" class="w-4 h-4"></i>Tutup</button><button class="btn btn-green" type="button" onclick="downloadAttendanceExcel()"><i data-lucide="download" class="w-4 h-4"></i>Download Excel</button></div>
    </div>
    <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 mt-5">
-    <label><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#7f8c84]">Periode Pembinaan</span><select id="attendance-detail-period" class="input select mt-2"></select></label>
-    <label><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#7f8c84]">Tampilkan</span><select id="attendance-detail-mode" class="input select mt-2" onchange="attendanceDetailModeChanged()"><option value="period">Satu Periode</option><option value="month">Bulan Tertentu</option><option value="date">Tanggal Tertentu</option><option value="range">Rentang Tanggal</option></select></label>
-    <label id="attendance-detail-month-wrap" class="hidden"><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#7f8c84]">Bulan</span><input id="attendance-detail-month" type="month" class="input mt-2"></label>
-    <label id="attendance-detail-date-wrap" class="hidden"><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#7f8c84]">Tanggal</span><input id="attendance-detail-date" type="date" class="input mt-2"></label>
-    <label id="attendance-detail-from-wrap" class="hidden"><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#7f8c84]">Dari</span><input id="attendance-detail-from" type="date" class="input mt-2"></label>
-    <label id="attendance-detail-to-wrap" class="hidden"><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#7f8c84]">Sampai</span><input id="attendance-detail-to" type="date" class="input mt-2"></label>
+    <label><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#71869d]">Periode Pembinaan</span><select id="attendance-detail-period" class="input select mt-2"></select></label>
+    <label><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#71869d]">Tampilkan</span><select id="attendance-detail-mode" class="input select mt-2" onchange="attendanceDetailModeChanged()"><option value="period">Satu Periode</option><option value="month">Bulan Tertentu</option><option value="date">Tanggal Tertentu</option><option value="range">Rentang Tanggal</option></select></label>
+    <label id="attendance-detail-month-wrap" class="hidden"><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#71869d]">Bulan</span><input id="attendance-detail-month" type="month" class="input mt-2"></label>
+    <label id="attendance-detail-date-wrap" class="hidden"><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#71869d]">Tanggal</span><input id="attendance-detail-date" type="date" class="input mt-2"></label>
+    <label id="attendance-detail-from-wrap" class="hidden"><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#71869d]">Dari</span><input id="attendance-detail-from" type="date" class="input mt-2"></label>
+    <label id="attendance-detail-to-wrap" class="hidden"><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#71869d]">Sampai</span><input id="attendance-detail-to" type="date" class="input mt-2"></label>
    </div>
    <div class="flex justify-end mt-3"><button class="btn btn-primary" type="button" onclick="loadAttendanceDetail(true)"><i data-lucide="search" class="w-4 h-4"></i>Tampilkan</button></div>
   </div>
@@ -85,12 +85,12 @@ function render(data){
  root.innerHTML=`<div class="space-y-3">${sessions.map(s=>`
   <details class="card-flat overflow-hidden">
    <summary class="p-4 md:p-5 cursor-pointer list-none flex flex-col md:flex-row md:items-center justify-between gap-3">
-    <div><div class="text-[12px] font-extrabold">${e(s.nama||'Agenda')}</div><div class="text-[9px] text-[#849189] mt-1">${e(fmt(s.tanggal))} · Target ${e(s.target||'Umum')}</div></div>
+    <div><div class="text-[12px] font-extrabold">${e(s.nama||'Agenda')}</div><div class="text-[9px] text-[#70849a] mt-1">${e(fmt(s.tanggal))} · Target ${e(s.target||'Umum')}</div></div>
     <div class="flex flex-wrap gap-2"><span class="pill pill-green">Hadir ${Number(s.hadir)||0}</span><span class="pill pill-gray">Izin ${Number(s.izin)||0}</span><span class="pill pill-gold">Sakit ${Number(s.sakit)||0}</span><span class="pill pill-gray">Alpa ${Number(s.alpa)||0}</span><span class="pill pill-gray">Klik detail</span></div>
    </summary>
-   <div class="border-t border-[#e8eeea] p-3 flex justify-end"><button type="button" class="btn btn-soft" onclick="event.stopPropagation();openEmailCenter(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify({name:'Email '+(s.nama||'Agenda'),audienceType:'attendance_status',filter:{sessionId:s.id,statuses:['Hadir']},context:{agenda:s.nama||'',tanggal:s.tanggal||''}}))}')))"><i data-lucide="mail-plus" class="w-4 h-4"></i>Email Peserta Hadir</button></div>
+   <div class="border-t border-[#e3eaf4] p-3 flex justify-end"><button type="button" class="btn btn-soft" onclick="event.stopPropagation();openEmailCenter(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify({name:'Email '+(s.nama||'Agenda'),audienceType:'attendance_status',filter:{sessionId:s.id,statuses:['Hadir']},context:{agenda:s.nama||'',tanggal:s.tanggal||''}}))}')))"><i data-lucide="mail-plus" class="w-4 h-4"></i>Email Peserta Hadir</button></div>
    ${s.tahsinLink?'<div class="border-t border-[#dce6f1] p-4 bg-[#f4f7fc]"><strong class="text-[11px] text-[#24486e]">Link Refleksi Tahsin</strong><p class="text-[10px] leading-5 text-[#657994] my-2">Tautan ini tetap bisa diambil kembali. Hanya peserta yang berstatus Hadir dan lolos verifikasi 4 digit WhatsApp yang dapat mengirim jawaban.</p><div class="flex flex-wrap gap-2 items-center"><input readonly class="input flex-1 min-w-[200px]" value="'+e(s.tahsinLink)+'"><button type="button" class="btn btn-soft" data-tahsin-copy-link="'+e(s.tahsinLink)+'">Salin Link Refleksi</button></div></div>':''}
-   <div class="table-wrap border-t border-[#e8eeea]"><table class="data-table"><thead><tr><th>Awardee</th><th>Angkatan</th><th>Status</th></tr></thead><tbody>${(s.records||[]).map(r=>`<tr><td><div class="font-semibold">${e(r.nama)}</div><div class="text-[9px] text-[#8a968f] mt-1">${e(r.id||'')}</div></td><td>${e(r.angkatan||'—')}</td><td>${badge(r.status)}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Belum ada peserta.</td></tr>'}</tbody></table></div>
+   <div class="table-wrap border-t border-[#e3eaf4]"><table class="data-table"><thead><tr><th>Awardee</th><th>Angkatan</th><th>Status</th></tr></thead><tbody>${(s.records||[]).map(r=>`<tr><td><div class="font-semibold">${e(r.nama)}</div><div class="text-[9px] text-[#71859b] mt-1">${e(r.id||'')}</div></td><td>${e(r.angkatan||'—')}</td><td>${badge(r.status)}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Belum ada peserta.</td></tr>'}</tbody></table></div>
   </details>`).join('')}</div>`;
  root.querySelectorAll('[data-tahsin-copy-link]').forEach(b=>b.addEventListener('click',async()=>{const link=b.dataset.tahsinCopyLink;try{await navigator.clipboard.writeText(link);b.textContent='Tersalin ✓';}catch{const input=b.parentElement.querySelector('input');input?.select();b.textContent='Silakan salin link di kolom';}}));
 }
