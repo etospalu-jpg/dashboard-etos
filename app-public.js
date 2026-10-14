@@ -26,7 +26,7 @@ async function loadAttendance(force=false){
   const periods=data?.periods||[],sel=data?.selectedPeriod,p=document.getElementById('attendance-period');
   if(p)p.innerHTML=periods.length?periods.map(x=>`<option value="${esc(x.id)}" ${sel&&x.id===sel.id?'selected':''}>${esc(x.nama||x.name||x.id)}</option>`).join(''):'<option>Belum ada periode</option>';
   const raw=data?.items||[],byId=new Map(raw.map(x=>[String(x.id||''),x])),byName=new Map(raw.map(x=>[String(x.nama||'').trim().toLowerCase(),x]));
-  const active=directory.filter(x=>String(x.status||'').toLowerCase()==='aktif');
+  const active=directory.filter(x=>String(x.status||'').toLowerCase()==='aktif'&&(source!=='asrama'||String(x.angkatan)==='2026'));
   const items=active.map(a=>{
     const key=String(a.id||a.legacy_id||''),name=String(a.nama||a.name||'');
     const hit=byId.get(key)||byName.get(name.trim().toLowerCase());
