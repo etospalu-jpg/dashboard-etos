@@ -1,6 +1,6 @@
 /**
  * ETOS ID PALU · Sinkronisasi Absensi Asrama 2026
- * Pasang sebagai Apps Script TERIKAT pada Google Spreadsheet jurnal pembinaan asrama.
+ * Buat proyek Apps Script STANDALONE di AKUN GOOGLE PALU (script.google.com), tanpa menyunting spreadsheet pusat.
  * Spreadsheet tetap sumber data; script hanya MEMBACA sel, tidak mengubah nilai/formula.
  * Versi: 2026-10-14
  */
@@ -8,45 +8,36 @@ const ETOS_SHEET_ID = '1GlzHEfjY0QDZNs7lntoUEjoANqiRN5JYRVlG-Em0aVA';
 const ETOS_ENDPOINT = 'https://weklmapqizeldfdalbgs.supabase.co/functions/v1/asrama-sheet-sync';
 const ETOS_PROP = 'ETOS_ASRAMA_SYNC_KEY';
 const ETOS_ATTENDANCE_TAB = '02 Kehadiran';
-const ETOS_JOURNAL_TAB = '01 Silabus & Jurnal';
 const ETOS_STATUSES = {hadir:'Hadir',izin:'Izin',sakit:'Sakit',alpa:'Alpa'};
 const ETOS_MONTHS = {jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12',okt:'10',des:'12'};
 
-function onOpen() {
-  SpreadsheetApp.getUi().createMenu('ETOS · Asrama')
-    .addItem('1 · Masukkan kunci sinkronisasi','etosSetKey')
-    .addItem('2 · Pasang pemicu otomatis','etosInstallTriggers')
-    .addItem('Sinkronisasi sekarang','etosSyncNow')
-    .addToUi();
-}
-function etosSetKey() {
-  const ui=SpreadsheetApp.getUi();
-  const prompt=ui.prompt('Kunci Sinkronisasi ETOS','Tempel kunci dari Dashboard Superadmin. Kunci disimpan di Script Properties dan tidak ditulis ke sel spreadsheet.',ui.ButtonSet.OK_CANCEL);
-  if(prompt.getSelectedButton()!==ui.Button.OK)return;
-  const secret=String(prompt.getResponseText()||'').trim();
-  if(!/^[a-f0-9]{64}$/.test(secret))throw Error('Kunci tidak valid. Salin ulang dari Dashboard Superadmin.');
-  PropertiesService.getScriptProperties().setProperty(ETOS_PROP,secret);
-  ui.alert('Kunci tersimpan di Script Properties.');
-}
+// Mode mandiri: proyek Apps Script adalah MILIK PENGELOLA PALU,
+// bukan proyek/script milik pemegang Google Sheet pusat.
+// Tidak memerlukan hak editor maupun perubahan pada spreadsheet sumber.
+const ETOS_DIGEST_PROP='ETOS_ASRAMA_LAST_SUCCESS_DIGEST';
 function etosInstallTriggers() {
-  const doc=SpreadsheetApp.getActiveSpreadsheet();
-  if(doc.getId()!==ETOS_SHEET_ID)throw Error('Script harus dipasang pada spreadsheet jurnal asrama yang benar.');
-  const handlers=new Set(['etosOnEdit','etosScheduledSync']);
-  ScriptApp.getProjectTriggers().filter(t=>handlers.has(t.getHandlerFunction())).forEach(t=>ScriptApp.deleteTrigger(t));
-  ScriptApp.newTrigger('etosOnEdit').forSpreadsheet(doc).onEdit().create();
-  ScriptApp.newTrigger('etosScheduledSync').timeBased().everyMinutes(5).create();
-  SpreadsheetApp.getUi().alert('Pemicu terpasang: otomatis setelah mengubah absensi, ditambah pemeriksaan setiap 5 menit. Jalankan "Sinkronisasi sekarang" sekali untuk memulai.');
+  // Read-only preflight. This succeeds when the signed-in Google account
+  // already has permission to view the central sheet.
+  const sheet=SpreadsheetApp.openById(ETOS_SHEET_ID);
+  if(!sheet.getSheetByName(ETOS_ATTENDANCE_TAB))throw Error('Sheet Kehadiran tidak tersedia dari akun Google ini.');
+  const key=PropertiesService.getScriptProperties().getProperty(ETOS_PROP);
+  if(!/^[a-f0-9]{64}$/.test(String(key||'')))throw Error('Isi Script Properties: ETOS_ASRAMA_SYNC_KEY dahulu.');
+  for(const trigger of ScriptApp.getProjectTriggers()) {
+    if(trigger.getHandlerFunction()==='etosScheduledSync')ScriptApp.deleteTrigger(trigger);
+  }
+  // Polling almost-real-time. Installable time triggers are not instantaneous.
+  ScriptApp.newTrigger('etosScheduledSync').timeBased().everyMinutes(1).create();
+  console.log('Pemicu sinkronisasi PALU setiap ~1 menit terpasang. Sumber Google Sheet tidak diubah.');
 }
-function etosOnEdit(e) {
-  const range=e&&e.range;
-  if(!range)return;
-  const sh=range.getSheet();
-  const inAttendance=sh.getName()===ETOS_ATTENDANCE_TAB && range.getLastRow()>=5 &&
-    range.getColumn()<=11 && range.getLastColumn()>=1;
-  const inJournal=sh.getName()===ETOS_JOURNAL_TAB;
-  if(inAttendance||inJournal)etosSyncNow();
+function etosScheduledSync(){return etosSyncNow();}
+function etosForceSync() {
+  PropertiesService.getScriptProperties().deleteProperty(ETOS_DIGEST_PROP);
+  return etosSyncNow();
 }
-function etosScheduledSync(){etosSyncNow()}
+function etosDigest(text){
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,text,Utilities.Charset.UTF_8)
+   .map(b=>('0'+((b+256)%256).toString(16)).slice(-2)).join('');
+}
 function etosParseDate(value){
   const x=String(value||'').trim();
   const match=x.match(/^(\d{1,2})[\s/-]+([A-Za-z]{3})[\s/-]+(\d{2,4})$/);
@@ -59,7 +50,7 @@ function etosParseDate(value){
   return iso;
 }
 function etosReadSnapshot(){
-  const file=SpreadsheetApp.getActiveSpreadsheet();
+  const file=SpreadsheetApp.openById(ETOS_SHEET_ID);
   if(file.getId()!==ETOS_SHEET_ID)throw Error('Spreadsheet sumber berbeda dengan integrasi ETOS.');
   const tab=file.getSheetByName(ETOS_ATTENDANCE_TAB);
   if(!tab)throw Error('Sheet 02 Kehadiran tidak ditemukan.');
@@ -91,17 +82,25 @@ function etosSyncNow(){
   if(!lock.tryLock(7000))return;
   try{
     const token=PropertiesService.getScriptProperties().getProperty(ETOS_PROP);
-    if(!token)throw Error('Belum ada kunci. Pilih menu ETOS · Asrama → Masukkan kunci sinkronisasi.');
+    if(!/^[a-f0-9]{64}$/.test(String(token||'')))throw Error('Tambahkan ETOS_ASRAMA_SYNC_KEY lewat Pengaturan Proyek → Properti skrip.');
     const events=etosReadSnapshot();
+    const props=PropertiesService.getScriptProperties();
+    const base=JSON.stringify({sourceSpreadsheetId:ETOS_SHEET_ID,events});
+    const digest=etosDigest(base);
+    const unchanged=props.getProperty(ETOS_DIGEST_PROP)===digest;
+    // A heartbeat verifies continued access and avoids rewriting all
+    // database records each minute when the Sheet has not changed.
+    const payload=unchanged?JSON.stringify({sourceSpreadsheetId:ETOS_SHEET_ID,heartbeat:true}):base;
     const result=UrlFetchApp.fetch(ETOS_ENDPOINT,{
       method:'post',contentType:'application/json',
       headers:{'x-etos-asrama-key':token},
-      payload:JSON.stringify({sourceSpreadsheetId:ETOS_SHEET_ID,events}),
+      payload,
       muteHttpExceptions:true
     });
-    const data=JSON.parse(result.getContentText());
+    let data;try{data=JSON.parse(result.getContentText())}catch(e){throw Error('Server mengembalikan respons tidak valid')}
     if(result.getResponseCode()!==200||!data.success)throw Error(data.error||'Sinkronisasi gagal (HTTP '+result.getResponseCode()+').');
-    console.log('Sinkronisasi ETOS berhasil: sesi '+data.data.sessions+', catatan '+data.data.records+'.');
+    if(!unchanged)props.setProperty(ETOS_DIGEST_PROP,digest);
+    console.log(unchanged?'ETOS Palu: terhubung, belum ada perubahan.':'ETOS Palu: '+data.data.sessions+' agenda, '+data.data.records+' catatan tersinkron.');
     return data.data;
   }finally{lock.releaseLock()}
 }
