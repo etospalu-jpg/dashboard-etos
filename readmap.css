@@ -248,3 +248,73 @@ body{background:#fff;overflow-x:hidden;color:#18392b}
  .readmap-app .video-card{grid-template-columns:95px minmax(0,1fr)}
  .readmap-app .video-card .thumb{width:95px;min-height:58px}
 }
+
+
+/* Awardee services, Tahsin, video collection-focused layout */
+.readmap-app .app-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;max-width:750px}
+.readmap-app .app-tabs button{font-size:12px;padding:12px 10px}
+.readmap-app .app-tabs button span{font-size:17px}
+.readmap-app .video-library{display:flex;flex-direction:column;gap:16px}
+.readmap-app .video-library>.video-collection{width:100%;min-width:0}
+.readmap-app .video-collection #videos-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.readmap-app .video-collection .video-card{display:flex;flex-direction:column;align-items:stretch;padding:14px;gap:12px;min-width:0}
+.readmap-app .video-collection .video-card .thumb{width:100%;max-width:none;aspect-ratio:16/9;height:auto;border-radius:12px;object-fit:cover}
+.readmap-app .video-card-content{min-width:0}
+.readmap-app .video-card-content strong{font-size:13px;min-height:34px}
+.readmap-app .video-card-content button{margin:11px 6px 0 0!important}
+.readmap-app .video-compose{background:#f8fcf7;border-color:#dcebdc}
+.readmap-app .video-compose[hidden]{display:none!important}
+.readmap-app .compose-head{display:flex;justify-content:flex-end;margin-bottom:10px}
+.readmap-app .compose-head button{margin:0;font-size:12px}
+.readmap-app .extra-panel{display:flex;flex-direction:column;gap:19px}
+.readmap-app .extra-panel[hidden]{display:none!important}
+.readmap-app .service-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.readmap-app .service-card{border:1px solid #dcebdc;border-radius:23px;background:#f0f8ee;padding:27px;min-width:0}
+.readmap-app .service-card.research{background:#f4f7fd;border-color:#dfe7f6}
+.readmap-app .service-emblem{font-size:31px;color:#2e8251;line-height:1;margin-bottom:14px}
+.readmap-app .service-card h3{font:800 23px/1.3 Manrope,'DM Sans',sans-serif;letter-spacing:-.035em;margin:7px 0}
+.readmap-app .service-card p{color:#5d7466;font-size:13px;line-height:1.7;min-height:75px}
+.readmap-app .service-card button{display:flex;justify-content:space-between;gap:10px;width:100%;background:#116e49;color:#fff;border-radius:12px}
+.readmap-app .service-card.research button{background:#285e9b}
+.readmap-app .service-dialog{position:fixed;inset:0;z-index:200;display:flex;justify-content:center;align-items:center;background:#10271bb3;padding:18px;overflow-y:auto}
+.readmap-app .service-dialog[hidden]{display:none!important}
+.readmap-app .service-dialog-inner{width:min(100%,510px);max-height:90dvh;overflow-y:auto;background:white;border-radius:23px;padding:24px;box-shadow:0 30px 90px #08271633}
+.readmap-app .dialog-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.readmap-app .dialog-header h3{font-size:19px;margin:0}
+.readmap-app .dialog-header button{background:#edf2eb;color:#315840;margin:0}
+.readmap-app .service-dialog-inner>p{margin:10px 0 16px;line-height:1.6}
+.readmap-app .service-dialog label{display:block;margin-top:13px}
+.readmap-app .service-dialog button[type=submit]{width:100%}
+.readmap-app .service-history-item,.readmap-app .tahsin-session{display:flex;justify-content:space-between;align-items:center;gap:14px;border:1px solid #e1eae1;padding:15px;border-radius:15px;background:#fff;flex-wrap:wrap}
+.readmap-app .service-history-item>div,.readmap-app .tahsin-session>div{min-width:0;flex:1}
+.readmap-app .service-history-item strong,.readmap-app .tahsin-session strong{display:block;font-size:13px}
+.readmap-app .service-history-item small,.readmap-app .tahsin-session small{display:block;color:#6b8272;font-size:11px;margin-top:5px;line-height:1.5}
+.readmap-app .service-history-item p.service-admin-note{width:100%;background:#f1f7ec;padding:11px;border-radius:9px;font-size:11px;margin:0}
+.readmap-app .service-status{display:inline-block;background:#ecf4e8;border-radius:99px;color:#336f49;padding:6px 10px;font-size:10px;font-weight:800;margin:7px 0}
+.readmap-app .tahsin-session button{margin:0;font-size:11px;padding:11px 13px}
+.readmap-app .tahsin-form-card{margin-top:0}
+.readmap-app .tahsin-form-card[hidden]{display:none!important}
+.readmap-app .tahsin-form-card form{display:grid;gap:12px}
+.readmap-app .tahsin-checkboxes{border:1px solid #dfebdf;padding:14px;border-radius:13px}
+.readmap-app .tahsin-checkboxes legend{font-size:12px;font-weight:700;padding:0 6px}
+.readmap-app .tahsin-checkboxes label{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:500;margin:9px 0}
+.readmap-app .tahsin-checkboxes input{width:19px;height:19px;min-height:0;flex:0 0 19px;accent-color:#288550;margin:0}
+.readmap-app #service-feedback,.readmap-app #tahsin-feedback{font-size:12px;color:#a13d33;font-weight:700}
+.readmap-app #service-feedback.is-ok,.readmap-app #tahsin-feedback.is-ok{color:#29754a}
+.readmap-app .mobile-dock{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:700px){
+ .readmap-app .service-grid{grid-template-columns:1fr}
+ .readmap-app .video-collection #videos-list{grid-template-columns:1fr}
+ .readmap-app .video-collection .video-card{display:grid;grid-template-columns:minmax(98px,34%) minmax(0,1fr);align-items:start}
+ .readmap-app .video-collection .video-card .thumb{width:100%;max-width:none;height:auto}
+ .readmap-app .service-card{padding:20px}
+ .readmap-app .service-card p{min-height:0}
+ .readmap-app .app-tabs{grid-template-columns:repeat(2,minmax(0,1fr));max-width:100%;gap:5px}
+ .readmap-app .app-tabs button{font-size:11px}
+ .readmap-app .service-dialog{align-items:flex-end;padding:0}
+ .readmap-app .service-dialog-inner{border-radius:22px 22px 0 0;max-height:90dvh;width:100%;padding:22px 18px calc(24px + env(safe-area-inset-bottom,0px))}
+ .readmap-app .tahsin-session{align-items:flex-start}
+ .readmap-app .tahsin-session button{width:100%}
+ .readmap-app .mobile-dock button small{font-size:9px}
+}
+@media(max-width:350px){.readmap-app .video-collection .video-card{grid-template-columns:1fr}.readmap-app .video-collection .video-card .thumb{width:100%}}
