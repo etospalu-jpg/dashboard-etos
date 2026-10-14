@@ -103,3 +103,8 @@ AS $$
 $$;
 REVOKE ALL ON FUNCTION public.my_tahsin_sessions() FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.my_tahsin_sessions() TO authenticated;
+
+-- Makes the existing attendance entry form offer Tahsin, without changing past sessions.
+INSERT INTO public.attendance_agendas(id,name,category,default_target_cohort,is_active,notes)
+SELECT gen_random_uuid(),'Tahsin Al-Qur''an','Tahsin','Umum',true,'Refleksi tersedia setelah absensi Hadir dicatat'
+WHERE NOT EXISTS(SELECT 1 FROM public.attendance_agendas WHERE name ILIKE '%tahsin%');
