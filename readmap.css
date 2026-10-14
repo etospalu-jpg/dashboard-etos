@@ -332,3 +332,9 @@ body{background:#fff;overflow-x:hidden;color:#18392b}
 #admin-tahsin-list .item input{min-width:180px}
 #admin-tahsin-list .item button{margin:0;max-width:100%}
 @media(max-width:800px){#admin-service-list .admin-service-edit{grid-template-columns:1fr}#admin-tahsin-list .item input{max-width:100%!important;width:100%}}
+
+.readmap-app .tahsin-progress-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.readmap-app .tahsin-stat{background:#f5faf2;border:1px solid #e1ecdd;border-radius:16px;padding:17px;min-width:0}
+.readmap-app .tahsin-stat strong{font:800 23px/1.3 Manrope,'DM Sans',sans-serif;color:#226846;display:block;overflow-wrap:anywhere}
+.readmap-app .tahsin-stat small{display:block;font-size:11px;line-height:1.5;color:#6e8975;margin-top:6px}
+@media(max-width:600px){.readmap-app .tahsin-progress-grid{gap:7px}.readmap-app .tahsin-stat{padding:12px 9px}.readmap-app .tahsin-stat strong{font-size:17px}.readmap-app .tahsin-stat small{font-size:9px}}
