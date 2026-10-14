@@ -76,7 +76,14 @@ function renderReport(data){
  }
  const nick=String(data.name||'').trim().split(/\s+/)[0]||'Awardee';
  $('awardee-first-name').textContent=nick;
- $('welcome-recommendation').textContent= count?sentence: 'Mulai dari satu bacaan, satu pembelajaran, atau satu refleksi yang bermakna.';
+ const learning=bridge()?.getLearning?.()||{};
+ const learningSummary=learning.books||learning.videos?
+  ' Kamu telah menyimpan '+(learning.books||0)+' buku dan '+(learning.videos||0)+' video belajar.':'';
+ const advice=tahsin.length&&latestT?.goal?
+  'Untuk pekan ini: '+short(latestT.goal,145):
+  (kajian.length&&latestK?.action_plan?'Coba lanjutkan komitmen Kajian terakhirmu: '+short(latestK.action_plan,145):
+   'Pilih satu hal kecil untuk dipelajari dan dicoba pekan ini.');
+ $('welcome-recommendation').textContent=(count?'Refleksi pribadimu sudah tercatat '+count+' kali.':'Yuk mulai catat pembelajaranmu.')+learningSummary+' '+advice;
 }
 async function pullReflectionReport(){
  if(!member())return;
