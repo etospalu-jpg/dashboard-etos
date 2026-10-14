@@ -107,6 +107,34 @@ module.exports=async function handler(req,res){
    const members=data.awardees.map(a=>{const x=row(a.id);return {name:a.name,angkatan:a.angkatan||'',username:data.mapped.get(a.id)?.username||'',pages:x.pages,booksFinished:x.booksFinished,videosFinished:x.videosFinished,weeks:x.reportedWeeks.size,lastWeek:x.lastWeek}});
    return respond(res,200,{totals:{awardees:data.awardees.length,members:data.activeCount,books:books.length,booksFinished:books.filter(b=>b.status==='Selesai').length,pages:entries.reduce((n,e)=>n+Number(e.pages_read||0),0),readingReports:entries.length,videos:videos.length,videosFinished:videos.filter(v=>v.status==='Selesai').length},weekly,categories,members});
   }
+  if(action==='gagasanReport'){
+   const articles=check(await db.from('gagasan_articles').select('id,awardee_id,author_name,title,excerpt,body,category,cover_path,status,share_enabled,published_at,created_at,updated_at').order('created_at',{ascending:false}).limit(1500))||[];
+   return respond(res,200,{awardees:data.awardees.map(a=>({id:a.id,name:a.name,angkatan:a.angkatan||'',provisioned:data.mapped.has(a.id)})),articles});
+  }
+  if(action==='gagasanUpdate'){
+   const p=req.body?.params||{},id=String(p.id||''),title=String(p.title||'').trim(),excerpt=String(p.excerpt||'').trim(),body=String(p.body||'').trim(),category=String(p.category||''),status=String(p.status||'');
+   const categories=['Opini','Esai','Resensi Buku','Refleksi','Gagasan & Inovasi','Artikel Ilmiah Populer'];
+   if(!/^[0-9a-f-]{36}$/i.test(id)||title.length<2||title.length>180||excerpt.length>400||body.length>50000||!categories.includes(category)||!['draft','published','hidden'].includes(status))
+    return respond(res,400,{error:'Periksa panjang teks, kategori, dan status tulisan.'});
+   const current=check(await db.from('gagasan_articles').select('id,cover_path,published_at').eq('id',id).maybeSingle());
+   if(!current)return respond(res,404,{error:'Tulisan tidak ditemukan.'});
+   const cover=String(p.cover_path||'')||current.cover_path;
+   if(cover&&!/^((editorial|[0-9a-f-]{36})\/[0-9a-f-]{36}\.jpg)$/i.test(cover))return respond(res,400,{error:'Lokasi foto sampul tidak valid.'});
+   if(status==='published'&&(title.length<6||excerpt.length<20||body.length<120||!cover))return respond(res,400,{error:'Tulisan terbit membutuhkan judul, ringkasan, isi, dan sampul yang lengkap.'});
+   const updated=check(await db.from('gagasan_articles').update({title,excerpt,body,category,slug:title.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').slice(0,85),status,share_enabled:status==='published',cover_path:cover,published_at:status==='published'?(current.published_at||new Date().toISOString()):current.published_at}).eq('id',id).select('id,updated_at').single());
+   if(current.cover_path&&cover!==current.cover_path){try{await db.storage.from('gagasan-covers').remove([current.cover_path])}catch(_){}}
+   return respond(res,200,{updated});
+  }
+  if(action==='gagasanCover'){
+   const b64=String(req.body?.params?.image||'');
+   if(!/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(b64)||b64.length>750000)return respond(res,400,{error:'Foto sampul harus JPEG terkompresi, maksimal 512 KB.'});
+   const buf=Buffer.from(b64.slice(b64.indexOf(',')+1),'base64');
+   if(buf.length>524288||buf.length<100||buf[0]!==255||buf[1]!==216)return respond(res,400,{error:'File JPEG tidak valid atau terlalu besar.'});
+   const path='editorial/'+crypto.randomUUID()+'.jpg';
+   const {error}=await db.storage.from('gagasan-covers').upload(path,buf,{contentType:'image/jpeg',upsert:false,cacheControl:'3600'});
+   if(error)throw error;
+   return respond(res,200,{path});
+  }
   if(action==='provision'){
    const pending=data.awardees.filter(a=>!data.mapped.has(a.id)).slice(0,5);
    const issued=[],errors=[];
