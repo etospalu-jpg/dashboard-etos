@@ -7,7 +7,7 @@ const reference=pathCode||new URLSearchParams(location.search).get('session')||n
 let participant=null,session=null,priorGoal=null,verifiedSuffix='';
 function date(v){return v?new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'long',year:'numeric'}).format(new Date(v+'T12:00:00+08:00')):'Tanggal belum tersedia'}
 async function api(action,data={}){
- const res=await fetch('/api/tahsin',{method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',body:JSON.stringify({action,reference,...data})});
+ const res=await fetch('/api/public-attendance',{method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',body:JSON.stringify({action:'tahsin_data',params:{action,reference,...data}})});
  const body=await res.json().catch(()=>({success:false,error:'Respons layanan tidak valid.'}));
  if(!res.ok||body?.success===false)throw new Error(body?.error||'Tidak dapat memproses refleksi.');
  return body.data;
