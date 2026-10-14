@@ -33,7 +33,7 @@ async function participants(sessionId:string){
 async function identity(session:any,body:any){
  const name=String(body.awardeeId||'').trim().toUpperCase();
  const last4=String(body.waLast4||'').trim();
- if(!/^\\d{4}$/.test(last4)||!/^AWD-[A-Z0-9-]{3,30}$/.test(name))failure('Pilih nama dan masukkan tepat 4 digit terakhir WhatsApp.');
+ if(!/^\d{4}$/.test(last4)||!/^AWD-[A-Z0-9-]{3,30}$/.test(name))failure('Pilih nama dan masukkan tepat 4 digit terakhir WhatsApp.');
  const {data,error}=await sb.rpc('verify_tahsin_public_identity',{
   p_reference:session.tahsin_public_code||session.id,p_legacy_id:name,p_suffix:last4
  });
