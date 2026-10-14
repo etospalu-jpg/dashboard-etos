@@ -27,10 +27,11 @@
     <div id="asrama-key-box" class="asrama-key-box" hidden><label>Kunci baru (salin sekarang)<input type="text" readonly id="asrama-sync-key" autocomplete="off"></label>
     <button type="button" id="asrama-copy-key" class="secondary">Salin Kunci</button><p>Jangan bagikan kunci di grup atau menyimpannya di kolom spreadsheet.</p></div>
   </div>
-  <div class="asrama-setup-step"><span class="kicker">02 · PASANG SEKALI</span><h3>Aktifkan Apps Script</h3>
-    <p>Buka spreadsheet asli → <strong>Ekstensi → Apps Script</strong>, tempel kode konektor, simpan, lalu muat ulang spreadsheet.</p>
-    <p>Di menu <strong>ETOS · Asrama</strong>, pilih <em>Masukkan kunci</em>, <em>Pasang pemicu otomatis</em>, dan <em>Sinkronisasi sekarang</em>.</p>
-    <div class="asrama-links"><a class="secondary" href="https://docs.google.com/spreadsheets/d/1GlzHEfjY0QDZNs7lntoUEjoANqiRN5JYRVlG-Em0aVA/edit" target="_blank" rel="noopener noreferrer">Buka Spreadsheet ↗</a>
+  <div class="asrama-setup-step"><span class="kicker">02 · TANPA AKSES EDITOR PUSAT</span><h3>Aktifkan pemantauan mandiri</h3>
+    <p><strong>Tidak perlu meminta izin pemilik spreadsheet.</strong> Buka Google Apps Script dengan akun Google Palu yang bisa melihat jurnal pusat. Pilih <strong>Proyek baru</strong> (bukan dari spreadsheet pusat), tempel kode konektor, dan simpan.</p>
+    <p>Di <strong>Pengaturan proyek → Properti skrip</strong>, buat <code>ETOS_ASRAMA_SYNC_KEY</code> dan isi kunci dari langkah 01. Jalankan fungsi <code>etosForceSync</code> sekali, berikan izin menggunakan <strong>akun Google Anda sendiri</strong>, kemudian jalankan <code>etosInstallTriggers</code>.</p>
+    <p>Setelah aktif, akun Google Palu akan membaca sheet asli sekitar <strong>setiap 1 menit</strong>. Kegiatan ini <strong>hanya membaca</strong>; tidak mengubah atau menambah apa pun dalam jurnal milik pusat.</p>
+    <div class="asrama-links"><a class="secondary" href="https://script.google.com/home/projects/create" target="_blank" rel="noopener noreferrer">Buat Apps Script Mandiri ↗</a><a class="secondary" href="https://docs.google.com/spreadsheets/d/1GlzHEfjY0QDZNs7lntoUEjoANqiRN5JYRVlG-Em0aVA/edit" target="_blank" rel="noopener noreferrer">Buka Spreadsheet ↗</a>
     <a class="secondary" href="https://github.com/etospalu-jpg/dashboard-etos/blob/main/integrations/asrama-google-sheets/Code.gs" target="_blank" rel="noopener noreferrer">Salin Kode Apps Script ↗</a></div>
   </div>
  </div>
