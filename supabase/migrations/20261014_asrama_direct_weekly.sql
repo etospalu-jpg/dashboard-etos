@@ -32,7 +32,7 @@ DECLARE
   v_active integer := 0;
   v_i integer;
 BEGIN
-  SELECT x.status,x.content INTO v_http_status,v_raw FROM public.http_get(v_url) AS x;
+  SELECT x.status,x.content INTO v_http_status,v_raw FROM extensions.http_get(v_url::varchar) AS x;
   IF v_http_status<>200 OR v_raw IS NULL OR length(v_raw) NOT BETWEEN 1000 AND 200000
     OR position('google.visualization.Query.setResponse(' in v_raw)=0 THEN
     RAISE EXCEPTION 'Google Sheets Palu could not be read (HTTP %). Existing attendance unchanged.',v_http_status;
@@ -55,8 +55,8 @@ BEGIN
   IF v_head IS NULL THEN
     RAISE EXCEPTION 'Google Sheets attendance header missing';
   END IF;
-  SELECT array_agg(v_head->'c'->v_i->>'v' ORDER BY v_i) INTO v_actual
-  FROM generate_series(4,10) AS v_i;
+  SELECT array_agg(v_head->'c'->g.n->>'v' ORDER BY g.n) INTO v_actual
+  FROM generate_series(4,10) AS g(n);
   IF v_actual IS DISTINCT FROM v_expected THEN
     RAISE EXCEPTION 'The seven Palu Awardee columns changed; no attendance was imported';
   END IF;
