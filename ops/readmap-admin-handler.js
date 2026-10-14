@@ -87,7 +87,7 @@ module.exports=async function handler(req,res){
   }
   if(action==='asramaStatus'){
    const config=check(await db.from('asrama_sync_settings')
-    .select('spreadsheet_id,last_sync_at,last_session_count,last_record_count,updated_at,key_hash')
+    .select('spreadsheet_id,last_sync_at,last_connector_at,last_session_count,last_record_count,updated_at,key_hash')
     .eq('integration_id','asrama_2026').single());
    const sessions=check(await db.from('attendance_sessions')
     .select('id,activity_name,activity_date,source_external_key')
@@ -97,7 +97,7 @@ module.exports=async function handler(req,res){
    const names=new Map(data.awardees.map(a=>[a.id,a.name]));
    return respond(res,200,{connected:Boolean(config.key_hash),
     sheetUrl:'https://docs.google.com/spreadsheets/d/'+config.spreadsheet_id+'/edit',
-    lastSyncAt:config.last_sync_at,sessionCount:sessions.length,
+    lastSyncAt:config.last_sync_at,lastConnectorAt:config.last_connector_at,sessionCount:sessions.length,
     recordCount:records.length,
     sessions:sessions.map(s=>({name:s.activity_name,date:s.activity_date,
       count:records.filter(r=>r.session_id===s.id).length,
