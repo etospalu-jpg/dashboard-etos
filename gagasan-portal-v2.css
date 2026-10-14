@@ -1,3 +1,5 @@
+/* HTML hidden remains effective even when author CSS defines display:grid/flex. */
+[hidden]{display:none!important}
 /* Ruang Gagasan v2 — polished ETOS ID Palu editorial portal. Additive, mobile-first refinement. */
 :root{--rg-navy:#112945;--rg-blue:#2257a0;--rg-sky:#79a9e2;--rg-paper:#f6f8fb;--rg-line:#dfE7f1;--rg-shadow:0 12px 40px rgba(13,41,69,.075);--rg-ease:cubic-bezier(.2,.75,.2,1)}
 body{background:var(--rg-paper)}

@@ -40,7 +40,7 @@ module.exports=async function handler(req,res){
    query.searchParams.set('select','id,title,excerpt,body,author_name,category,cover_path,status,share_enabled,published_at,created_at');
    query.searchParams.set('id','eq.'+id);query.searchParams.set('status','eq.published');query.searchParams.set('share_enabled','eq.true');
    query.searchParams.set('limit','1');
-   const r=await fetch(query.toString(),{headers:{apikey:KEY,Authorization:'Bearer '+KEY,accept:'application/json'},signal:AbortSignal.timeout(7000)});
+   const r=await fetch(query.toString(),{headers:{apikey:KEY,accept:'application/json'},signal:AbortSignal.timeout(7000)});
    if(!r.ok)throw Error('Public article lookup failed');
    const rows=await r.json(),a=rows?.[0];
    if(!a)result=notFound();

@@ -37,7 +37,7 @@ assert(source('gagasan-feed.js').includes('category-chips'),'Public category fil
 assert(source('gagasan-covers.js').includes('const fit=Math.min(1200/img.width,630/img.height)'),'Cover must preserve full image instead of cropping it');
 assert(source('gagasan-covers.js').includes('cache.blob'),'Upload must reuse the same file as preview');
 assert(source('gagasan-covers.js').includes('1200 × 630'),'Accurate preview dimensions must be visible');
-assert(source('gagasan-public/api/article.js').includes("Authorization:'Bearer '+KEY"),'Public metadata endpoint missing Authorization');
+assert(!source('gagasan-public/api/article.js').includes("Authorization:'Bearer '+KEY"),'Publishable key must be passed only through apikey, not Bearer');
 assert(source('ops/readmap-admin-handler.js').includes("const excerpt=body.replace("),'Admin summary should be computed from body');
 assert(source('gagasan-portal-v2.css').includes('prefers-reduced-motion'),'Respect reduced-motion settings');
 assert(source('gagasan-portal-v2.css').includes('.login-backdrop'),'Login must be a modal, not the default page');
