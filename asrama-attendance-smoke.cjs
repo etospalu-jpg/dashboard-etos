@@ -26,7 +26,7 @@ assert.match(read('integrations/asrama-google-sheets/Code.gs'),/everyWeeks\(1\)/
 assert.match(read('integrations/asrama-google-sheets/Code.gs'),/SpreadsheetApp\.openById\(ETOS_SHEET_ID\)/);
 assert.doesNotMatch(read('integrations/asrama-google-sheets/Code.gs'),/SpreadsheetApp\.getActiveSpreadsheet/);
 assert.match(read('supabase/functions/asrama-sheet-sync/index.ts'),/heartbeat===true/);
-assert.match(admin,/TANPA AKSES EDITOR PUSAT/);
+assert.match(admin,/MODE UTAMA · OTOMATIS MINGGUAN/);
 assert.doesNotMatch(html,/Etoser|ETOSER|etoser/);
 assert.match(read('sw.js'),/VERSION='38\.10'/);
 console.log('ETOS asrama integration, Awardee attendance and Apps Script structure: PASS');
