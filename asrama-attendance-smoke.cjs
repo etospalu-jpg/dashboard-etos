@@ -22,7 +22,7 @@ assert.match(admin,/id="asrama-sync-section"/);
 assert.match(admin,/readmap-admin-asrama\.js\?v=38\.10/);
 assert.match(read('supabase/functions/asrama-sheet-sync/index.ts'),/x-etos-asrama-key/);
 assert.match(read('supabase/functions/asrama-sheet-sync/index.ts'),/apply_asrama_sheet_snapshot/);
-assert.match(read('integrations/asrama-google-sheets/Code.gs'),/everyMinutes\(1\)/);
+assert.match(read('integrations/asrama-google-sheets/Code.gs'),/everyWeeks\(1\)/);
 assert.match(read('integrations/asrama-google-sheets/Code.gs'),/SpreadsheetApp\.openById\(ETOS_SHEET_ID\)/);
 assert.doesNotMatch(read('integrations/asrama-google-sheets/Code.gs'),/SpreadsheetApp\.getActiveSpreadsheet/);
 assert.match(read('supabase/functions/asrama-sheet-sync/index.ts'),/heartbeat===true/);
