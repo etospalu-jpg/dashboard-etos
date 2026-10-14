@@ -31,6 +31,12 @@ Deno.serve(async(req:Request)=>{
   if(configError||!config?.key_hash)return response(503,{success:false,error:'Integrasi belum diaktifkan Superadmin'});
   if(!equal(await sha256(raw),config.key_hash))return response(401,{success:false,error:'Kunci sinkronisasi tidak sesuai'});
   const data=await req.json().catch(()=>null);
+  if(data?.heartbeat===true && data?.sourceSpreadsheetId===SHEET && config.spreadsheet_id===SHEET){
+   const {error:heartbeatError}=await db.from('asrama_sync_settings')
+    .update({last_connector_at:new Date().toISOString()}).eq('integration_id','asrama_2026');
+   if(heartbeatError)return response(500,{success:false,error:'Status koneksi belum dapat diperbarui'});
+   return response(200,{success:true,unchanged:true,data:{message:'Sambungan aktif, tidak ada perubahan'}});
+  }
   if(!data||data.sourceSpreadsheetId!==SHEET||config.spreadsheet_id!==SHEET||!Array.isArray(data.events)||data.events.length<60||data.events.length>100){
    return response(400,{success:false,error:'Snapshot dari sumber spreadsheet tidak lengkap'});
   }
