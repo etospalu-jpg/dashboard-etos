@@ -2,22 +2,22 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#112840">
 <title>Ruang Gagasan — Karya Awardee ETOS ID Palu</title><meta name="description" content="Ruang menulis dan membaca gagasan Awardee ETOS ID Palu. Opini, esai, refleksi, dan resensi buku.">
 <link rel="icon" href="/favicon.svg?v=38"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/gagasan.css?v=2"></head>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/gagasan.css?v=2"><link rel="stylesheet" href="/gagasan-etos.css?v=3"></head>
 <body>
 <div class="notice-stack" id="toast" role="status" aria-live="polite" hidden></div>
 <header class="site-header"><div class="header-inner">
-<a class="wordmark" href="/gagasan.html" aria-label="Beranda Ruang Gagasan"><span class="logo-symbol">✳</span><span><strong>RUANG GAGASAN<span class="punct">.</span></strong><small>ETOS ID PALU · AWARDEE EDITORIAL</small></span></a>
+<a class="wordmark" href="/gagasan.html" aria-label="Beranda Ruang Gagasan"><span class="brand-etos-mark"><img src="/brand-etos-white.svg?v=38" alt="Logo resmi ETOS ID putih"></span><span class="brand-editorial"><strong>RUANG GAGASAN<span class="punct">.</span></strong><small>PORTAL KARYA AWARDEE · ETOS ID PALU</small></span></a>
 <nav class="header-links" aria-label="Navigasi utama"><button type="button" data-view="feed" class="nav-active">Eksplorasi</button><button type="button" data-view="mine">Karya Saya</button><button type="button" data-view="editor">Tulis Karya</button></nav>
 <div class="header-right"><span id="account-name" class="account-name">Ruang Awardee</span><a class="header-back" href="/readmap.html">↗ Dashboard</a><button id="logout" class="tiny-action" type="button" hidden>Keluar</button></div>
 </div></header>
 <main>
 <section id="intro" class="intro"><div class="intro-inner">
-<div><p class="eyebrow"><span class="eyebrow-dot"></span> ETOS ID PALU / IDEAS & PERSPECTIVES</p>
+<div><p class="eyebrow"><span class="eyebrow-dot"></span> ETOS ID PALU · PORTAL KARYA AWARDEE</p>
 <h1>Setiap gagasan <em>layak menemukan</em> pembacanya.</h1>
 <p class="intro-description">Ruang bagi pemikiran, pengalaman, dan perspektif para Awardee. Tidak harus sempurna untuk mulai menulis. Setiap tulisan adalah bagian dari perjalanan bertumbuh.</p>
 <div class="intro-actions"><button id="create-cta" class="button primary" type="button">Mulai menulis <span>↗</span></button><button id="explore-cta" class="button secondary" type="button">Jelajahi tulisan <span>→</span></button></div></div>
-<div class="intro-art" aria-hidden="true"><span class="art-top">WORDS MATTER.</span><span class="art-glyph">“</span><p>Ideas are the beginning<br>of something meaningful.</p><span class="art-bottom">PALU · INDONESIA</span></div>
+<div class="intro-art" aria-hidden="true"><span class="art-top">ETOS ID PALU / RUANG BERTUMBUH</span><div class="art-brand"><img src="/brand-etos-white.svg?v=38" alt="" aria-hidden="true"><span>Gagasan yang ditulis,<br>nilai yang dibagikan.</span></div><span class="art-bottom">AWARDEE STORIES · SULAWESI TENGAH</span></div>
 </div></section>
 <section id="login-panel" class="login-panel" hidden><div class="login-copy"><span class="eyebrow">RUANG PENULIS</span><h2>Masuk dan mulai berkarya.</h2><p>Gunakan akun Ruang Awardee/READMAP yang telah diberikan pengelola. Draf hanya terlihat olehmu; tulisan terbit dapat dibagikan melalui link.</p><a class="text-link" href="/readmap.html">Kembali ke Ruang Awardee ↗</a></div><form id="login-form" class="login-form"><label>Username Awardee<input id="login-username" type="text" required maxlength="17" placeholder="ETOS26-XXXXXXXXXX" autocomplete="username"></label><label>PIN pribadi<input id="login-pin" type="password" required minlength="10" maxlength="10" inputmode="numeric" placeholder="10 digit PIN" autocomplete="current-password"></label><button class="button primary full" type="submit">Masuk ke Ruang Gagasan ↗</button></form></section>
 <section id="workspace" hidden>
@@ -41,7 +41,7 @@
 </div>
 <div id="article-view" class="view-area" hidden><button type="button" id="read-back" class="text-link">← Kembali ke kumpulan tulisan</button><article class="inline-reader"><p id="read-category" class="eyebrow"></p><h1 id="read-title"></h1><p id="read-excerpt" class="reader-deck"></p><div id="read-byline" class="reader-meta"></div><img id="read-cover" alt="Sampul artikel" hidden><div id="read-body" class="reader-body"></div><div class="reader-actions"><button id="share-article" type="button" class="button primary">Salin link artikel ↗</button><button id="edit-from-read" type="button" class="button secondary" hidden>Edit tulisanku</button></div></article></div>
 </section>
-<footer class="site-footer"><div><strong>RUANG GAGASAN<span class="punct">.</span></strong><span>Menulis, berpikir, bertumbuh.</span></div><span>ETOS ID Palu · Dibuat untuk perjalanan intelektual Awardee</span><a href="/readmap.html">Ruang Awardee ↗</a></footer>
+<footer class="site-footer"><div class="footer-etos"><img src="/brand-etos-white.svg?v=38" alt="ETOS ID Palu"><span><strong>RUANG GAGASAN<span class="punct">.</span></strong><span>Menulis, berpikir, bertumbuh.</span></span></div><span>ETOS ID Palu · Dibuat untuk perjalanan intelektual Awardee</span><a href="/readmap.html">Ruang Awardee ↗</a></footer>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
 <script defer src="/gagasan-foundation.js?v=1"></script><script defer src="/gagasan-feed.js?v=1"></script><script defer src="/gagasan-covers.js?v=1"></script><script defer src="https://cdn.jsdelivr.net/npm/mammoth@1.13.0/mammoth.browser.min.js"></script><script defer src="/gagasan-editor.js?v=2"></script></body></html>

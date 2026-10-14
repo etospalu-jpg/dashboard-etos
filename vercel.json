@@ -3,6 +3,10 @@
   "cleanUrls": false,
   "rewrites": [
     {
+      "source": "/tulisan/:ref",
+      "destination": "https://gagasan-etos-palu.vercel.app/t/:ref"
+    },
+    {
       "source": "/t/:code",
       "destination": "/tahsin-reflection.html"
     },

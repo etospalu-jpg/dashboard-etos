@@ -2,7 +2,7 @@
    Authenticated exclusively through existing secure Superadmin session cookie. */
 (()=>{'use strict';
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
-const BASE='https://gagasan-etos-palu.vercel.app/t/',SB='https://weklmapqizeldfdalbgs.supabase.co';
+const BASE='https://dashboard.etosidpalu.com/tulisan/',SB='https://weklmapqizeldfdalbgs.supabase.co';
 const categories=['Opini','Esai','Resensi Buku','Refleksi','Gagasan & Inovasi','Artikel Ilmiah Populer'];
 let all={awardees:[],articles:[]},busy=false;
 async function api(action,params={}){

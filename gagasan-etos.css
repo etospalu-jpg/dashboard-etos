@@ -1,0 +1,29 @@
+/* Official ETOS ID Palu identity: navy and sky blue with original white logo */
+:root{--ink:#112945;--blue:#2a63a9;--muted:#687d91;--line:#d8e3f0;--paper:#f3f6f2;--cream:#f2f6fb;--heading:Manrope,"DM Sans",system-ui,sans-serif}
+body{background:#f3f6f2;color:var(--ink)}
+.site-header{background:#112945;border-bottom:1px solid #ffffff22;box-shadow:0 8px 25px #0c28401b}
+.header-inner{max-width:1180px;min-height:80px;padding:12px 23px;gap:15px}
+.wordmark{gap:14px;color:#fff;min-width:0}.brand-etos-mark{display:flex;align-items:center;min-width:108px;width:130px;border-right:1px solid #ffffff33;padding:3px 12px 3px 0}
+.brand-etos-mark img{width:100%;height:42px;object-fit:contain;object-position:left center;display:block}
+.brand-editorial strong{display:block;font:800 16px/1.2 Manrope,sans-serif;letter-spacing:-.04em;color:#fff}
+.brand-editorial small{display:block;color:#bcd6ef;font-size:8px;letter-spacing:.1em;margin-top:5px;white-space:normal}.punct{color:#8fb5e3}
+.header-links{gap:6px}.header-links button{color:#d8e7f5;font-weight:700;border:1px solid transparent;border-radius:10px;padding:10px 13px}
+.header-links button.nav-active,.header-links button:hover{color:#fff;background:#ffffff20;border:1px solid #ffffff20}
+.account-name{color:#afcce7}.header-back{color:#fff;background:#ffffff1c;border:1px solid #ffffff24;padding:10px 13px;border-radius:10px}.tiny-action{border-color:#ffffff44;background:transparent;color:#fff}
+.intro{background:transparent;border:0}.intro-inner{max-width:1180px;gap:23px;padding:30px 23px 34px}.intro-inner>div:first-child{padding:41px 35px;background:#fff;border:1px solid #d8e3f0;border-radius:24px;box-shadow:0 10px 32px #0b31501a}
+.eyebrow,.kicker,.article-card .kicker{color:#2b64aa}.eyebrow-dot{background:#2b64aa}
+.intro h1{font:800 clamp(34px,4.1vw,56px)/1.13 Manrope,sans-serif;letter-spacing:-.052em;color:#112945;margin:17px 0}.intro h1 em{color:#2b64aa}.intro-description{color:#657c90}
+.button{border-radius:11px;box-shadow:0 5px 15px #152e410a}.button.primary{background:#17375e}.button.primary:hover{background:#235b98}.button.secondary{background:#edf3fb;border-color:#c9d9ec}
+.intro-art{min-height:340px;border-radius:24px;box-shadow:0 13px 30px #0f315322;background:linear-gradient(145deg,#173c65,#112945);padding:25px}.art-top,.art-bottom{color:#bedbf6;font-size:9px;letter-spacing:.14em}
+.art-brand{display:flex;flex-direction:column;align-items:center;gap:15px;text-align:center;z-index:1;margin:auto}.art-brand img{display:block;object-fit:contain;width:205px;height:100px}.art-brand span{font:700 25px/1.35 Manrope,sans-serif;letter-spacing:-.04em;color:#fff}
+#workspace,.login-panel{max-width:1180px}.view-area{padding:43px 23px 76px}.section-heading h2{font:800 clamp(29px,3.4vw,42px)/1.2 Manrope,sans-serif;letter-spacing:-.045em}.section-decor{color:#c7d9ec}
+.filter-row .search-field,.filter-row select{border-radius:12px;border-color:#cbdced}
+.featured-card{border-radius:20px;background:linear-gradient(135deg,#173c65,#112945);box-shadow:0 15px 34px #112b4320}.featured-copy h3{font:800 clamp(28px,3vw,39px)/1.22 Manrope,sans-serif;letter-spacing:-.04em}.featured-copy small{color:#b8d8f4}
+.articles-grid{gap:22px}.article-card{border-radius:18px;border-color:#d9e5f2;box-shadow:0 6px 21px #112b430e}.article-card h3{font:800 21px/1.3 Manrope,sans-serif;letter-spacing:-.03em}
+.login-panel{background:#fff;border:1px solid #d8e3f0;border-radius:22px;margin:14px auto 28px}.login-copy h2{font:800 35px/1.18 Manrope,sans-serif}.login-form,.editor-main,.editor-side{border-radius:18px;border-color:#d8e3f0;box-shadow:0 8px 30px #1129450b}
+.editor-label .title-input{font:800 28px/1.3 Manrope,sans-serif}.side-label{color:#2b64aa}.upload-preview{border-radius:13px;background:linear-gradient(145deg,#1d4673,#112945)}
+.mine-item{background:#fff;border-color:#d8e3f0;border-radius:15px}.mine-item h3{font:800 21px/1.3 Manrope,sans-serif}.mini-stats{border-radius:16px;background:#fff;overflow:hidden;border-color:#d8e3f0}.mini-stats strong{font:800 34px Manrope,sans-serif}
+.inline-reader{background:#fff;border:1px solid #d8e3f0;border-radius:22px;padding:40px}.inline-reader h1{font:800 clamp(32px,4vw,54px)/1.19 Manrope,sans-serif}.reader-body h2{font:800 28px/1.35 Manrope,sans-serif}
+.site-footer{background:#112945;color:#bfd1e4;border-top-color:#ffffff1d}.site-footer strong,.site-footer a{color:white}.footer-etos{display:flex!important;flex-direction:row!important;align-items:center;gap:15px}.footer-etos img{width:100px;height:48px;object-fit:contain}.footer-etos>span{display:flex;flex-direction:column;gap:5px}.footer-etos>span span{font-size:10px}
+@media(max-width:1000px){.header-inner{gap:10px}.brand-etos-mark{width:90px;min-width:90px}.header-links button{padding:9px 8px}.intro-inner{gap:14px}.intro-inner>div:first-child{padding:30px 23px}}
+@media(max-width:710px){.header-inner{padding:11px 15px;gap:10px}.brand-etos-mark{min-width:76px;width:76px;padding-right:8px}.brand-etos-mark img{height:33px}.brand-editorial strong{font-size:12px}.brand-editorial small{font-size:6px}.header-links{order:3;width:100%;border-top:1px solid #ffffff22}.header-links button{flex:1;font-size:11px;padding:10px 5px}.intro-inner{grid-template-columns:1fr;gap:15px;padding:20px 14px}.intro-inner>div:first-child{padding:27px 21px}.intro h1{font-size:34px}.intro-art{min-height:224px;padding:18px}.art-brand img{width:165px;height:75px}.art-brand span{font-size:20px}.view-area{padding:32px 14px 65px}.section-heading h2{font-size:29px}.featured-copy h3{font-size:28px}.article-card h3{font-size:20px}.inline-reader{padding:20px 16px}.site-footer{padding:25px 17px}}

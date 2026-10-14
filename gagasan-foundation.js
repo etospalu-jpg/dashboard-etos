@@ -3,7 +3,7 @@
 const S='https://weklmapqizeldfdalbgs.supabase.co',K='sb_publishable_cFm2Jvj2jvFyKcxbGniVWw_PL2SL7HC';
 const $=id=>document.getElementById(id);
 const client=window.supabase.createClient(S,K,{auth:{storageKey:'etos-readmap-auth-v1',persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-const G={sb:client,$,s:{user:null,member:null,name:'Awardee',articles:[],editing:null,reading:null,view:'feed',file:null,saving:false},publicBase:'https://gagasan-etos-palu.vercel.app',categories:['Opini','Esai','Resensi Buku','Refleksi','Gagasan & Inovasi','Artikel Ilmiah Populer']};
+const G={sb:client,$,s:{user:null,member:null,name:'Awardee',articles:[],editing:null,reading:null,view:'feed',file:null,saving:false},publicBase:'https://dashboard.etosidpalu.com/tulisan',categories:['Opini','Esai','Resensi Buku','Refleksi','Gagasan & Inovasi','Artikel Ilmiah Populer']};
 G.esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 G.words=s=>String(s||'').trim().split(/\s+/).filter(Boolean).length;
 G.slug=s=>String(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,86)||'tulisan';
