@@ -25,9 +25,9 @@ function etosInstallTriggers() {
   for(const trigger of ScriptApp.getProjectTriggers()) {
     if(trigger.getHandlerFunction()==='etosScheduledSync')ScriptApp.deleteTrigger(trigger);
   }
-  // Polling almost-real-time. Installable time triggers are not instantaneous.
-  ScriptApp.newTrigger('etosScheduledSync').timeBased().everyMinutes(1).create();
-  console.log('Pemicu sinkronisasi PALU setiap ~1 menit terpasang. Sumber Google Sheet tidak diubah.');
+  // Optional weekly backup. Main weekly synchronization uses the connected Google Drive workflow, with no spreadsheet-owner changes.
+  ScriptApp.newTrigger('etosScheduledSync').timeBased().everyWeeks(1).onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(8).create();
+  console.log('Cadangan sinkronisasi PALU setiap Senin pagi terpasang. Sumber Google Sheet tidak diubah.');
 }
 function etosScheduledSync(){return etosSyncNow();}
 function etosForceSync() {
