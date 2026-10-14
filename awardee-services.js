@@ -27,9 +27,11 @@ async function pullTahsin(){
   tahsin=[{session_id:'demo-tahsin-1',activity_name:'Tahsin Al-Qur’an',activity_date:'2026-10-12',reflection_submitted:true,previous_goal:null},{session_id:'demo-tahsin-2',activity_name:'Tahsin Al-Qur’an',activity_date:'2026-10-19',reflection_submitted:false,previous_goal:'Berlatih panjang-pendek bacaan 10 menit sehari'}];
   responses=[{session_id:'demo-tahsin-1',confidence:3,practice_frequency:'2–3 kali',improvement_goal:'Berlatih panjang-pendek bacaan 10 menit sehari'}];
  }else if(member()){
-  const [one,two]=await Promise.all([sb().rpc('my_tahsin_sessions'),sb().from('tahsin_weekly_reflections').select('session_id,confidence,practice_frequency,improvement_goal').eq('awardee_id',member())]);
+  const [one,two]=await Promise.all([sb().rpc('my_tahsin_sessions'),sb().from('tahsin_weekly_reflections').select('session_id,lesson,challenges,confidence,practice_frequency,improvement_goal,previous_goal_review,submitted_at').eq('awardee_id',member())]);
   if(one.error)throw one.error;if(two.error)throw two.error;tahsin=one.data||[];responses=two.data||[];
  }
+ const latest=[...responses].sort((a,b)=>String(b.submitted_at||'').localeCompare(String(a.submitted_at||'')))[0];
+ $('tahsin-progress').innerHTML='<div class="tahsin-stat"><strong>'+responses.length+'</strong><small>Refleksi tercatat</small></div><div class="tahsin-stat"><strong>'+(latest?latest.confidence+'/5':'—')+'</strong><small>Kepercayaan diri terakhir (penilaian diri)</small></div><div class="tahsin-stat"><strong>'+escape(latest?.practice_frequency||'—')+'</strong><small>Latihan mandiri terakhir</small></div>';
  $('tahsin-sessions').innerHTML=tahsin.length?tahsin.map(t=>{
   const recorded=responses.find(x=>x.session_id===t.session_id);
   return '<div class="tahsin-session"><div><strong>'+escape(t.activity_name)+'</strong><small>'+escape(fmt(t.activity_date))+' · Kehadiran: Hadir</small><span class="service-status">'+(t.reflection_submitted?'Refleksi tercatat':'Menunggu refleksi')+'</span>'+(recorded?'<small>Kepercayaan diri: '+recorded.confidence+'/5 · Latihan: '+escape(recorded.practice_frequency)+'</small>':'')+'</div><button type="button" data-open-tahsin="'+escape(t.session_id)+'">'+(t.reflection_submitted?'Lihat / perbarui':'Isi Refleksi')+'</button></div>';
@@ -60,7 +62,17 @@ function openTahsin(id){
  $('tahsin-form-date').textContent=fmt(t.activity_date);
  $('tahsin-previous-wrap').hidden=!t.previous_goal;
  $('tahsin-previous-label').textContent=t.previous_goal?'Target pekan sebelumnya: '+t.previous_goal:'';
- $('tahsin-form').reset();$('tahsin-form-card').hidden=false;
+ $('tahsin-form').reset();
+ const existing=responses.find(x=>x.session_id===id);
+ if(existing){
+  $('tahsin-lesson').value=existing.lesson||'';
+  $('tahsin-goal').value=existing.improvement_goal||'';
+  $('tahsin-confidence').value=existing.confidence||3;
+  $('tahsin-practice').value=existing.practice_frequency||'2–3 kali';
+  $('tahsin-previous').value=existing.previous_goal_review||'';
+  for(const el of document.querySelectorAll('[name=tahsin-challenge]'))el.checked=(existing.challenges||[]).includes(el.value);
+ }
+ $('tahsin-form-card').hidden=false;
  feedback('tahsin-feedback','');
  $('tahsin-form-card').scrollIntoView({behavior:'smooth',block:'start'});
 }
