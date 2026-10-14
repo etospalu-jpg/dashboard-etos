@@ -318,3 +318,17 @@ body{background:#fff;overflow-x:hidden;color:#18392b}
  .readmap-app .mobile-dock button small{font-size:9px}
 }
 @media(max-width:350px){.readmap-app .video-collection .video-card{grid-template-columns:1fr}.readmap-app .video-collection .video-card .thumb{width:100%}}
+
+/* Private Superadmin intake UI */
+#admin-service-list .item,#admin-tahsin-list .item,#admin-tahsin-answers .item{display:block;min-width:0;overflow-wrap:anywhere}
+#admin-service-list .toolbar,#admin-tahsin-list .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#admin-service-list .item small,#admin-tahsin-list .item small,#admin-tahsin-answers .item small{display:block;font-size:11px;line-height:1.6;color:#61806c}
+#admin-service-list .item strong{font-size:13px}
+#admin-service-list .item p{white-space:pre-line;overflow-wrap:anywhere}
+#admin-service-list .admin-service-edit{background:#f3f8f1;padding:13px;border-radius:13px;display:grid;grid-template-columns:1fr 1.4fr auto;gap:11px;align-items:end;margin-top:12px}
+#admin-service-list .admin-service-edit label{font-size:11px;margin:0}
+#admin-service-list .admin-service-edit button{margin:0;white-space:normal;min-height:42px}
+#admin-service-list .service-status{white-space:normal}
+#admin-tahsin-list .item input{min-width:180px}
+#admin-tahsin-list .item button{margin:0;max-width:100%}
+@media(max-width:800px){#admin-service-list .admin-service-edit{grid-template-columns:1fr}#admin-tahsin-list .item input{max-width:100%!important;width:100%}}
