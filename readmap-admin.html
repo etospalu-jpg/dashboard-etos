@@ -21,13 +21,37 @@
  <div id="asrama-sync-status" class="reflection-soft">Memeriksa status sinkronisasi…</div>
  <div id="asrama-sync-totals" class="stats" style="margin-top:15px"></div>
  <div class="asrama-weekly-primary">
-  <span class="kicker">MODE UTAMA · OTOMATIS MINGGUAN</span>
-  <h3>Sinkronisasi langsung oleh server ETOS Palu</h3>
-  <p>Jurnal asrama dibaca secara otomatis oleh <strong>Supabase ETOS Palu</strong> setiap <strong>Senin pukul 08.00 WITA</strong>. Tidak bergantung pada ChatGPT, Google Drive yang terhubung ke ChatGPT, izin memasang Apps Script, atau akun pemilik spreadsheet pusat.</p>
-  <p>Hanya sheet Kehadiran serta tujuh Awardee Palu 2026 yang diproses. Spreadsheet pusat <strong>tidak diubah</strong> oleh aplikasi. Jika akses baca dari Google dicabut, sistem tidak melakukan pembaruan dan data terakhir tetap tersimpan.</p>
-  <div class="asrama-links"><a class="secondary" href="https://docs.google.com/spreadsheets/d/1GlzHEfjY0QDZNs7lntoUEjoANqiRN5JYRVlG-Em0aVA/edit" target="_blank" rel="noopener noreferrer">Lihat Spreadsheet Sumber ↗</a></div>
- </div>
- <div class="section-heading"><h3>Pertemuan Asrama Tercatat</h3><p>Rekap dari data Google Sheets; perubahan tetap dilakukan di spreadsheet.</p></div>
+  <span class="kicker">MODE REAL-TIME PRAKTIS · TANPA PERSETUJUAN PEMILIK PUSAT</span>
+  <h3>Sinkronisasi otomatis setiap ±1 menit</h3>
+  <p>Pengelola Palu membuat <strong>proyek Apps Script mandiri</strong> di akun Google sendiri. Script cukup membaca jurnal yang sudah dapat dibuka akun tersebut. Tidak perlu memasang apa pun di file pusat, meminta pemilik pusat, ataupun mengubah rumus dan data spreadsheet.</p>
+  <p>Hanya tujuh nama di sheet <strong>02 Kehadiran</strong> jurnal Asrama ETOS Palu Angkatan 2026 yang diproses. Pembinaan wilayah dan data angkatan lain tidak ikut ditarik.</p>
+  <div class="asrama-setup-grid">
+    <div class="asrama-setup-step">
+      <span class="kicker">01 · KUNCI AKSES</span>
+      <h3>Buat kunci konektor</h3>
+      <p>Gunakan setelah semua bagian siap. Kunci lama berhenti bekerja jika Anda membuat kunci baru.</p>
+      <button type="button" id="asrama-generate-key">Buat / Ganti Kunci</button>
+      <div id="asrama-key-box" class="asrama-key-box" hidden>
+        <label>Kunci baru — hanya ditampilkan sekali<input type="text" readonly id="asrama-sync-key" autocomplete="off"></label>
+        <button type="button" id="asrama-copy-key" class="secondary">Salin Kunci</button>
+        <p>Simpan pada Properti Skrip, bukan sel Spreadsheet.</p>
+      </div>
+    </div>
+    <div class="asrama-setup-step">
+      <span class="kicker">02 · PROYEK PRIBADI</span>
+      <h3>Pasang pemicu mandiri sekali</h3>
+      <p>Dengan akun Google yang bisa membuka jurnal: buka <strong>script.google.com → Proyek Baru</strong>, salin <strong>Code.gs</strong> di bawah, lalu pada Pengaturan Proyek tambahkan Properti Skrip <code>ETOS_ASRAMA_SYNC_KEY</code> berisi kunci tadi.</p>
+      <p>Jalankan fungsi <code>etosInstallTriggers</code> dan izinkan akses dari akun Anda sendiri, lalu jalankan <code>etosForceSync</code>. Setelah itu, sinkronisasi berjalan setiap ±1 menit selama batas layanan Google mengizinkan.</p>
+      <div class="asrama-links">
+        <a href="https://script.google.com/home/projects/create" class="secondary" target="_blank" rel="noopener noreferrer">Buat Apps Script ↗</a>
+        <a href="https://github.com/etospalu-jpg/dashboard-etos/blob/main/integrations/asrama-google-sheets/Code.gs" class="secondary" target="_blank" rel="noopener noreferrer">Lihat Kode Konektor ↗</a>
+        <a href="https://docs.google.com/spreadsheets/d/1GlzHEfjY0QDZNs7lntoUEjoANqiRN5JYRVlG-Em0aVA/edit" class="secondary" target="_blank" rel="noopener noreferrer">Buka Jurnal ↗</a>
+      </div>
+    </div>
+  </div>
+  <p><strong>Cadangan:</strong> masih ada pemeriksaan terjadwal mingguan di server. Namun bila spreadsheet pusat membatasi akses server, hanya akun Google yang memiliki izin baca yang dapat menjalankan sinkronisasi mandiri. Status koneksi harus dilihat dari waktu penerimaan konektor, bukan hanya tanggal impor awal.</p>
+</div>
+<div class="section-heading"><h3>Pertemuan Asrama Tercatat</h3><p>Rekap dari data Google Sheets; perubahan tetap dilakukan di spreadsheet.</p></div>
  <div id="asrama-sync-events" class="asrama-event-list"></div>
 </section>
 <footer>Daftar ini hanya dapat dibuka ketika sesi PIN Superadmin Dashboard ETOS masih aktif.</footer></main>
