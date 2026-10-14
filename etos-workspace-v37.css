@@ -232,3 +232,18 @@ html,body{color:#142c49!important;background:#f6f8fc!important}
  .etos-mobile-brand img{width:65px}
  .etos-mobile-brand span{font-size:6px}
 }
+
+/* Harmonize legacy Tailwind utility colors, preserving semantic success/error badges. */
+#main-app [class*="text-[#87948d]"],
+#main-app [class*="text-[#849189]"],
+#main-app [class*="text-[#829087]"],
+#main-app [class*="text-[#819087]"],
+#main-app [class*="text-[#8a968f]"],
+#main-app [class*="text-[#7f8c85]"],
+#main-app [class*="text-[#718078]"]{color:#6d8198!important}
+#main-app [class*="border-[#edf1ef]"]{border-color:#e4ebf5!important}
+#main-app [class*="bg-[#f8faf9]"]{background:#f6f9ff!important}
+#main-app [class*="bg-[#e7f8dc]"]{background:#eaf2ff!important}
+#main-app .toast-host .toast{background:#1b3a60;color:#fff}
+#main-app #sidebar nav::-webkit-scrollbar{width:5px}
+#main-app #sidebar nav::-webkit-scrollbar-thumb{background:#496a93;border-radius:10px}
