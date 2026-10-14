@@ -1,30 +1,34 @@
-# Integrasi Absensi Asrama ETOS ID Palu · 2026
+# Sinkronisasi Absensi Asrama 2026 — ETOS ID Palu
 
-## Sumber dan tanggung jawab
-- Google Spreadsheet: https://docs.google.com/spreadsheets/d/1GlzHEfjY0QDZNs7lntoUEjoANqiRN5JYRVlG-Em0aVA/edit
-- Pengisian dan koreksi absensi **tetap dilakukan oleh fasilitator asrama di Google Sheets**.
-- Dashboard ETOS Palu menampilkan data asrama sebagai **hanya-baca** serta membedakannya dari kegiatan wilayah.
-- Data langsung dari sheet `02 Kehadiran` (A4:K), kode agenda `AGD-xxx`; identitas tujuh peserta dipetakan ke ID Awardee Supabase. Sheet lain tidak disunting.
+**Tidak memerlukan akses editor maupun persetujuan pemilik Google Spreadsheet pusat.** Script dijalankan sebagai proyek mandiri milik akun Google pengelola Palu yang sudah bisa **melihat** spreadsheet sumber.
 
-## Aktivasi satu kali (oleh pengelola berizin Editor)
-1. Di Dashboard, masuk dengan PIN Superadmin → **Manajemen Ruang Awardee** → **Sinkronisasi Google Spreadsheet**.
-2. Pilih **Buat / Ganti Kunci Sinkronisasi**, lalu salin kunci baru (ditampilkan sekali saja).
-3. Buka spreadsheet sumber → **Ekstensi → Apps Script**. Masukkan isi [Code.gs](./Code.gs) sebagai skrip *terikat* pada spreadsheet tersebut, kemudian simpan.
-4. Muat ulang Google Spreadsheet. Menu **ETOS · Asrama** akan muncul.
-5. Pilih **Masukkan kunci sinkronisasi**, tempel kunci dari Superadmin, lalu **Pasang pemicu otomatis**.
-6. Jalankan **Sinkronisasi sekarang** sekali untuk memeriksa sambungan. Di Dashboard, tekan **Perbarui** untuk memeriksa waktu sinkronisasi terakhir.
+## Sumber dan batasan
 
-Pemicu edit mengirim perubahan setelah sel absensi diperbarui. Pemeriksaan setiap lima menit menangkap perubahan yang tidak menghasilkan event edit, sehingga hasilnya **hampir real-time**, bukan janji keterlambatan nol detik.
+- Spreadsheet: https://docs.google.com/spreadsheets/d/1GlzHEfjY0QDZNs7lntoUEjoANqiRN5JYRVlG-Em0aVA/edit
+- Tab sumber: `02 Kehadiran`, rentang A4:K, kode agenda `AGD-xxx`.
+- Khusus tujuh Awardee asrama **Palu Angkatan 2026**: Awaina, Jelita, Nur Afni, Putri, Risky Maharani, Wiwid Awrel, Zahratun Sita.
+- Hanya membaca data; tidak menulis, mengubah, atau memasang apa pun di spreadsheet pusat.
+- Awardee 2023 **nonasrama** hanya mendapatkan catatan pembinaan wilayah Palu.
 
-## Aturan perhitungan
-- Agenda yang belum memiliki status Hadir/Izin/Sakit/Alpa **tidak masuk denominator** dan tidak otomatis menjadi Alpa.
-- Status yang berubah di spreadsheet memperbarui baris Supabase berdasarkan ID agenda dan ID Awardee, tidak membuat duplikasi.
-- Sumber `wilayah` dan `asrama` dipisahkan dalam filter admin dan grafik pribadi.
-- Awardee Angkatan 2023 nonasrama tidak menerima sesi asrama, sedangkan 2026 dapat melihat kedua sumber.
-- Kata sandi konektor **tidak disimpan di repository**, hanya di Script Properties milik Apps Script; database menyimpan hash saja.
-- Jika struktur peserta atau agenda di spreadsheet berubah, sinkronisasi ditolak sampai pemetaan diverifikasi. Ini menghindari salah pengakuan kehadiran.
+## Aktivasi satu kali dari akun Google Palu
 
-## Pemulihan
-Bila konektor gagal, lihat log **Executions** di Apps Script, cocokkan header Sheet dan ID agenda, lalu jalankan **Sinkronisasi sekarang**. Data yang terakhir berhasil tersimpan tetap tersedia. Jangan mengganti nama kolom peserta atau kode agenda tanpa memperbarui pemetaan dengan verifikasi identitas.
+1. Masuk **Superadmin Dashboard ETOS → Ruang Awardee → Sinkronisasi Google Spreadsheet**. Pilih **Buat Kunci Sinkronisasi**. Salin kunci secara pribadi, jangan kirim ke grup.
+2. Masuk ke [Google Apps Script → Proyek baru](https://script.google.com/home/projects/create) dengan akun Google yang *sudah bisa membuka jurnal pusat*. Ini **bukan** menu Ekstensi → Apps Script dalam spreadsheet pusat.
+3. Tempel seluruh isi [Code.gs](./Code.gs) di proyek **mandiri** milik akun Palu, lalu Simpan.
+4. Buka **Pengaturan proyek → Properti skrip**. Tambahkan nama `ETOS_ASRAMA_SYNC_KEY`, nilai berupa kunci yang didapat pada langkah 1. Simpan.
+5. Di editor, pilih fungsi **`etosForceSync` → Jalankan**, kemudian otorisasi menggunakan **akun Google Palu Anda sendiri**. Baca izin yang diminta; tidak perlu izin dari pemilik spreadsheet pusat.
+6. Pilih fungsi **`etosInstallTriggers` → Jalankan**. Pemicu dijadwalkan sekitar **setiap 1 menit**, tanpa `onEdit` pada file pusat.
+7. Periksa **Dashboard Superadmin → Perbarui**. Status aktif hanya muncul apabila server menerima sinkronisasi atau heartbeat terbaru.
 
-**Penting:** deployment Dashboard dan Edge Function **tidak otomatis memasang pemicu Apps Script** ke Google Sheet yang dimiliki fasilitator. Enam langkah aktivasi tersebut membutuhkan izin eksplisit pengelola spreadsheet.
+## Cara kerja
+
+Pengecekan rutin membaca 67 agenda yang direncanakan. Hanya sel berisi Hadir/Izin/Sakit/Alpa yang dihitung; yang kosong **bukan Alpa**. Saat ada perubahan, status diperbarui di Supabase dengan ID agenda + ID Awardee, tanpa duplikat. Saat tidak berubah, script hanya mengirim heartbeat ringan. Google Apps Script mengeksekusi pemicu secara perkiraan, jadi ini **hampir real-time ±1 menit**, bukan nol detik.
+
+## Jika terkendala
+
+- **Tidak memiliki izin membuka dokumen dari Apps Script:** pastikan proyek berjalan dari akun Google yang sama dengan akun yang dapat melihat file sumber. Akses baca pada file diperlukan; jika akun memang tidak memiliki akses, tidak ada jalan aman untuk melewati perizinannya.
+- **Kunci diganti:** ubah properti `ETOS_ASRAMA_SYNC_KEY`, jalankan `etosForceSync`, lalu pastikan status dashboard kembali aktif.
+- **Gagal validasi:** periksa nama tujuh Awardee, format tanggal, dan kode agenda. Impor akan ditolak jika nama/kolom berubah sehingga data wilayah lain tidak salah masuk.
+- **Koneksi berhenti:** cek daftar **Eksekusi** di Apps Script. Catatan terakhir tetap ada tetapi tidak diklaim real-time selama pemicu belum berjalan.
+
+Kredensial hanya dibuat dari panel Superadmin dan database menyimpan hash-nya, bukan teks kunci. Data absensi wilayah dan asrama terpisah; laporan akun Awardee hanya mengembalikan data dirinya sendiri.
