@@ -36,6 +36,8 @@ Deno.serve(async(req:Request)=>{
   }
   const {data:result,error}=await db.rpc('apply_asrama_sheet_snapshot',{p_sheet:SHEET,p_events:data.events});
   if(error){console.error('asrama-sync rejected:',error.code);return response(422,{success:false,error:'Data spreadsheet belum sesuai format. Periksa ID agenda, nama, tanggal, atau status.'})}
+  await db.from('asrama_sync_settings').update({last_connector_at:new Date().toISOString()})
+   .eq('integration_id','asrama_2026');
   return response(200,{success:true,data:result});
  }catch(error){
   console.error('asrama-sync request failed:',error instanceof Error?error.message:'unknown');
