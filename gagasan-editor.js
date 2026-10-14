@@ -63,10 +63,10 @@ async function importDocument(file){
   const result=await window.mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});
   text=result.value||'';
  }else text=await file.text();
- text=text.replace(/\\r\\n/g,'\\n').trim();
+ text=text.replace(/\r\n/g,'\n').trim();
  if(!text||text.length>50000)throw Error('Dokumen kosong atau lebih dari 50.000 karakter.');
  $('article-body').value=text;
- if(!$('article-title').value.trim())$('article-title').value=name.replace(/\\.(docx|txt|md)$/i,'').replace(/[-_]+/g,' ').slice(0,180);
+ if(!$('article-title').value.trim())$('article-title').value=name.replace(/\.(docx|txt|md)$/i,'').replace(/[-_]+/g,' ').slice(0,180);
  $('article-body').dispatchEvent(new Event('input',{bubbles:true}));
  G.notice('Isi dokumen berhasil dimuat. Periksa dan lengkapi ringkasan sebelum diterbitkan.');
 }
