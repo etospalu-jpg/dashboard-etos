@@ -61,6 +61,30 @@ module.exports=async function handler(req,res){
     members:data.awardees.map(a=>({name:a.name,angkatan:a.angkatan||'',username:data.mapped.get(a.id)?.username||null,provisioned:data.mapped.has(a.id)}))});
   }
   const action=String(req.body?.params?.action||'');
+
+  if(action==='awardeeServices'){
+   const r=check(await db.from('awardee_service_requests').select('id,awardee_id,service_type,topic,details,meeting_method,preferred_time,document_url,status,admin_note,created_at').order('created_at',{ascending:false}).limit(250))||[];
+   const nameMap=new Map(data.awardees.map(a=>[a.id,a.name]));
+   const missing=[...new Set(r.map(x=>x.awardee_id).filter(id=>!nameMap.has(id)))];
+   if(missing.length){const other=check(await db.from('awardees').select('id,name').in('id',missing));for(const a of other||[])nameMap.set(a.id,a.name)}
+   return respond(res,200,{requests:r.map(x=>({...x,awardee_name:nameMap.get(x.awardee_id)||'Awardee'}))});
+  }
+  if(action==='updateAwardeeService'){
+   const id=String(req.body?.params?.id||''),status=String(req.body?.params?.status||''),note=String(req.body?.params?.note||'').trim();
+   const allowed=['Diajukan','Dalam Tindak Lanjut','Perlu Konfirmasi','Dijadwalkan','Selesai','Dibatalkan'];
+   if(!/^[0-9a-f-]{36}$/i.test(id)||!allowed.includes(status)||note.length>1500)return respond(res,400,{error:'Periksa status dan catatan tindak lanjut'});
+   const updated=check(await db.from('awardee_service_requests').update({status,admin_note:note||null,updated_at:new Date().toISOString()}).eq('id',id).select('id,status').single());
+   return respond(res,200,{updated});
+  }
+  if(action==='tahsinOverview'){
+   const sessions=check(await db.from('attendance_sessions').select('id,activity_name,activity_date').ilike('activity_name','%tahsin%').order('activity_date',{ascending:false}).limit(120))||[];
+   const response=check(await db.from('tahsin_weekly_reflections').select('session_id,awardee_id,confidence,practice_frequency,lesson,challenges,improvement_goal,previous_goal_review,submitted_at').order('submitted_at',{ascending:false}).limit(500))||[];
+   const ids=sessions.map(x=>x.id);
+   const attendance=ids.length?check(await db.from('attendance_records').select('session_id,awardee_id,status').in('session_id',ids)):[]; 
+   const names=new Map(data.awardees.map(x=>[x.id,x.name]));
+   const rows=sessions.map(x=>{const attendees=(attendance||[]).filter(a=>a.session_id===x.id&&String(a.status).toLowerCase()==='hadir');const submitted=response.filter(v=>v.session_id===x.id);return{id:x.id,name:x.activity_name,date:x.activity_date,attendees:attendees.length,submitted:submitted.length,link:'/readmap.html?tahsin='+x.id,missing:attendees.filter(a=>!submitted.some(v=>v.awardee_id===a.awardee_id)).map(a=>names.get(a.awardee_id)||'Awardee')};});
+   return respond(res,200,{sessions:rows,responses:response.map(x=>({...x,awardee_name:names.get(x.awardee_id)||'Awardee'}))});
+  }
   if(action==='overview'){
    const [br,rr,vr]=await Promise.all([
     db.from('readmap_books').select('awardee_id,id,category,status'),
