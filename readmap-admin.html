@@ -16,25 +16,31 @@
 </section>
 <section class="card asrama-admin-card" id="asrama-sync-section">
  <div class="toolbar"><div><span class="kicker">INTEGRASI PEMBINAAN ASRAMA · ANGKATAN 2026</span><h2>Sinkronisasi Google Spreadsheet</h2>
- <p>Google Sheets tetap tempat fasilitator mengisi. Dashboard menerima perubahan secara otomatis setelah konektor diaktifkan satu kali.</p></div>
+ <p>Google Sheets tetap tempat fasilitator mengisi. Dashboard menerima salinan absensi secara terjadwal setiap pekan tanpa mengubah spreadsheet pusat.</p></div>
  <button type="button" id="asrama-refresh" class="secondary">Perbarui</button></div>
  <div id="asrama-sync-status" class="reflection-soft">Memeriksa status sinkronisasi…</div>
  <div id="asrama-sync-totals" class="stats" style="margin-top:15px"></div>
- <div class="asrama-setup-grid">
-  <div class="asrama-setup-step"><span class="kicker">01 · AMANKAN SAMBUNGAN</span><h3>Buat kunci konektor</h3>
-    <p>Kunci hanya terlihat sekali saat dibuat. Jika diganti, kunci lama tidak dapat dipakai lagi.</p>
-    <button type="button" id="asrama-generate-key">Buat / Ganti Kunci Sinkronisasi</button>
-    <div id="asrama-key-box" class="asrama-key-box" hidden><label>Kunci baru (salin sekarang)<input type="text" readonly id="asrama-sync-key" autocomplete="off"></label>
-    <button type="button" id="asrama-copy-key" class="secondary">Salin Kunci</button><p>Jangan bagikan kunci di grup atau menyimpannya di kolom spreadsheet.</p></div>
-  </div>
-  <div class="asrama-setup-step"><span class="kicker">02 · TANPA AKSES EDITOR PUSAT</span><h3>Aktifkan pemantauan mandiri</h3>
-    <p><strong>Tidak perlu meminta izin pemilik spreadsheet.</strong> Buka Google Apps Script dengan akun Google Palu yang bisa melihat jurnal pusat. Pilih <strong>Proyek baru</strong> (bukan dari spreadsheet pusat), tempel kode konektor, dan simpan.</p>
-    <p>Di <strong>Pengaturan proyek → Properti skrip</strong>, buat <code>ETOS_ASRAMA_SYNC_KEY</code> dan isi kunci dari langkah 01. Jalankan fungsi <code>etosForceSync</code> sekali, berikan izin menggunakan <strong>akun Google Anda sendiri</strong>, kemudian jalankan <code>etosInstallTriggers</code>.</p>
-    <p>Setelah aktif, akun Google Palu akan membaca sheet asli sekitar <strong>setiap 1 menit</strong>. Kegiatan ini <strong>hanya membaca</strong>; tidak mengubah atau menambah apa pun dalam jurnal milik pusat.</p>
-    <div class="asrama-links"><a class="secondary" href="https://script.google.com/home/projects/create" target="_blank" rel="noopener noreferrer">Buat Apps Script Mandiri ↗</a><a class="secondary" href="https://docs.google.com/spreadsheets/d/1GlzHEfjY0QDZNs7lntoUEjoANqiRN5JYRVlG-Em0aVA/edit" target="_blank" rel="noopener noreferrer">Buka Spreadsheet ↗</a>
-    <a class="secondary" href="https://github.com/etospalu-jpg/dashboard-etos/blob/main/integrations/asrama-google-sheets/Code.gs" target="_blank" rel="noopener noreferrer">Salin Kode Apps Script ↗</a></div>
-  </div>
+ <div class="asrama-weekly-primary">
+  <span class="kicker">MODE UTAMA · OTOMATIS MINGGUAN</span>
+  <h3>Tidak perlu izin atau perubahan dari pemilik spreadsheet pusat</h3>
+  <p>Sinkronisasi terjadwal membaca jurnal melalui koneksi Google Drive yang sudah tersedia, khusus tujuh Awardee Palu 2026. Fasilitator tetap mengisi jurnal asrama asli. Dashboard hanya menampilkan rekap.</p>
+  <div class="asrama-links"><a class="secondary" href="https://docs.google.com/spreadsheets/d/1GlzHEfjY0QDZNs7lntoUEjoANqiRN5JYRVlG-Em0aVA/edit" target="_blank" rel="noopener noreferrer">Lihat Jurnal Sumber ↗</a></div>
  </div>
+ <details class="asrama-fallback-details">
+  <summary>Opsi cadangan: konektor Google Apps Script mandiri</summary>
+  <p>Hanya digunakan jika sinkronisasi mingguan melalui koneksi Google Drive tidak bisa dijalankan. Proyek Apps Script dibuat pada akun Google Palu sendiri dan hanya membaca file pusat, tanpa hak mengedit.</p>
+  <div class="asrama-setup-grid">
+   <div class="asrama-setup-step"><span class="kicker">CADANGAN 01</span><h3>Buat kunci konektor</h3>
+    <p>Kunci terlihat satu kali. Simpan dengan aman. Mengganti kunci akan menonaktifkan kunci sebelumnya.</p>
+    <button type="button" id="asrama-generate-key">Buat / Ganti Kunci Sinkronisasi</button>
+    <div id="asrama-key-box" class="asrama-key-box" hidden><label>Kunci baru (salin sekarang)<input type="text" readonly id="asrama-sync-key" autocomplete="off"></label><button type="button" id="asrama-copy-key" class="secondary">Salin Kunci</button></div>
+   </div>
+   <div class="asrama-setup-step"><span class="kicker">CADANGAN 02</span><h3>Pasang Apps Script milik Palu</h3>
+    <p>Buka <strong>script.google.com</strong> dengan akun yang sudah bisa membaca jurnal pusat. Buat proyek baru, tempel kode konektor, buat properti skrip <code>ETOS_ASRAMA_SYNC_KEY</code>, lalu jalankan <code>etosForceSync</code> dan <code>etosInstallTriggers</code>. Cadangan ini berjalan tiap Senin, tanpa menyunting jurnal pusat.</p>
+    <div class="asrama-links"><a class="secondary" href="https://script.google.com/home/projects/create" target="_blank" rel="noopener noreferrer">Buat Apps Script Mandiri ↗</a><a class="secondary" href="https://github.com/etospalu-jpg/dashboard-etos/blob/main/integrations/asrama-google-sheets/Code.gs" target="_blank" rel="noopener noreferrer">Lihat Kode Cadangan ↗</a></div>
+   </div>
+  </div>
+ </details>
  <div class="section-heading"><h3>Pertemuan Asrama Tercatat</h3><p>Rekap dari data Google Sheets; perubahan tetap dilakukan di spreadsheet.</p></div>
  <div id="asrama-sync-events" class="asrama-event-list"></div>
 </section>
