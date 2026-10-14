@@ -431,6 +431,6 @@ async function flushVideo(){
 on('save-insight','click',async()=>{try{if(!state.activeVideo)throw Error('Pilih video dahulu');await flushVideo();const insight=$('video-insight').value.trim();if(!isDemo())unwrap(await sb.from('readmap_videos').update({insight,updated_at:new Date().toISOString()}).eq('id',state.activeVideo.id));state.activeVideo.insight=insight;notice('Pembelajaran video tersimpan.')}catch(e){err(e)}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flushVideo().catch(()=>{})});
 window.addEventListener('pagehide',()=>{flushVideo().catch(()=>{})});
-window.ETOS_AWARDEE_BRIDGE={client:sb,getAwardee:()=>state.awardee,getIsDemo:()=>state.demo,openPanel:selectTab,notify:notice};
+window.ETOS_AWARDEE_BRIDGE={client:sb,getAwardee:()=>state.awardee,getIsDemo:()=>state.demo,openPanel:selectTab,notify:notice,getLearning:()=>({books:state.books.length,finishedBooks:state.books.filter(b=>b.status==='Selesai').length,videos:state.videos.length,finishedVideos:state.videos.filter(v=>v.status==='Selesai').length,pages:state.entries.reduce((n,e)=>n+Number(e.pages_read||0),0)})};
 if(!sb)notice('Koneksi Supabase gagal dimuat. Periksa jaringan.');else identify().catch(err);
 })();
