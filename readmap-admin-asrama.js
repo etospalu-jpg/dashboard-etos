@@ -12,12 +12,13 @@ async function refresh(){
  $('asrama-sync-status').textContent='Memeriksa status konektor…';
  try{
   const d=await call('asramaStatus');
-  const daysSinceSync=d.lastSyncAt?(Date.now()-new Date(d.lastSyncAt).getTime())/86400000:Infinity;
-  $('asrama-sync-status').innerHTML=d.lastSyncAt?
-   (daysSinceSync<=8?
-     '<strong>Data asrama tersimpan · Pembaruan mingguan dijadwalkan</strong><p>Rekap terakhir diterima '+esc(prettyDate(d.lastSyncAt))+' WITA. Perubahan pada jurnal pusat diperiksa setiap Senin pukul 08.00 WITA langsung oleh server Supabase ETOS Palu.</p>':
-     '<strong>Data tersimpan · Jadwal pembaruan perlu diperiksa</strong><p>Rekap terakhir '+esc(prettyDate(d.lastSyncAt))+' WITA. Jika belum diperbarui lebih dari satu minggu, periksa jadwal Supabase dan akses baca spreadsheet Google.</p>'):
-   '<strong>Menunggu pembaruan pertama</strong><p>Pemeriksaan otomatis mingguan telah dijadwalkan tanpa perlu mengubah spreadsheet pusat.</p>';
+  const minutesAgo=d.lastConnectorAt?(Date.now()-new Date(d.lastConnectorAt).getTime())/60000:Infinity;
+  const status=d.lastConnectorAt&&minutesAgo<=10?
+   '<strong>Konektor hampir real-time aktif</strong><p>Pembaruan terakhir diterima '+esc(prettyDate(d.lastConnectorAt))+' WITA. Pemeriksaan dilakukan sekitar setiap menit.</p>':
+   d.lastConnectorAt?
+    '<strong>Konektor pernah aktif, tetapi sekarang perlu diperiksa</strong><p>Terakhir terhubung '+esc(prettyDate(d.lastConnectorAt))+' WITA. Periksa pemicu dan riwayat eksekusi proyek Apps Script pribadi.</p>':
+    '<strong>Data awal sudah tersedia · Sinkronisasi otomatis 1 menit belum diaktifkan</strong><p>Aktifkan sekali lewat Apps Script pribadi yang bisa membaca file pusat. Tidak perlu izin tambahan dari pemilik spreadsheet jika akun Anda memang sudah memiliki akses baca.</p>';
+  $('asrama-sync-status').innerHTML=status;
   $('asrama-sync-totals').innerHTML=[['Pertemuan',d.sessionCount],['Catatan Absensi',d.recordCount],['Sumber','Google Sheets']].map(([name,v])=>'<div class="metric"><b>'+esc(v)+'</b><small>'+esc(name)+'</small></div>').join('');
   $('asrama-sync-events').innerHTML=d.sessions?.length?d.sessions.map(e=>
     '<div class="asrama-sync-row"><div><b>'+esc(e.name)+'</b><small>'+esc(e.date)+'</small></div><div><strong>'+e.present+'</strong><small>Hadir</small></div><div><strong>'+e.absent+'</strong><small>Izin/Sakit/Alpa</small></div></div>').join(''):
