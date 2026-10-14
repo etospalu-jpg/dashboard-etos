@@ -7,7 +7,7 @@ const G={sb:client,$,s:{user:null,member:null,name:'Awardee',articles:[],editing
 G.esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 G.words=s=>String(s||'').trim().split(/\s+/).filter(Boolean).length;
 G.slug=s=>String(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,86)||'tulisan';
-G.url=a=>G.publicBase+'/t/'+a.id+'-'+G.slug(a.title);
+G.url=a=>G.publicBase+'/'+a.id+'-'+G.slug(a.title);
 G.own=a=>!!G.s.member&&a.awardee_id===G.s.member;
 G.cover=a=>a.cover_path?client.storage.from('gagasan-covers').getPublicUrl(a.cover_path).data.publicUrl:null;
 G.date=v=>v?new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Makassar'}).format(new Date(v)):'Belum terbit';

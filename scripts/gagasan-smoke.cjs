@@ -23,6 +23,7 @@ assert(source('gagasan.html').includes('/brand-etos-white.svg'),'Official logo m
 assert(source('gagasan-public/api/article.js').includes('ETOS_LOGO'),'Official logo missing in public reader');
 assert(source('gagasan-foundation.js').includes('dashboard.etosidpalu.com/tulisan'),'Wrong share domain');
 assert(source('gagasan-admin.js').includes('dashboard.etosidpalu.com/tulisan'),'Wrong admin share domain');
+assert(source('gagasan-foundation.js').includes("G.url=a=>G.publicBase+'/'+a.id"),'Share URL must not add old /t/ segment');
 assert(JSON.parse(source('vercel.json')).rewrites.some(x=>x.source==='/tulisan/:ref'),'External route missing');
 assert(source('gagasan-reader.css').includes('.brand-logo'),'Reader styles missing');
 

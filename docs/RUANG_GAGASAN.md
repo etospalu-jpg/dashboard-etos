@@ -20,3 +20,8 @@
 - Meta WhatsApp dibuat di server saat permintaan. WhatsApp mungkin menyimpan cache preview untuk URL yang telah dibagikan.
 
 - DOCX/TXT/MD importer uses pinned Mammoth browser extraction of raw text. Original document stays on-device, plain text is edited and stored in Postgres.
+
+## Domain resmi
+- Link baru: `https://dashboard.etosidpalu.com/tulisan/:id-judul`. Vercel rewrites mem-proxy secara transparan ke layanan `gagasan-etos-palu`, tetap tampil pada subdomain `.com` utama.
+- Halaman karya dan pembaca menggunakan logo resmi putih `brand-etos-white.svg`, palet biru-nav y ETOS, dan header konsisten.
+- Verifikasi langsung preview WhatsApp baru dapat dilakukan setelah artikel nyata diterbitkan dan link dibagikan.
