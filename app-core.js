@@ -6,7 +6,21 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const num=v=>Number.isFinite(Number(v))?Number(v):0;
 function showLoader(on){document.getElementById('loader')?.classList.toggle('show',!!on)}
 function toast(msg,type=''){const h=document.getElementById('toast-host');if(!h)return;const text=String(msg||'Terjadi kesalahan.');if(h.lastElementChild?.textContent===text)return;const d=document.createElement('div');d.className='toast '+type;d.textContent=text;h.appendChild(d);setTimeout(()=>d.remove(),3800)}
-function toggleSidebar(on){document.getElementById('sidebar')?.classList.toggle('open',on);document.getElementById('mobile-backdrop')?.classList.toggle('open',on)}
+function toggleSidebar(on){
+ const open=Boolean(on),sidebar=document.getElementById('sidebar');
+ sidebar?.classList.toggle('open',open);
+ document.getElementById('mobile-backdrop')?.classList.toggle('open',open);
+ document.body.classList.toggle('etos-menu-open',open&&window.innerWidth<=960);
+ const toggle=document.querySelector('.etos-menu-button');
+ toggle?.setAttribute('aria-expanded',open?'true':'false');
+ if(open&&window.innerWidth<=960){
+  requestAnimationFrame(()=>sidebar?.querySelector('.nav-btn')?.focus({preventScroll:true}));
+ }else if(document.activeElement&&sidebar?.contains(document.activeElement)){
+  toggle?.focus({preventScroll:true});
+ }
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('sidebar')?.classList.contains('open'))toggleSidebar(false)});
+window.addEventListener('resize',()=>{if(window.innerWidth>960&&document.getElementById('sidebar')?.classList.contains('open'))toggleSidebar(false)});
 function openModal(id){document.getElementById(id)?.classList.add('open');window.lucide?.createIcons?.()}
 function closeModal(id){document.getElementById(id)?.classList.remove('open')}
 function openLogin(){document.getElementById('pin-message')?.classList.add('hidden');const input=document.getElementById('pin-input');if(input)input.value='';openModal('login-modal');setTimeout(()=>input?.focus(),80)}
