@@ -25,9 +25,10 @@ function etosInstallTriggers() {
   for(const trigger of ScriptApp.getProjectTriggers()) {
     if(trigger.getHandlerFunction()==='etosScheduledSync')ScriptApp.deleteTrigger(trigger);
   }
-  // Optional weekly backup. Main weekly synchronization uses the connected Google Drive workflow, with no spreadsheet-owner changes.
-  ScriptApp.newTrigger('etosScheduledSync').timeBased().everyWeeks(1).onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(8).create();
-  console.log('Cadangan sinkronisasi PALU setiap Senin pagi terpasang. Sumber Google Sheet tidak diubah.');
+  // Polling 1 menit tidak memerlukan hak pemilik: cukup akses baca sheet.
+  // Perubahan yang belum berubah hanya mengirim heartbeat ringkas, bukan 35 upsert ulang.
+  ScriptApp.newTrigger('etosScheduledSync').timeBased().everyMinutes(1).create();
+  console.log('Sinkronisasi otomatis setiap ±1 menit aktif pada proyek Apps Script pribadi. Spreadsheet sumber tetap read-only.');
 }
 function etosScheduledSync(){return etosSyncNow();}
 function etosForceSync() {
@@ -86,7 +87,7 @@ function etosSyncNow(){
     const events=etosReadSnapshot();
     const props=PropertiesService.getScriptProperties();
     const base=JSON.stringify({sourceSpreadsheetId:ETOS_SHEET_ID,events});
-    const digest=etosDigest(base);
+    const digest=etosDigest(base+'|'+token);
     const unchanged=props.getProperty(ETOS_DIGEST_PROP)===digest;
     // A heartbeat verifies continued access and avoids rewriting all
     // database records each minute when the Sheet has not changed.
