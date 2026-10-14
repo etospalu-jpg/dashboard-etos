@@ -28,3 +28,7 @@ jobs:
           node scripts/v36-1-check.js
       - name: Smoke test verified IDP fallback
         run: node scripts/idp-fallback-smoke.js
+      - name: Verify production bundle and V38 UI contracts
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
