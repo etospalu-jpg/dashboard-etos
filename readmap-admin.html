@@ -6,6 +6,17 @@
 <button id="generate" disabled>Buat Akun Etoser Belum Aktif</button> <button class="secondary" id="download" disabled>Unduh Daftar Kredensial Baru</button>
 <p><strong>Keamanan:</strong> PIN hanya terlihat saat pertama dibuat atau direset. Setelah file disimpan, hapus salinan yang tidak diperlukan. Bagikan setiap akun secara pribadi, bukan dalam grup publik.</p>
 <div class="list" id="member-list"></div></section><section class="card"><div class="toolbar"><div><h2>Monitoring READMAP</h2><p>Ringkasan literasi Etoser aktif untuk pembinaan dan benchmarking.</p></div><button id="reload-overview" class="secondary">Perbarui Data</button></div><div id="overview-stats" class="stats"></div><div class="split"><div><h3>Halaman Dibaca per Pekan</h3><div id="overview-weeks" class="category-chart"></div></div><div><h3>Arah Kategori Bacaan</h3><div id="overview-categories" class="category-chart"></div></div></div><h3 style="margin-top:20px">Perkembangan per Etoser</h3><div id="overview-members" class="list"></div></section>
+<section class="card" id="gagasan-admin">
+ <div class="toolbar"><div><span class="kicker">RUANG GAGASAN · LAPORAN LITERASI</span><h2>Pusat Karya Awardee</h2><p>Semua tulisan langsung diterbitkan tanpa persetujuan. Di sini Superadmin dapat melihat kontribusi, meninjau artikel, memperbaiki tulisan, atau menyembunyikannya.</p></div><button type="button" class="secondary" id="gagasan-refresh">Perbarui Data</button></div>
+ <div class="toolbar" style="gap:12px;flex-wrap:wrap;margin:18px 0"><label>Periode kontribusi <input type="month" id="gagasan-period"></label><label>Angkatan <select id="gagasan-cohort"><option value="">Seluruh angkatan</option></select></label></div>
+ <div class="stats" id="gagasan-stats"><p>Memuat laporan karya…</p></div>
+ <h3 style="margin:22px 0 12px">Partisipasi Penulis</h3>
+ <p style="color:#657487;font-size:12px">Status "Sudah menulis" dihitung dari artikel terbit pada periode yang dipilih. Draf tidak dihitung.</p>
+ <div class="list" id="gagasan-authors"><p>Memuat data penulis…</p></div>
+ <h3 style="margin:26px 0 12px">Kelola Tulisan</h3>
+ <p style="color:#657487;font-size:12px">Sunting judul, ringkasan, kategori, isi, sampul dan status. Perubahan langsung berlaku; tidak ada antrean kurasi.</p>
+ <div class="list" id="gagasan-articles"><p>Memuat semua tulisan…</p></div>
+</section>
 <section class="card">
  <div class="toolbar"><div><span class="kicker">LAYANAN AWARDEE</span><h2>Pengajuan Mind Mate & Research Clinic</h2><p>Hanya Superadmin yang dapat membaca pengajuan. Informasi Mind Mate diperlakukan secara terbatas dan tidak digunakan untuk diagnosis.</p></div><button id="reload-services" class="secondary">Perbarui</button></div>
  <div id="admin-service-counts" class="stats"></div><div id="admin-service-list" class="list"><p>Memuat pengajuan…</p></div>
@@ -15,4 +26,4 @@
  <div id="admin-tahsin-list" class="list"><p>Memuat pertemuan Tahsin…</p></div><h3 style="margin-top:18px">Jawaban Refleksi Awardee</h3><div id="admin-tahsin-answers" class="list"></div>
 </section>
 <footer>Daftar ini hanya dapat dibuka ketika sesi PIN Superadmin Dashboard ETOS masih aktif.</footer></main>
-<script defer src="/readmap-admin.js?v=36.26"></script><script defer src="/readmap-admin-services.js?v=36.70"></script></body></html>
+<script defer src="/readmap-admin.js?v=36.26"></script><script defer src="/readmap-admin-services.js?v=36.70"></script><script defer src="/gagasan-admin.js?v=1"></script></body></html>
