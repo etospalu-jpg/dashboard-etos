@@ -38,7 +38,7 @@ function ensurePanel(){
     <div class="flex flex-wrap gap-2"><button class="btn btn-soft" type="button" onclick="closeAttendanceDetail()"><i data-lucide="x" class="w-4 h-4"></i>Tutup</button><button class="btn btn-green" type="button" onclick="downloadAttendanceExcel()"><i data-lucide="download" class="w-4 h-4"></i>Download Excel</button></div>
    </div>
    <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-3 mt-5">
-    <label><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#71869d]">Periode Pembinaan</span><select id="attendance-detail-period" class="input select mt-2"></select></label>
+    <label><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#71869d]">Sumber Kehadiran</span><select id="attendance-detail-source" class="input select mt-2" aria-label="Filter sumber absensi"><option value="semua">Semua Sumber</option><option value="wilayah">Wilayah</option><option value="asrama">Asrama</option></select></label><label><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#71869d]">Periode Pembinaan</span><select id="attendance-detail-period" class="input select mt-2"></select></label>
     <label><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#71869d]">Tampilkan</span><select id="attendance-detail-mode" class="input select mt-2" onchange="attendanceDetailModeChanged()"><option value="period">Satu Periode</option><option value="month">Bulan Tertentu</option><option value="date">Tanggal Tertentu</option><option value="range">Rentang Tanggal</option></select></label>
     <label id="attendance-detail-month-wrap" class="hidden"><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#71869d]">Bulan</span><input id="attendance-detail-month" type="month" class="input mt-2"></label>
     <label id="attendance-detail-date-wrap" class="hidden"><span class="text-[9px] uppercase tracking-[.1em] font-bold text-[#71869d]">Tanggal</span><input id="attendance-detail-date" type="date" class="input mt-2"></label>
@@ -69,7 +69,7 @@ function currentParams(){
  }else if(mode==='range'){
   from=document.getElementById('attendance-detail-from')?.value||null;to=document.getElementById('attendance-detail-to')?.value||null;
  }
- return{periodeId:document.getElementById('attendance-detail-period')?.value||document.getElementById('attendance-period')?.value||null,from,to};
+ return{periodeId:document.getElementById('attendance-detail-period')?.value||document.getElementById('attendance-period')?.value||null,source:document.getElementById('attendance-detail-source')?.value||'semua',from,to};
 }
 function periodOptions(periods,selected){
  const el=document.getElementById('attendance-detail-period');if(!el)return;
