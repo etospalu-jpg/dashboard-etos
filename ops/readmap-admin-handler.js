@@ -85,6 +85,33 @@ module.exports=async function handler(req,res){
    const rows=sessions.map(x=>{const attendees=(attendance||[]).filter(a=>a.session_id===x.id&&String(a.status).toLowerCase()==='hadir');const submitted=response.filter(v=>v.session_id===x.id);return{id:x.id,name:x.activity_name,date:x.activity_date,attendees:attendees.length,submitted:submitted.length,link:x.tahsin_public_code?'/t/'+x.tahsin_public_code:'/tahsin-reflection.html?session='+x.id,missing:attendees.filter(a=>!submitted.some(v=>v.awardee_id===a.awardee_id)).map(a=>names.get(a.awardee_id)||'Awardee')};});
    return respond(res,200,{sessions:rows,responses:response.map(x=>({...x,awardee_name:names.get(x.awardee_id)||'Awardee'}))});
   }
+  if(action==='asramaStatus'){
+   const config=check(await db.from('asrama_sync_settings')
+    .select('spreadsheet_id,last_sync_at,last_session_count,last_record_count,updated_at,key_hash')
+    .eq('integration_id','asrama_2026').single());
+   const sessions=check(await db.from('attendance_sessions')
+    .select('id,activity_name,activity_date,source_external_key')
+    .eq('source_type','asrama').order('activity_date',{ascending:false}).limit(80))||[];
+   const ids=sessions.map(s=>s.id);
+   const records=ids.length?check(await db.from('attendance_records').select('session_id,status,awardee_id').in('session_id',ids)):[]||[];
+   const names=new Map(data.awardees.map(a=>[a.id,a.name]));
+   return respond(res,200,{connected:Boolean(config.key_hash),
+    sheetUrl:'https://docs.google.com/spreadsheets/d/'+config.spreadsheet_id+'/edit',
+    lastSyncAt:config.last_sync_at,sessionCount:sessions.length,
+    recordCount:records.length,
+    sessions:sessions.map(s=>({name:s.activity_name,date:s.activity_date,
+      count:records.filter(r=>r.session_id===s.id).length,
+      present:records.filter(r=>r.session_id===s.id&&r.status==='Hadir').length,
+      absent:records.filter(r=>r.session_id===s.id&&r.status!=='Hadir').length}))});
+  }
+  if(action==='asramaIssueKey'){
+   const token=crypto.randomBytes(32).toString('hex');
+   const hash=crypto.createHash('sha256').update(token).digest('hex');
+   check(await db.from('asrama_sync_settings')
+    .update({key_hash:hash,updated_at:new Date().toISOString()}).eq('integration_id','asrama_2026')
+    .select('integration_id').single());
+   return respond(res,200,{key:token,message:'Kunci hanya ditampilkan sekali. Pasang pada Apps Script jurnal asrama.'});
+  }
   if(action==='overview'){
    const [br,rr,vr]=await Promise.all([
     db.from('readmap_books').select('awardee_id,id,category,status'),
