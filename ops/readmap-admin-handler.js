@@ -112,7 +112,8 @@ module.exports=async function handler(req,res){
    return respond(res,200,{awardees:data.awardees.map(a=>({id:a.id,name:a.name,angkatan:a.angkatan||'',provisioned:data.mapped.has(a.id)})),articles});
   }
   if(action==='gagasanUpdate'){
-   const p=req.body?.params||{},id=String(p.id||''),title=String(p.title||'').trim(),excerpt=String(p.excerpt||'').trim(),body=String(p.body||'').trim(),category=String(p.category||''),status=String(p.status||'');
+   const p=req.body?.params||{},id=String(p.id||''),title=String(p.title||'').trim(),body=String(p.body||'').trim(),category=String(p.category||''),status=String(p.status||'');
+   const excerpt=body.replace(/^\s*(?:##|>|[-*])\s+/gm,'').replace(/\*+/g,'').replace(/\s+/g,' ').trim().slice(0,320);
    const categories=['Opini','Esai','Resensi Buku','Refleksi','Gagasan & Inovasi','Artikel Ilmiah Populer'];
    if(!/^[0-9a-f-]{36}$/i.test(id)||title.length<2||title.length>180||excerpt.length>400||body.length>50000||!categories.includes(category)||!['draft','published','hidden'].includes(status))
     return respond(res,400,{error:'Periksa panjang teks, kategori, dan status tulisan.'});
@@ -120,7 +121,7 @@ module.exports=async function handler(req,res){
    if(!current)return respond(res,404,{error:'Tulisan tidak ditemukan.'});
    const cover=String(p.cover_path||'')||current.cover_path;
    if(cover&&!/^((editorial|[0-9a-f-]{36})\/[0-9a-f-]{36}\.jpg)$/i.test(cover))return respond(res,400,{error:'Lokasi foto sampul tidak valid.'});
-   if(status==='published'&&(title.length<6||excerpt.length<20||body.length<120||!cover))return respond(res,400,{error:'Tulisan terbit membutuhkan judul, ringkasan, isi, dan sampul yang lengkap.'});
+   if(status==='published'&&(title.length<6||body.length<120||excerpt.length<20||!cover))return respond(res,400,{error:'Tulisan terbit membutuhkan judul, isi, dan foto sampul yang lengkap. Ringkasan dibuat otomatis.'});
    const updated=check(await db.from('gagasan_articles').update({title,excerpt,body,category,slug:title.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').slice(0,85),status,share_enabled:status==='published',cover_path:cover,published_at:status==='published'?(current.published_at||new Date().toISOString()):current.published_at}).eq('id',id).select('id,updated_at').single());
    if(current.cover_path&&cover!==current.cover_path){try{await db.storage.from('gagasan-covers').remove([current.cover_path])}catch(_){}}
    return respond(res,200,{updated});

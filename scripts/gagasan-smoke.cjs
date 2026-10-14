@@ -6,7 +6,7 @@ const html=source('gagasan.html'),admin=source('readmap-admin.html'),publicCode=
 for(const file of ['gagasan-foundation.js','gagasan-feed.js','gagasan-covers.js','gagasan-editor.js','gagasan-admin.js','gagasan-public/api/article.js','ops/readmap-admin-handler.js'])new vm.Script(source(file),{filename:file});
 assert(html.includes('id="article-import"'),'DOCX/TXT import control missing');
 assert(html.includes('mammoth@1.13.0'),'Pinned DOCX importer missing');
-for(const id of ['login-form','feed-grid','featured','article-form','save-draft','publish-article','cover-preview-box','article-cover','mine-list','read-title','share-article'])assert(html.includes('id="'+id+'"'),'Missing UI '+id);
+for(const id of ['login-form','login-backdrop','login-close','author-login','feed-grid','featured','category-chips','portal-total','portal-writers','feed-count','article-form','save-draft','publish-article','cover-preview-box','cover-preview-image','cover-output-info','article-cover','mine-list','read-title','share-article','article-share-url','article-link-panel','visit-article'])assert(html.includes('id="'+id+'"'),'Missing UI '+id);
 for(const file of ['gagasan-foundation.js','gagasan-feed.js','gagasan-covers.js','gagasan-editor.js'])assert(html.includes('/'+file+'?v='),'Missing script '+file);
 for(const id of ['gagasan-period','gagasan-stats','gagasan-authors','gagasan-articles'])assert(admin.includes('id="'+id+'"'),'Missing admin UI '+id);
 assert(source('readmap.html').includes('href="/gagasan.html"'),'Not linked from Ruang Awardee');
@@ -27,6 +27,23 @@ assert(source('gagasan-foundation.js').includes("G.url=a=>G.publicBase+'/'+a.id"
 assert(JSON.parse(source('vercel.json')).rewrites.some(x=>x.source==='/tulisan/:ref'),'External route missing');
 assert(source('gagasan-reader.css').includes('.brand-logo'),'Reader styles missing');
 
+assert(!html.includes('id="article-excerpt"'),'Awardee must not fill in a manual summary');
+assert(source('gagasan-editor.js').includes('const excerpt=G.plain(body).slice(0,320)'),'Article description must be generated automatically');
+assert(source('gagasan-foundation.js').includes("$('workspace').hidden=false"),'Visitors must always see public articles without signing in');
+assert(source('gagasan-foundation.js').includes("G.refresh()"),'Public feed should fetch anonymously');
+assert(source('gagasan-feed.js').includes("data-share="),'Every published article card must offer share action');
+assert(source('gagasan-feed.js').includes("$('article-link-panel').hidden=!isPublic"),'Link must be visible after publication');
+assert(source('gagasan-feed.js').includes('category-chips'),'Public category filters missing');
+assert(source('gagasan-covers.js').includes('const fit=Math.min(1200/img.width,630/img.height)'),'Cover must preserve full image instead of cropping it');
+assert(source('gagasan-covers.js').includes('cache.blob'),'Upload must reuse the same file as preview');
+assert(source('gagasan-covers.js').includes('1200 × 630'),'Accurate preview dimensions must be visible');
+assert(source('gagasan-public/api/article.js').includes("Authorization:'Bearer '+KEY"),'Public metadata endpoint missing Authorization');
+assert(source('ops/readmap-admin-handler.js').includes("const excerpt=body.replace("),'Admin summary should be computed from body');
+assert(source('gagasan-portal-v2.css').includes('prefers-reduced-motion'),'Respect reduced-motion settings');
+assert(source('gagasan-portal-v2.css').includes('.login-backdrop'),'Login must be a modal, not the default page');
+assert(html.includes('/gagasan-portal-v2.css?v=1'),'New portal stylesheet not loaded');
+
+
 const configuration=JSON.parse(source('gagasan-public/vercel.json'));
 assert(configuration.rewrites.some(x=>x.source==='/t/:ref'),'Dynamic article rewrite missing');
 (async()=>{
@@ -40,6 +57,6 @@ assert(configuration.rewrites.some(x=>x.source==='/t/:ref'),'Dynamic article rew
   const res=makeRes();await handler({method:'GET',query:{ref:id+'-uji-tulisan'}},res);
   assert.equal(res.statusCode,200);assert(res.body.includes('og:image'));assert(res.body.includes('&lt;img src=x onerror=alert(1)&gt;'));assert(!res.body.includes('<img src=x onerror=alert(1)>'));
   const other=makeRes();await handler({method:'GET',query:{ref:'invalid'}},other);assert.equal(other.statusCode,404);
-  console.log('RUANG GAGASAN: UI, auth, safe rendering, WhatsApp OG, route contracts PASS');
+  console.log('RUANG GAGASAN V2: public reading, optional login, auto summary, compressed image, public link, editorial UI, OG PASS');
  }finally{global.fetch=originalFetch}
 })().catch(error=>{console.error(error);process.exitCode=1});

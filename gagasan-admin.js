@@ -32,7 +32,7 @@ function articleCard(a){
  (cover(a)?'<a href="'+esc(cover(a))+'" target="_blank" rel="noopener noreferrer"><img loading="lazy" width="190" style="max-width:100%;border-radius:9px" src="'+esc(cover(a))+'" alt="Sampul tulisan"></a>':'')+
  '<label>Judul tulisan<input data-field="title" value="'+esc(a.title)+'" maxlength="180"></label>'+
  '<label>Kategori<select data-field="category">'+categories.map(c=>'<option '+(a.category===c?'selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label>'+
- '<label>Ringkasan<textarea rows="3" data-field="excerpt" maxlength="400">'+esc(a.excerpt||'')+'</textarea></label>'+
+ '<p style="font-size:11px;color:#6a8199">Ringkasan dan preview WhatsApp dibuat otomatis dari isi tulisan.</p>'+
  '<label>Isi tulisan<textarea rows="8" data-field="body" maxlength="50000">'+esc(a.body||'')+'</textarea></label>'+
  '<label>Ganti sampul (opsional, JPEG/PNG/WebP)<input data-field="cover" type="file" accept="image/jpeg,image/png,image/webp"></label>'+
  '<label>Status<select data-field="status"><option value="published" '+(a.status==='published'?'selected':'')+'>Terbit</option><option value="hidden" '+(a.status==='hidden'?'selected':'')+'>Disembunyikan</option><option value="draft" '+(a.status==='draft'?'selected':'')+'>Draf</option></select></label>'+
@@ -58,7 +58,7 @@ function fileJPEG(file){return new Promise(async(resolve,reject)=>{
   try{image=await new Promise((ok,fail)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>fail(Error('Foto tidak dapat dibaca.'));i.src=url})}
   finally{URL.revokeObjectURL(url)}
   const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=630;const c=canvas.getContext('2d');
-  const scale=Math.max(1200/image.width,630/image.height),w=image.width*scale,h=image.height*scale;c.drawImage(image,(1200-w)/2,(630-h)/2,w,h);
+  const fill=Math.max(1200/image.width,630/image.height),bw=image.width*fill,bh=image.height*fill;c.save();c.filter='blur(28px) brightness(.65)';c.drawImage(image,(1200-bw)/2-24,(630-bh)/2-24,bw+48,bh+48);c.restore();const scale=Math.min(1200/image.width,630/image.height),w=image.width*scale,h=image.height*scale;c.drawImage(image,(1200-w)/2,(630-h)/2,w,h);
   let blob;
   for(const q of [.82,.7,.55,.43]){blob=await new Promise((ok,fail)=>canvas.toBlob(x=>x?ok(x):fail(Error('Kompresi gagal.')),'image/jpeg',q));if(blob.size<=400*1024)break}
   if(blob.size>512*1024)throw Error('Foto masih terlalu besar.');
@@ -75,7 +75,7 @@ $('gagasan-articles').addEventListener('click',async e=>{
   const a=all.articles.find(x=>x.id===id),file=card.querySelector('[data-field="cover"]').files?.[0];
   let path=a.cover_path;
   if(file){save.textContent='Mengolah foto…';const image=await fileJPEG(file);const ticket=await api('gagasanCover',{image});path=ticket.path}
-  await api('gagasanUpdate',{id,title:v('title'),category:v('category'),excerpt:v('excerpt'),body:v('body'),status:v('status'),cover_path:path});
+  await api('gagasanUpdate',{id,title:v('title'),category:v('category'),body:v('body'),status:v('status'),cover_path:path});
   save.textContent='Tersimpan ✓';await load()
  }catch(err){alert('Gagal menyimpan: '+err.message);save.textContent='Simpan Perubahan'}
  finally{save.disabled=false}
