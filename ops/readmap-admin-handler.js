@@ -77,12 +77,12 @@ module.exports=async function handler(req,res){
    return respond(res,200,{updated});
   }
   if(action==='tahsinOverview'){
-   const sessions=check(await db.from('attendance_sessions').select('id,activity_name,activity_date').ilike('activity_name','%tahsin%').order('activity_date',{ascending:false}).limit(120))||[];
+   const sessions=check(await db.from('attendance_sessions').select('id,activity_name,activity_date,tahsin_public_code').ilike('activity_name','%tahsin%').order('activity_date',{ascending:false}).limit(120))||[];
    const response=check(await db.from('tahsin_weekly_reflections').select('session_id,awardee_id,confidence,practice_frequency,lesson,challenges,improvement_goal,previous_goal_review,submitted_at').order('submitted_at',{ascending:false}).limit(500))||[];
    const ids=sessions.map(x=>x.id);
    const attendance=ids.length?check(await db.from('attendance_records').select('session_id,awardee_id,status').in('session_id',ids)):[]; 
    const names=new Map(data.awardees.map(x=>[x.id,x.name]));
-   const rows=sessions.map(x=>{const attendees=(attendance||[]).filter(a=>a.session_id===x.id&&String(a.status).toLowerCase()==='hadir');const submitted=response.filter(v=>v.session_id===x.id);return{id:x.id,name:x.activity_name,date:x.activity_date,attendees:attendees.length,submitted:submitted.length,link:'/tahsin-reflection.html?session='+x.id,missing:attendees.filter(a=>!submitted.some(v=>v.awardee_id===a.awardee_id)).map(a=>names.get(a.awardee_id)||'Awardee')};});
+   const rows=sessions.map(x=>{const attendees=(attendance||[]).filter(a=>a.session_id===x.id&&String(a.status).toLowerCase()==='hadir');const submitted=response.filter(v=>v.session_id===x.id);return{id:x.id,name:x.activity_name,date:x.activity_date,attendees:attendees.length,submitted:submitted.length,link:x.tahsin_public_code?'/t/'+x.tahsin_public_code:'/tahsin-reflection.html?session='+x.id,missing:attendees.filter(a=>!submitted.some(v=>v.awardee_id===a.awardee_id)).map(a=>names.get(a.awardee_id)||'Awardee')};});
    return respond(res,200,{sessions:rows,responses:response.map(x=>({...x,awardee_name:names.get(x.awardee_id)||'Awardee'}))});
   }
   if(action==='overview'){
