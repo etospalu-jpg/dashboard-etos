@@ -23,7 +23,7 @@ function installMotion(){
   .view.active tbody tr:nth-child(2){animation-delay:18ms}.view.active tbody tr:nth-child(3){animation-delay:36ms}.view.active tbody tr:nth-child(4){animation-delay:54ms}.view.active tbody tr:nth-child(5){animation-delay:72ms}.view.active tbody tr:nth-child(n+6){animation-delay:90ms}
   .modal{transition:opacity .22s ease,visibility .22s ease}.modal .modal-card{transform:translateY(14px) scale(.985);opacity:0;transition:transform .3s var(--etos-ease),opacity .22s ease}.modal.open .modal-card{transform:none;opacity:1}
   #awardee-drawer,.drawer{transition:opacity .22s ease,visibility .22s ease}.drawer-panel,#awardee-drawer>div{transition:transform .34s var(--etos-ease),opacity .22s ease}
-  .etos-nav-progress{position:fixed;z-index:9996;top:0;left:0;height:2px;width:100%;pointer-events:none;opacity:0;transition:opacity .14s ease}.etos-nav-progress:after{content:"";display:block;width:34%;height:100%;background:#2bb673;box-shadow:0 0 18px rgba(43,182,115,.55);transform:translateX(-110%)}
+  .etos-nav-progress{position:fixed;z-index:9996;top:0;left:0;height:2px;width:100%;pointer-events:none;opacity:0;transition:opacity .14s ease}.etos-nav-progress:after{content:"";display:block;width:34%;height:100%;background:#5d93c5;box-shadow:0 0 18px rgba(43,182,115,.55);transform:translateX(-110%)}
   html.etos-navigating .etos-nav-progress{opacity:1}html.etos-navigating .etos-nav-progress:after{animation:etosNavRun .7s var(--etos-ease) infinite}
   .metric-number{transition:opacity .18s ease,transform .24s var(--etos-ease)}
   .etos-data-ready{animation:none}
