@@ -15,8 +15,8 @@ async function refresh(){
   const daysSinceSync=d.lastSyncAt?(Date.now()-new Date(d.lastSyncAt).getTime())/86400000:Infinity;
   $('asrama-sync-status').innerHTML=d.lastSyncAt?
    (daysSinceSync<=8?
-     '<strong>Data asrama tersimpan · Pembaruan mingguan dijadwalkan</strong><p>Rekap terakhir diterima '+esc(prettyDate(d.lastSyncAt))+' WITA. Perubahan pada jurnal pusat akan diperiksa tiap Senin pagi melalui koneksi Google Drive.</p>':
-     '<strong>Data tersimpan · Jadwal pembaruan perlu diperiksa</strong><p>Rekap terakhir '+esc(prettyDate(d.lastSyncAt))+' WITA. Jika belum diperbarui lebih dari satu minggu, periksa tugas sinkronisasi dan izin baca Google Drive.</p>'):
+     '<strong>Data asrama tersimpan · Pembaruan mingguan dijadwalkan</strong><p>Rekap terakhir diterima '+esc(prettyDate(d.lastSyncAt))+' WITA. Perubahan pada jurnal pusat diperiksa setiap Senin pukul 08.00 WITA langsung oleh server Supabase ETOS Palu.</p>':
+     '<strong>Data tersimpan · Jadwal pembaruan perlu diperiksa</strong><p>Rekap terakhir '+esc(prettyDate(d.lastSyncAt))+' WITA. Jika belum diperbarui lebih dari satu minggu, periksa jadwal Supabase dan akses baca spreadsheet Google.</p>'):
    '<strong>Menunggu pembaruan pertama</strong><p>Pemeriksaan otomatis mingguan telah dijadwalkan tanpa perlu mengubah spreadsheet pusat.</p>';
   $('asrama-sync-totals').innerHTML=[['Pertemuan',d.sessionCount],['Catatan Absensi',d.recordCount],['Sumber','Google Sheets']].map(([name,v])=>'<div class="metric"><b>'+esc(v)+'</b><small>'+esc(name)+'</small></div>').join('');
   $('asrama-sync-events').innerHTML=d.sessions?.length?d.sessions.map(e=>
