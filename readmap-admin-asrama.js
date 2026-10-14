@@ -12,13 +12,12 @@ async function refresh(){
  $('asrama-sync-status').textContent='Memeriksa status konektor…';
  try{
   const d=await call('asramaStatus');
-  const minutesSincePing=d.lastConnectorAt?(Date.now()-new Date(d.lastConnectorAt).getTime())/60000:Infinity;
-  $('asrama-sync-status').innerHTML=d.lastConnectorAt&&minutesSincePing<=8?
-   '<strong>Konektor terhubung · Pemantauan otomatis berjalan</strong><p>Pemeriksaan terakhir '+esc(prettyDate(d.lastConnectorAt))+' WITA. Sheet dibaca sekitar setiap menit.</p>':
-   d.lastConnectorAt?
-   '<strong>Konektor belum memberi kabar terbaru</strong><p>Sinkronisasi terakhir '+esc(prettyDate(d.lastConnectorAt))+' WITA. Periksa pemicu dan log eksekusi Apps Script milik akun Google Palu.</p>':
-   d.connected?'<strong>Kunci sudah dibuat — menunggu koneksi pertama</strong><p>Jalankan etosForceSync, lalu etosInstallTriggers di proyek Apps Script mandiri.</p>':
-   '<strong>Data awal tersedia · Sambungan otomatis belum aktif</strong><p>Aktifkan pemantauan mandiri pada akun Google Palu. Spreadsheet pusat tidak perlu diubah.</p>';
+  const daysSinceSync=d.lastSyncAt?(Date.now()-new Date(d.lastSyncAt).getTime())/86400000:Infinity;
+  $('asrama-sync-status').innerHTML=d.lastSyncAt?
+   (daysSinceSync<=8?
+     '<strong>Data asrama tersimpan · Pembaruan mingguan dijadwalkan</strong><p>Rekap terakhir diterima '+esc(prettyDate(d.lastSyncAt))+' WITA. Perubahan pada jurnal pusat akan diperiksa tiap Senin pagi melalui koneksi Google Drive.</p>':
+     '<strong>Data tersimpan · Jadwal pembaruan perlu diperiksa</strong><p>Rekap terakhir '+esc(prettyDate(d.lastSyncAt))+' WITA. Jika belum diperbarui lebih dari satu minggu, periksa tugas sinkronisasi dan izin baca Google Drive.</p>'):
+   '<strong>Menunggu pembaruan pertama</strong><p>Pemeriksaan otomatis mingguan telah dijadwalkan tanpa perlu mengubah spreadsheet pusat.</p>';
   $('asrama-sync-totals').innerHTML=[['Pertemuan',d.sessionCount],['Catatan Absensi',d.recordCount],['Sumber','Google Sheets']].map(([name,v])=>'<div class="metric"><b>'+esc(v)+'</b><small>'+esc(name)+'</small></div>').join('');
   $('asrama-sync-events').innerHTML=d.sessions?.length?d.sessions.map(e=>
     '<div class="asrama-sync-row"><div><b>'+esc(e.name)+'</b><small>'+esc(e.date)+'</small></div><div><strong>'+e.present+'</strong><small>Hadir</small></div><div><strong>'+e.absent+'</strong><small>Izin/Sakit/Alpa</small></div></div>').join(''):
