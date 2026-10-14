@@ -460,3 +460,17 @@ html,body{background:#ffffff!important;color:#182c48}
  .readmap-app .report-bar-row{grid-template-columns:minmax(78px,105px) minmax(0,1fr) 35px;gap:6px}
  .readmap-app .report-bar-row>span,.readmap-app .report-bar-row>b{font-size:10px}
 }
+
+/* Finish recoloring shared legacy surfaces */
+.readmap-app .art-orbit{border-color:#b9cbef66}
+.readmap-app #notice:not(:empty){background:#edf3ff;border-color:#d5e4fa;color:#2e5584;box-shadow:0 8px 20px #203f6b0b}
+.readmap-app .cover-picker{background:linear-gradient(130deg,#f8faff,#eaf0fa);border-color:#cad8ed}
+.readmap-app .cover-picker span,.readmap-app .field-hint{color:#647b99!important}
+.readmap-app .book-art{background:linear-gradient(145deg,#e3ebfa,#a9bedc);border-color:#dae5f4}
+.readmap-app .video-preview{background:#f5f8fe;border-color:#dce6f5}
+.readmap-app .video-preview img,.readmap-app .video-card .thumb{background:#ecf1fb}
+.readmap-app .player{background:#122442}
+.readmap-app .service-dialog-inner{background:#fff}
+.readmap-app .journey-icon{background:#e8eef9;color:#335f92}
+.readmap-app .empty-icon{color:#3b679c}
+.readmap-app .card>p,.readmap-app .item small{color:#6e7f95}
