@@ -247,3 +247,108 @@ html,body{color:#142c49!important;background:#f6f8fc!important}
 #main-app .toast-host .toast{background:#1b3a60;color:#fff}
 #main-app #sidebar nav::-webkit-scrollbar{width:5px}
 #main-app #sidebar nav::-webkit-scrollbar-thumb{background:#496a93;border-radius:10px}
+
+
+/* V38 — single-title layout. Desktop title exists in each content view only. */
+.etos-app-header.topbar{
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:space-between!important;gap:18px!important;
+ height:74px!important;min-height:74px!important;padding:12px 30px!important;
+ grid-template:none!important;
+}
+.etos-header-menu{display:none!important}
+.etos-header-heading{display:flex!important;flex:1 1 auto!important;align-items:center!important;
+ min-width:0!important;max-width:none!important;position:relative}
+.etos-desktop-label{color:#365a82;display:block;font-weight:850;letter-spacing:.145em;
+ font-size:11px;white-space:nowrap;overflow:visible;line-height:1.45}
+#main-app #page-title.etos-accessible-page-title{position:absolute!important;width:1px!important;height:1px!important;
+ padding:0!important;margin:-1px!important;overflow:hidden!important;
+ clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.etos-header-actions{display:flex!important;align-items:center!important;flex:0 0 auto!important;
+ width:auto!important;max-width:calc(100% - 180px);gap:10px!important;margin-left:auto!important}
+.etos-header-actions>*{flex-shrink:0}
+#main-app .view>.flex:first-child,
+#main-app .view>.grid:first-child{min-width:0;max-width:100%}
+#main-app .view:not(#view-dashboard) > .flex:first-child{margin-top:0!important}
+#main-app .view:not(#view-dashboard) .section-title{position:static!important;
+ word-break:normal!important;overflow-wrap:break-word!important;line-height:1.28!important;
+ max-width:100%!important;white-space:normal!important}
+#main-app .view:not(#view-dashboard) .eyebrow{display:block!important;line-height:1.45!important;overflow-wrap:normal!important}
+#main-app .view>.flex:first-child>div:first-child{min-width:0}
+#main-app .view>.flex:first-child>div:nth-child(2){min-width:0}
+#main-app .view:not(#view-dashboard) .section-title.text-\[27px\]{
+ font-size:clamp(22px,2.4vw,28px)!important}
+#main-app .view:not(#view-dashboard) h2.section-title{margin-top:9px!important;margin-bottom:0!important}
+#main-app .view:not(#view-dashboard)>.flex:first-child{padding:6px 0 8px!important;gap:15px!important}
+#main-app .view:not(#view-dashboard)>.flex:first-child .eyebrow{font-size:10px}
+#main-app #view-profile .card{align-self:stretch!important;height:100%}
+#main-app .card,#main-app .card-flat{color:#1e3858}
+#main-app .card .section-title{color:#1d395c}
+#main-app .bo-hero{background:linear-gradient(125deg,#112845,#244b78)!important;
+ border:1px solid #3b5e85!important;border-radius:24px!important}
+#main-app .bo-hero .section-title{color:#fff!important}
+#main-app .bo-hero .text-white\/55{color:#c6d5eb!important}
+#main-app .bo-hero .text-\[\#69d391\]{color:#adcdfa!important}
+#main-app .bo-hero .btn.bg-white{background:#eaf2ff!important;color:#18395e!important}
+#main-app .bo-hero .btn.bg-white\/10{background:#ffffff1f!important;color:white!important;border-color:#ffffff38!important}
+#main-app .bo-item{height:100%;display:flex;flex-direction:column;justify-content:space-between;gap:13px}
+#main-app .bo-item>.flex:last-child{margin-top:auto}
+#main-app .bo-item .btn{min-height:42px}
+#main-app .metric::after{border-color:#eaf1fb!important}
+#main-app .status-dot{background:#78a9db!important;box-shadow:0 0 0 4px #78a9db1c!important}
+#main-app .rounded-xl.bg-\[\#e8f1ed\]{background:#eaf1fb!important;color:#315c91!important}
+#main-app .text-\[\#0f6248\]{color:#315c91!important}
+#main-app .bg-\[\#0f6248\]{background:#315c91!important}
+#main-app .bg-\[\#071b13\],#main-app .bg-\[\#0b1b15\]{background:#142e50!important}
+#main-app .text-\[\#69d391\]{color:#afceef!important}
+#main-app .text-\[\#20a56b\]{color:#427baa!important}
+#main-app .bg-\[\#eaf3ef\],#main-app .bg-\[\#e8f1ed\]{background:#edf3fc!important}
+#main-app .bg-\[\#edf1ef\]{background:#e9eef6!important}
+#main-app .border-\[\#e8eeea\]{border-color:#e2eaf5!important}
+#main-app .data-table tbody tr:last-child td{border-bottom:0}
+#main-app .card .grid>*{min-width:0}
+#main-app .card button{max-width:100%}
+#main-app #view-settings button,#main-app #view-settings input{overflow-wrap:break-word}
+@media (max-width:960px){
+ .etos-app-header.topbar{display:flex!important;flex-direction:row!important;
+  padding:12px 17px!important;height:66px!important;min-height:66px!important;gap:9px!important;
+  position:sticky!important;top:0!important}
+ .etos-header-menu{display:flex!important;flex:0 0 40px!important;align-items:center}
+ .etos-mobile-brand{display:flex!important;flex:0 0 auto!important;margin-right:auto!important;
+   width:auto!important;max-width:145px!important;min-width:0!important}
+ .etos-header-heading{display:none!important}
+ .etos-header-actions{flex:0 0 auto!important;max-width:none!important;gap:7px!important;margin:0!important}
+ .etos-header-actions #system-mode,.etos-header-actions .etos-refresh-button{display:none!important}
+ .etos-header-actions .btn{min-width:40px!important;min-height:40px!important;
+  padding:9px!important;justify-content:center!important}
+ .etos-header-actions .etos-awardee-button span{display:none!important}
+ #top-auth-label{display:none!important}
+ #main-app .content-pad{padding-top:22px!important}
+ #main-app .view:not(#view-dashboard)>.flex:first-child{display:flex;flex-wrap:wrap!important;
+  flex-direction:row;align-items:flex-start;justify-content:space-between;padding:10px 0 12px!important}
+ #main-app .view:not(#view-dashboard)>.flex:first-child>div:first-child{flex:1 1 200px;min-width:0}
+ #main-app .view:not(#view-dashboard)>.flex:first-child>div:nth-child(2){flex:1 1 100%;display:flex;flex-wrap:wrap;gap:8px}
+}
+@media (max-width:640px){
+ .etos-app-header.topbar{padding:10px 13px!important;height:62px!important;min-height:62px!important;gap:8px!important}
+ .etos-mobile-brand{max-width:118px!important;height:39px!important}
+ .etos-mobile-brand img{width:69px!important}
+ .etos-mobile-brand span{font-size:7px!important}
+ #main-app .view:not(#view-dashboard) .section-title{font-size:clamp(21px,6vw,27px)!important;
+ line-height:1.25!important;letter-spacing:-.04em}
+ #main-app .view:not(#view-dashboard)>.flex:first-child{display:flex!important;flex-direction:column!important;gap:14px!important}
+ #main-app .view:not(#view-dashboard)>.flex:first-child>div{flex:initial!important;width:100%!important}
+ #main-app .view>.flex:first-child>.flex{display:flex!important;flex-wrap:wrap!important}
+ #main-app .view>.flex:first-child>.flex>.input,
+ #main-app .view>.flex:first-child>.flex>select,
+ #main-app .view>.flex:first-child>.flex>input{flex:1 1 130px!important;min-width:0!important;width:100%!important}
+ #main-app .view>.flex:first-child>.flex>.btn{width:auto!important;flex:1 1 auto!important}
+ #main-app .bo-hero{padding:22px 19px!important;border-radius:20px!important}
+ #main-app .bo-hero .section-title{font-size:26px!important;line-height:1.24!important}
+ #main-app .bo-hero .flex.flex-wrap{gap:9px!important}
+ #main-app #settings-backoffice-hub .grid{min-width:0;gap:12px}
+ #main-app .bo-item{min-height:138px}
+ #main-app #view-profile .grid{gap:12px!important}
+ #main-app #view-profile .card{height:auto}
+ #main-app #view-profile .card-flat{min-width:0;overflow-wrap:anywhere}
+}
