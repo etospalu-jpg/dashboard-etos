@@ -1,0 +1,12 @@
+/* READMAP personal identity — compact, optional and never visible in demo */
+.personal-overview{background:linear-gradient(120deg,#fff,#f5f9fd);border:1px solid #d9e7f5;border-radius:17px;padding:18px 20px;margin:13px 0 19px;display:flex;align-items:center;gap:18px;box-shadow:0 8px 27px rgba(15,49,85,.055)}
+.personal-identity{display:flex;flex-direction:column;gap:6px;flex:1 1 240px;min-width:0}.personal-badge{color:#3170b1;font-size:9px;letter-spacing:.13em;font-weight:800}.personal-identity strong{font:800 18px/1.25 Manrope,"DM Sans",system-ui,sans-serif;letter-spacing:-.035em;color:#173b61}.personal-identity>span:last-child{font-size:11px;line-height:1.6;color:#778ca0}
+.personal-facts{display:flex;gap:11px;align-items:center;flex:0 1 auto}
+.personal-facts>div{padding:5px 16px;text-align:center;border-left:1px solid #dde9f5;min-width:95px}
+.personal-facts strong{display:block;font:800 22px Manrope,"DM Sans",sans-serif;color:#255f9e}
+.personal-facts span{font-size:10px;color:#6d839a;font-weight:650}
+.personal-open{flex:0 0 auto;border-radius:11px;padding:13px 15px;display:flex;align-items:center;gap:11px;text-decoration:none!important;background:#183d66;color:#fff!important;font-size:11px;font-weight:800;transition:transform .24s,box-shadow .24s,background .24s;white-space:nowrap}
+.personal-open:hover{transform:translateY(-3px);background:#275f9c;box-shadow:0 9px 20px #183e6629}.personal-open span{font-size:18px}
+@media(max-width:960px){.personal-overview{flex-wrap:wrap}.personal-facts{order:3;width:100%;justify-content:space-around;border-top:1px solid #e3ecf5;padding-top:12px}.personal-facts>div{border:0}.personal-open{margin-left:auto}}
+@media(max-width:620px){.personal-overview{gap:11px;margin:12px 0 17px;padding:16px}.personal-identity{flex-basis:100%}.personal-identity strong{font-size:17px}.personal-open{order:3;width:100%;justify-content:space-between;margin-left:0}.personal-facts{order:2;gap:0;border-top:0;padding-top:2px}.personal-facts>div{min-width:0;flex:1;padding:7px 9px}.personal-facts>div+div{border-left:1px solid #dce7f2}.personal-facts strong{font-size:19px}}
+@media(prefers-reduced-motion:reduce){.personal-open{transition:none!important}}

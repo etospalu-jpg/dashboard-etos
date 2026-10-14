@@ -39,3 +39,14 @@ Status: **implementasi disiapkan sebagai Git tree/commit tanpa memperbarui branc
 4. Terbitkan lalu periksa tautan `/tulisan/{uuid}-{slug}` dari browser tanpa login dan thumbnail Open Graph saat WhatsApp menerima link.
 5. Masuk Superadmin, periksa pelaporan partisipasi dan sunting isi artikel tanpa ringkasan manual.
 6. Pastikan data READMAP dan halaman lain tetap berfungsi. Deploy sekali setelah disetujui pengguna.
+
+
+## Penambahan dalam paket V2 — akses Dashboard + Profil Awardee
+- Dashboard utama pada \`shell.html\` menyediakan pintu **Ruang Gagasan** di sidebar dan CTA halaman ikhtisar. URL publik selalu \`/gagasan.html\` pada domain \`dashboard.etosidpalu.com\`.
+- Semua link artikel milik penulis, kartu karya, pengelola, dan halaman SSR memakai canonical \`https://dashboard.etosidpalu.com/tulisan/:id-judul\`. \`gagasan-etos-palu.vercel.app\` hanya ada sebagai target **internal reverse proxy Vercel** dan tidak perlu diumumkan ke pengguna.
+- Ruang Awardee di \`readmap.html\` memuat satu strip ringkas profil pribadi: nama, kampus/prodi, tulisan terbit, IP terakhir, dan prestasi. Tidak tampil di demo.
+- \`profil-awardee.html\` adalah ruang personal penuh: identitas, studi, kampus, angkatan, motto, jumlah tulisan/draf, rak buku, halaman bacaan, prestasi, perkembangan nilai dan karya terbaru. Desain ETOS premium navy–putih, responsive.
+- Grafik IP murni data \`academic_records\` per semester dan tidak membuat titik palsu. Nilai rekap kumulatif (\`is_summary=true\`) diperlihatkan sebagai informasi terpisah, tidak otomatis menjadi nilai semester 1–8.
+- RLS staf untuk \`awardees\` / \`academic_records\` tetap **tidak diubah**. Migration \`supabase/migrations/20261015_awardee_self_profile.sql\` (PENDING) menambah \`awardee_self_snapshot()\` yang hanya mengembalikan baris satu awardee yang dipetakan dari \`auth.uid()\` milik pemegang sesi READMAP. Tidak menerima \`awardee_id\` dari client, tidak punya akses \`anon\`, tidak expose kontak sensitif.
+- **Deployment dependency**: ketika pemilik menyetujui rilis, audit lalu jalankan migrasi profil terlebih dahulu, uji satu akun pemilik yang otentik dan penolakan akun anonim/akun lain, jalankan \`npm run build\`, baru fast-forward branch utama untuk deploy dashboard + reader sekali terakhir.
+- Profil dan grafik belum dapat diuji end-to-end terhadap fungsi RPC sampai migration diizinkan. Data produksi tidak diubah dalam pekerjaan penyiapan ini.
