@@ -61,6 +61,7 @@ function openTahsin(id){
  $('tahsin-session').value=id;$('tahsin-form-title').textContent='Refleksi '+t.activity_name;
  $('tahsin-form-date').textContent=fmt(t.activity_date);
  $('tahsin-previous-wrap').hidden=!t.previous_goal;
+ $('tahsin-previous').required=Boolean(t.previous_goal);
  $('tahsin-previous-label').textContent=t.previous_goal?'Target pekan sebelumnya: '+t.previous_goal:'';
  $('tahsin-form').reset();
  const existing=responses.find(x=>x.session_id===id);
