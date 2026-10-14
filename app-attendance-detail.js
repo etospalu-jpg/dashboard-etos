@@ -100,6 +100,8 @@ async function fetchDetail(){
 }
 window.openAttendanceDetail=function(){
  ensureActions();ensurePanel();
+ const choice=document.getElementById('attendance-detail-source'),mainChoice=document.getElementById('attendance-source')?.value||'semua';
+ if(choice&&choice.value!==mainChoice){choice.value=mainChoice;detailData=null;}
  if(!pin())return needPin(()=>window.openAttendanceDetail());
  document.getElementById('attendance-detail-panel')?.classList.remove('hidden');
  document.getElementById('attendance-detail-panel')?.scrollIntoView({behavior:'smooth',block:'start'});
