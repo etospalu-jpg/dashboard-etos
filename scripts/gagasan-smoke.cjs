@@ -19,6 +19,13 @@ assert(source('ops/readmap-admin-handler.js').includes("action==='gagasanReport'
 assert(source('ops/readmap-admin-handler.js').includes("action==='gagasanUpdate'"),'Admin edit API missing');
 assert(source('gagasan-editor.js').includes("status==='published'"),'Publish flow missing');
 assert(source('gagasan-foundation.js').includes("storageKey:'etos-readmap-auth-v1'"),'Awardee session mismatch');
+assert(source('gagasan.html').includes('/brand-etos-white.svg'),'Official logo missing in Ruang Gagasan');
+assert(source('gagasan-public/api/article.js').includes('ETOS_LOGO'),'Official logo missing in public reader');
+assert(source('gagasan-foundation.js').includes('dashboard.etosidpalu.com/tulisan'),'Wrong share domain');
+assert(source('gagasan-admin.js').includes('dashboard.etosidpalu.com/tulisan'),'Wrong admin share domain');
+assert(JSON.parse(source('vercel.json')).rewrites.some(x=>x.source==='/tulisan/:ref'),'External route missing');
+assert(source('gagasan-reader.css').includes('.brand-logo'),'Reader styles missing');
+
 const configuration=JSON.parse(source('gagasan-public/vercel.json'));
 assert(configuration.rewrites.some(x=>x.source==='/t/:ref'),'Dynamic article rewrite missing');
 (async()=>{

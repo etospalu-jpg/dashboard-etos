@@ -2,6 +2,8 @@
 /* Public single-article HTML: server-rendered OG tags for WhatsApp and other bots. */
 const URL_SB='https://weklmapqizeldfdalbgs.supabase.co',KEY='sb_publishable_cFm2Jvj2jvFyKcxbGniVWw_PL2SL7HC';
 const DASHBOARD='https://dashboard.etosidpalu.com/gagasan.html';
+const ARTICLE_ORIGIN='https://dashboard.etosidpalu.com/tulisan/';
+const ETOS_LOGO='https://dashboard.etosidpalu.com/brand-etos-white.svg?v=38';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 const inline=s=>esc(s).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[^\w])\*([^*\n]+)\*/g,'$1<em>$2</em>');
 function markdown(text){
@@ -15,10 +17,10 @@ function markdown(text){
  flush();return out.join('\n');
 }
 function page({title,head,body,status=200}){
- return {status,html:'<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#142d46"><title>'+esc(title)+'</title>'+head+'<link rel="icon" href="'+DASHBOARD.replace('/gagasan.html','/favicon.svg')+'"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"><link rel="stylesheet" href="/reader.css"></head><body><header class="top"><a class="brand" href="'+DASHBOARD+'"><b>✳</b><span>RUANG GAGASAN<em>.</em><small>ETOS ID PALU · AWARDEE EDITORIAL</small></span></a><a class="top-back" href="'+DASHBOARD+'">Kumpulan tulisan ↗</a></header>'+body+'<footer><div><strong>RUANG GAGASAN<em>.</em></strong><small>Menulis, berpikir, bertumbuh. · ETOS ID Palu</small></div><a href="'+DASHBOARD+'">Kembali ke Ruang Awardee ↗</a></footer></body></html>'};
+ return {status,html:'<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#142d46"><title>'+esc(title)+'</title>'+head+'<link rel="icon" href="'+DASHBOARD.replace('/gagasan.html','/favicon.svg')+'"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://dashboard.etosidpalu.com/gagasan-reader.css?v=3"></head><body><header class="top"><a class="brand" href="'+DASHBOARD+'"><img class="brand-logo" src="'+ETOS_LOGO+'" alt="Logo resmi ETOS ID putih"><span>RUANG GAGASAN<em>.</em><small>PORTAL KARYA AWARDEE · ETOS ID PALU</small></span></a><a class="top-back" href="'+DASHBOARD+'">Kumpulan tulisan ↗</a></header>'+body+'<footer><div><strong>RUANG GAGASAN<em>.</em></strong><small>Menulis, berpikir, bertumbuh. · ETOS ID Palu</small></div><a href="'+DASHBOARD+'">Kembali ke Ruang Awardee ↗</a></footer></body></html>'};
 }
 function notFound(){
- return page({status:404,title:'Tulisan Tidak Tersedia — Ruang Gagasan',head:'<meta name="robots" content="noindex,nofollow">',body:'<main class="notfound"><div class="mark">✳</div><h1>Tulisan ini tidak tersedia.</h1><p>Link mungkin salah, tulisan telah disembunyikan, atau belum diterbitkan.</p><a class="button" href="'+DASHBOARD+'">Kembali ke Ruang Gagasan ↗</a></main>'});
+ return page({status:404,title:'Tulisan Tidak Tersedia — Ruang Gagasan',head:'<meta name="robots" content="noindex,nofollow">',body:'<main class="notfound"><div class="mark">ETOS</div><h1>Tulisan ini tidak tersedia.</h1><p>Link mungkin salah, tulisan telah disembunyikan, atau belum diterbitkan.</p><a class="button" href="'+DASHBOARD+'">Kembali ke Ruang Gagasan ↗</a></main>'});
 }
 function author(a){const title=a.title,desc=a.excerpt,authorName=a.author_name,fullDate=a.published_at||a.created_at;
  const date=new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Makassar'}).format(new Date(fullDate));
@@ -43,15 +45,15 @@ module.exports=async function handler(req,res){
    const rows=await r.json(),a=rows?.[0];
    if(!a)result=notFound();
    else{
-    const data=author(a),canonical='https://gagasan-etos-palu.vercel.app/t/'+a.id;
+    const data=author(a),canonical=ARTICLE_ORIGIN+a.id;
     const meta='<meta name="description" content="'+esc(data.desc)+'"><meta name="robots" content="noindex,nofollow"><link rel="canonical" href="'+canonical+'">'+
      '<meta property="og:type" content="article"><meta property="og:site_name" content="Ruang Gagasan · ETOS ID Palu"><meta property="og:locale" content="id_ID">'+
      '<meta property="og:title" content="'+esc(data.title)+'"><meta property="og:description" content="'+esc(data.desc)+'"><meta property="og:url" content="'+canonical+'">'+
      (data.cover?'<meta property="og:image" content="'+esc(data.cover)+'"><meta property="og:image:secure_url" content="'+esc(data.cover)+'"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">':'')+
      '<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="'+esc(data.title)+'"><meta name="twitter:description" content="'+esc(data.desc)+'">';
-    const link='https://gagasan-etos-palu.vercel.app/t/'+a.id;
+    const link=ARTICLE_ORIGIN+a.id;
     const wa='https://wa.me/?text='+encodeURIComponent(a.title+' — '+link);
-    result=page({title:a.title+' — Ruang Gagasan ETOS ID Palu',head:meta,body:'<main class="reader"><p class="eyebrow">RUANG GAGASAN / '+esc(a.category)+'</p><h1>'+esc(a.title)+'</h1><p class="deck">'+esc(a.excerpt)+'</p><div class="byline"><div class="avatar">✳</div><div><strong>'+esc(data.authorName)+'</strong><span>Awardee ETOS ID Palu · '+esc(data.date)+' · '+data.mins+' menit baca</span></div></div>'+(data.cover?'<figure><img src="'+esc(data.cover)+'" width="1200" height="630" alt="Sampul artikel '+esc(a.title)+'"></figure>':'')+'<div class="body-copy">'+markdown(a.body)+'</div><div class="ending"><div class="end-mark">✦</div><p>Setiap pemikiran punya ruang untuk bertumbuh.</p><div class="actions"><a href="'+wa+'" target="_blank" rel="noopener noreferrer">Bagikan ke WhatsApp ↗</a><button type="button" id="copy-url">Salin link</button></div></div></main><script>document.getElementById("copy-url").onclick=async()=>{try{await navigator.clipboard.writeText(location.href);document.getElementById("copy-url").textContent="Tautan disalin ✓"}catch(e){window.prompt("Salin tautan",location.href)}}</script>'});
+    result=page({title:a.title+' — Ruang Gagasan ETOS ID Palu',head:meta,body:'<main class="reader"><p class="eyebrow">RUANG GAGASAN / '+esc(a.category)+'</p><h1>'+esc(a.title)+'</h1><p class="deck">'+esc(a.excerpt)+'</p><div class="byline"><div class="avatar">ET</div><div><strong>'+esc(data.authorName)+'</strong><span>Awardee ETOS ID Palu · '+esc(data.date)+' · '+data.mins+' menit baca</span></div></div>'+(data.cover?'<figure><img src="'+esc(data.cover)+'" width="1200" height="630" alt="Sampul artikel '+esc(a.title)+'"></figure>':'')+'<div class="body-copy">'+markdown(a.body)+'</div><div class="ending"><div class="end-mark">✦</div><p>Setiap pemikiran punya ruang untuk bertumbuh.</p><div class="actions"><a href="'+wa+'" target="_blank" rel="noopener noreferrer">Bagikan ke WhatsApp ↗</a><button type="button" id="copy-url">Salin link</button></div></div></main><script>document.getElementById("copy-url").onclick=async()=>{try{await navigator.clipboard.writeText(location.href);document.getElementById("copy-url").textContent="Tautan disalin ✓"}catch(e){window.prompt("Salin tautan",location.href)}}</script>'});
    }
   }catch(error){console.error('[gagasan public]',String(error.message||'Error').slice(0,90));result=page({status:503,title:'Layanan sementara tidak tersedia',head:'<meta name="robots" content="noindex">',body:'<main class="notfound"><h1>Artikel belum dapat dimuat.</h1><p>Silakan coba lagi beberapa saat.</p><a class="button" href="'+DASHBOARD+'">Kembali ke Ruang Gagasan ↗</a></main>'})}
  }
