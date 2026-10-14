@@ -1,4 +1,4 @@
-const VERSION='36.60';
+const VERSION='36.70';
 const STATIC_CACHE='etos-pwa-static-'+VERSION;
 const RUNTIME_CACHE='etos-pwa-runtime-'+VERSION;
 const CORE=[
