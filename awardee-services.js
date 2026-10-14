@@ -22,29 +22,70 @@ async function pullServices(){
  $('service-history').innerHTML=requests.length?requests.map(r=>'<div class="service-history-item"><div><strong>'+escape(r.service_type==='mind_mate'?'Mind Mate':'ETOS Research Clinic')+'</strong><small>'+escape(r.topic)+' · '+escape(new Date(r.created_at).toLocaleDateString('id-ID'))+'</small></div><span class="service-status">'+escape(r.status)+'</span>'+(r.admin_note?'<p class="service-admin-note">Tindak lanjut: '+escape(r.admin_note)+'</p>':'')+'</div>').join(''):'<div class="empty-state"><span class="empty-icon">♡</span><strong>Belum ada pengajuan</strong><p>Ajukan layanan ketika kamu membutuhkannya. Statusnya bisa dipantau di sini.</p></div>';
  loaded.services=true;
 }
-async function pullTahsin(){
- if(demo()){
-  tahsin=[{session_id:'demo-tahsin-1',activity_name:'Tahsin Al-Qur’an',activity_date:'2026-10-12',reflection_submitted:true,previous_goal:null},{session_id:'demo-tahsin-2',activity_name:'Tahsin Al-Qur’an',activity_date:'2026-10-19',reflection_submitted:false,previous_goal:'Berlatih panjang-pendek bacaan 10 menit sehari'}];
-  responses=[{session_id:'demo-tahsin-1',confidence:3,practice_frequency:'2–3 kali',improvement_goal:'Berlatih panjang-pendek bacaan 10 menit sehari'}];
- }else if(member()){
-  const [one,two]=await Promise.all([sb().rpc('my_tahsin_sessions'),sb().from('tahsin_weekly_reflections').select('session_id,lesson,challenges,confidence,practice_frequency,improvement_goal,previous_goal_review,submitted_at').eq('awardee_id',member())]);
-  if(one.error)throw one.error;if(two.error)throw two.error;tahsin=one.data||[];responses=two.data||[];
+
+const demoReport=()=>({
+ name:'Awardee Demo',cohort:'2026',
+ tahsin:[
+  {date:'2026-09-17',confidence:2,practice:'1 kali',lesson:'Memahami cara memperhatikan panjang-pendek bacaan.',challenges:['Panjang dan pendek bacaan'],goal:'Berlatih 10 menit dua kali'},
+  {date:'2026-09-24',confidence:3,practice:'2–3 kali',lesson:'Mencoba menerapkan makharijul huruf.',challenges:['Makharijul huruf'],goal:'Latihan makhraj pada bacaan harian'},
+  {date:'2026-10-01',confidence:3,practice:'2–3 kali',lesson:'Membaca lebih perlahan dengan tartil.',challenges:['Kelancaran dan tartil'],goal:'Berlatih tiga kali sepekan'},
+  {date:'2026-10-08',confidence:4,practice:'4 kali atau lebih',lesson:'Lebih percaya diri menjaga panjang pendek bacaan.',challenges:['Hukum tajwid'],goal:'Mengulang materi mad pekan ini'}
+ ],
+ kajian:[
+  {date:'2026-09-20',agenda:'Kajian Keislaman',memorable:'Konsistensi dalam melakukan kebaikan.',awareness:'Saya perlu memberi waktu untuk refleksi diri.',action_plan:'Menyediakan waktu singkat untuk evaluasi diri setiap malam.'},
+  {date:'2026-09-27',agenda:'Kajian Keislaman',memorable:'Pentingnya ikhlas dalam belajar.',awareness:'Saya ingin memperbaiki niat dan kebiasaan belajar.',action_plan:'Membuat satu catatan hal baik setiap pekan.'},
+  {date:'2026-10-04',agenda:'Kajian Keislaman',memorable:'Mempraktikkan nilai yang dipelajari.',awareness:'Saya menyadari perlu lebih konsisten.',action_plan:'Menerapkan satu kebiasaan baik yang sederhana.'}
+ ]});
+function short(value,max=230){const t=String(value||'').trim().replace(/\s+/g,' ');return t.length>max?t.slice(0,max-1)+'…':t;}
+function dates(v){try{return new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'short',year:'numeric'}).format(new Date(v+'T12:00:00+08:00'))}catch{return 'Tanggal tidak diketahui'}}
+function emptyReport(label){return '<div class="reflection-empty"><span class="reflection-icon">✦</span><strong>Belum ada '+escape(label)+'</strong><p>Setelah kegiatan dan pengisian melalui link fasilitator, rangkumanmu akan muncul di sini.</p></div>'}
+function reportBar(label,n,max,suffix){return '<div class="report-bar-row"><span>'+escape(label)+'</span><div class="report-bar-track"><i style="width:'+Math.max(0,Math.min(100,Math.round(n/Math.max(max,1)*100)))+'%"></i></div><b>'+escape(String(n))+escape(suffix||'')+'</b></div>'}
+function renderReport(data){
+ const tahsin=(data.tahsin||[]).slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+ const kajian=(data.kajian||[]).slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+ const count=tahsin.length+kajian.length;
+ $('reflection-overview').innerHTML=[
+  ['Refleksi Tahsin',tahsin.length],['Refleksi Kajian',kajian.length],['Total refleksi',count]
+ ].map(([label,n])=>'<div class="reflection-kpi"><strong>'+n+'</strong><small>'+label+'</small></div>').join('');
+ const latestT=tahsin.at(-1),latestK=kajian.at(-1);
+ const sentence=count===0?'Perjalanan pembinaanmu siap dicatat. Hadiri kegiatan dan isi refleksi lewat link dari fasilitator agar rangkumanmu tumbuh dari waktu ke waktu.':
+ count===1?'Kamu sudah mencatat refleksi pertama. Lanjutkan kebiasaan meninjau pelajaran dan target kecilmu pada kegiatan berikutnya.':
+ 'Sudah '+count+' refleksi tersimpan. Gunakan catatan yang pernah kamu buat untuk meninjau kembali komitmen, bukan membandingkan pencapaianmu dengan peserta lain.';
+ let change='';
+ if(tahsin.length>=2){const first=tahsin[0].confidence,last=latestT.confidence;change=' Penilaian kepercayaan dirimu saat Tahsin tercatat '+first+'/5 pada awal dan '+last+'/5 pada catatan terakhir. Ini laporan diri, bukan penilaian kemampuan oleh pengajar.';}
+ $('reflection-narrative').textContent=sentence+change;
+ const meaningful=latestT?.goal?'Target latihan terakhirmu: '+short(latestT.goal,180):'Setiap latihan kecil memberi kesempatan untuk memperbaiki bacaan.';
+ if(!tahsin.length)$('tahsin-report').innerHTML=emptyReport('refleksi Tahsin');
+ else if(tahsin.length===1)$('tahsin-report').innerHTML='<div class="reflection-single"><span class="kicker">'+escape(dates(latestT.date))+'</span><h4>Refleksi pertamamu</h4><p>'+escape(short(latestT.lesson))+'</p><div class="reflection-soft">Kepercayaan diri '+escape(latestT.confidence)+'/5 · Latihan '+escape(latestT.practice)+'</div><strong>Target berikutnya</strong><p>'+escape(short(latestT.goal))+'</p></div>';
+ else{
+  const bars=tahsin.map((t,i)=>reportBar('Pertemuan '+(i+1),Number(t.confidence)||0,5,'/5')).join('');
+  const freq=['Belum sempat','1 kali','2–3 kali','4 kali atau lebih'];const counts=freq.map(x=>({key:x,num:tahsin.filter(t=>t.practice===x).length}));
+  const peak=Math.max(1,...counts.map(x=>x.num));
+  const list=tahsin.map(t=>'<div class="reflection-history-entry"><b>'+escape(dates(t.date))+'</b><p>'+escape(short(t.lesson,350))+'</p><small>Target: '+escape(short(t.goal,220))+'</small></div>').join('');
+  $('tahsin-report').innerHTML='<div class="report-chart-grid"><div><h4>Kepercayaan diri per pertemuan</h4><p class="report-hint">Penilaian mandiri, skala 1 sampai 5.</p>'+bars+'</div><div><h4>Konsistensi latihan mandiri</h4><p class="report-hint">Frekuensi yang dilaporkan setiap pertemuan.</p>'+counts.map(x=>reportBar(x.key,x.num,peak,'')).join('')+'</div></div><div class="reflection-soft"><b>Saran untuk pekan berikutnya</b><p>'+escape(meaningful)+'</p></div><details class="reflection-history"><summary>Lihat '+tahsin.length+' catatan Tahsin</summary>'+list+'</details>';
  }
- const latest=[...responses].sort((a,b)=>String(b.submitted_at||'').localeCompare(String(a.submitted_at||'')))[0];
- $('tahsin-progress').innerHTML='<div class="tahsin-stat"><strong>'+responses.length+'</strong><small>Refleksi tercatat</small></div><div class="tahsin-stat"><strong>'+(latest?latest.confidence+'/5':'—')+'</strong><small>Kepercayaan diri terakhir (penilaian diri)</small></div><div class="tahsin-stat"><strong>'+escape(latest?.practice_frequency||'—')+'</strong><small>Latihan mandiri terakhir</small></div>';
- $('tahsin-sessions').innerHTML=tahsin.length?tahsin.map(t=>{
-  const recorded=responses.find(x=>x.session_id===t.session_id);
-  return '<div class="tahsin-session"><div><strong>'+escape(t.activity_name)+'</strong><small>'+escape(fmt(t.activity_date))+' · Kehadiran: Hadir</small><span class="service-status">'+(t.reflection_submitted?'Refleksi tercatat':'Menunggu refleksi')+'</span>'+(recorded?'<small>Kepercayaan diri: '+recorded.confidence+'/5 · Latihan: '+escape(recorded.practice_frequency)+'</small>':'')+'</div><button type="button" data-open-tahsin="'+escape(t.session_id)+'">'+(t.reflection_submitted?'Lihat / perbarui':'Isi Refleksi')+'</button></div>';
- }).join(''):'<div class="empty-state"><span class="empty-icon">✧</span><strong>Belum ada pertemuan Tahsin</strong><p>Setelah absensi Tahsin dicatat dan kamu berstatus Hadir, refleksinya akan muncul di sini. Link dari fasilitator juga akan membawamu ke pertemuan tersebut.</p></div>';
- loaded.tahsin=true;
+ if(!kajian.length)$('kajian-report').innerHTML=emptyReport('refleksi Kajian');
+ else if(kajian.length===1){
+  const k=latestK;$('kajian-report').innerHTML='<div class="reflection-single"><span class="kicker">'+escape(dates(k.date))+'</span><h4>Refleksi Kajian pertamamu</h4><p>'+escape(short(k.memorable||k.awareness||k.understanding))+'</p><strong>Langkah yang kamu rencanakan</strong><p>'+escape(short(k.action_plan||'Belum tercatat'))+'</p></div>';
+ }else{
+  const monthly=new Map();for(const k of kajian){const key=String(k.date||'').slice(0,7)||'Lainnya';monthly.set(key,(monthly.get(key)||0)+1)}
+  const values=[...monthly.entries()].slice(-6),high=Math.max(1,...values.map(x=>x[1]));
+  const monthBars=values.map(([key,v])=>reportBar(key,v,high,'')).join('');
+  const list=kajian.map(k=>'<div class="reflection-history-entry"><b>'+escape(dates(k.date))+'</b><p>'+escape(short(k.memorable||k.awareness||k.understanding,350))+'</p><small>Rencana: '+escape(short(k.action_plan||'Belum tercatat',220))+'</small></div>').join('');
+  $('kajian-report').innerHTML='<div class="report-chart-grid"><div><h4>Konsistensi refleksi Kajian</h4><p class="report-hint">Jumlah refleksi yang telah kamu kirim setiap bulan.</p>'+monthBars+'</div><div class="reflection-soft"><h4>Hal yang paling membekas belakangan ini</h4><p>'+escape(short(latestK.memorable||latestK.awareness||latestK.understanding,280))+'</p><h4>Komitmen terakhirmu</h4><p>'+escape(short(latestK.action_plan||'Belum dicatat',280))+'</p></div></div><details class="reflection-history"><summary>Lihat '+kajian.length+' catatan Kajian</summary>'+list+'</details>';
+ }
+ const nick=String(data.name||'').trim().split(/\s+/)[0]||'Awardee';
+ $('awardee-first-name').textContent=nick;
+ $('welcome-recommendation').textContent= count?sentence: 'Mulai dari satu bacaan, satu pembelajaran, atau satu refleksi yang bermakna.';
 }
-async function openPanel(panel){
+async function pullReflectionReport(){
  if(!member())return;
- try{
-  if(panel==='services')await pullServices();
-  if(panel==='tahsin'){await pullTahsin();const q=new URLSearchParams(location.search).get('tahsin');if(q&&tahsin.some(t=>t.session_id===q))openTahsin(q)}
- }catch(e){if(panel==='services')$('service-history').textContent='Gagal memuat pengajuan: '+e.message;else $('tahsin-sessions').textContent='Gagal memuat Tahsin: '+e.message;}
+ if(demo()){renderReport(demoReport());return}
+ const {data,error}=await sb().rpc('my_learning_reflection_report');
+ if(error)throw error;
+ renderReport(data||{name:'Awardee',tahsin:[],kajian:[]});
 }
+async function openPanel(panel){if(!member())return;try{if(panel==='services')await pullServices();if(panel==='tahsin')await pullReflectionReport();}catch(e){if(panel==='services')$('service-history').textContent='Gagal memuat pengajuan: '+e.message;else $('tahsin-report').textContent='Gagal memuat refleksi: '+e.message;}}
 function openRequest(service){
  const research=service==='research_clinic';
  $('service-type').value=service;
@@ -56,27 +97,6 @@ function openRequest(service){
  $('service-topic').focus();
 }
 function closeRequest(){$('service-dialog').hidden=true;feedback('service-feedback','');}
-function openTahsin(id){
- const t=tahsin.find(x=>x.session_id===id);if(!t)return;
- $('tahsin-session').value=id;$('tahsin-form-title').textContent='Refleksi '+t.activity_name;
- $('tahsin-form-date').textContent=fmt(t.activity_date);
- $('tahsin-previous-wrap').hidden=!t.previous_goal;
- $('tahsin-previous').required=Boolean(t.previous_goal);
- $('tahsin-previous-label').textContent=t.previous_goal?'Target pekan sebelumnya: '+t.previous_goal:'';
- $('tahsin-form').reset();
- const existing=responses.find(x=>x.session_id===id);
- if(existing){
-  $('tahsin-lesson').value=existing.lesson||'';
-  $('tahsin-goal').value=existing.improvement_goal||'';
-  $('tahsin-confidence').value=existing.confidence||3;
-  $('tahsin-practice').value=existing.practice_frequency||'2–3 kali';
-  $('tahsin-previous').value=existing.previous_goal_review||'';
-  for(const el of document.querySelectorAll('[name=tahsin-challenge]'))el.checked=(existing.challenges||[]).includes(el.value);
- }
- $('tahsin-form-card').hidden=false;
- feedback('tahsin-feedback','');
- $('tahsin-form-card').scrollIntoView({behavior:'smooth',block:'start'});
-}
 document.querySelectorAll('[data-service-open]').forEach(b=>b.addEventListener('click',()=>openRequest(b.dataset.serviceOpen)));
 $('service-close').addEventListener('click',closeRequest);
 $('service-dialog').addEventListener('click',e=>{if(e.target===$('service-dialog'))closeRequest()});
@@ -96,27 +116,6 @@ $('service-form').addEventListener('submit',async e=>{
  }catch(err){feedback('service-feedback',err.message)}
  finally{busy=false;btn.disabled=false}
 });
-$('tahsin-sessions').addEventListener('click',e=>{const b=e.target.closest('[data-open-tahsin]');if(b)openTahsin(b.dataset.openTahsin)});
-$('tahsin-form').addEventListener('submit',async e=>{
- e.preventDefault();if(busy)return;
- busy=true;const btn=$('tahsin-send');btn.disabled=true;
- try{
-  if(demo())throw Error('Mode Demo tidak mengirim refleksi asli. Masuk menggunakan akun Awardee.');
-  const payload={p_session:$('tahsin-session').value,p_lesson:$('tahsin-lesson').value.trim(),
-   p_challenges:[...document.querySelectorAll('[name=tahsin-challenge]:checked')].map(x=>x.value),
-   p_confidence:Number($('tahsin-confidence').value),p_practice:$('tahsin-practice').value,
-   p_goal:$('tahsin-goal').value.trim(),p_previous:$('tahsin-previous-wrap').hidden?null:$('tahsin-previous').value||null};
-  const {error}=await sb().rpc('submit_my_tahsin_reflection',payload);if(error)throw error;
-  feedback('tahsin-feedback','Refleksi berhasil disimpan. Terima kasih sudah bertumbuh!',true);
-  await pullTahsin();bridge()?.notify('Refleksi Tahsin tersimpan untuk pertemuan ini.');
-  $('tahsin-form-card').hidden=true;
- }catch(err){feedback('tahsin-feedback',err.message)}
- finally{busy=false;btn.disabled=false}
-});
-window.addEventListener('readmap:ready',()=>{
- if(!member())return;
- const deep=new URLSearchParams(location.search).get('tahsin');
- if(deep){bridge().openPanel('tahsin');$('tahsin-panel').scrollIntoView({behavior:'smooth',block:'start'});}
-});
+window.addEventListener('readmap:ready',()=>pullReflectionReport().catch(error=>{$('welcome-recommendation').textContent='Rangkuman refleksi belum dapat dimuat: '+error.message}));
 window.addEventListener('readmap:panel',e=>openPanel(e.detail.panel));
 })();
