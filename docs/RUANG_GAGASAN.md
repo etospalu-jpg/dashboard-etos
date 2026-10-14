@@ -18,3 +18,5 @@
 - Konten sampul public bucket tetap berpotensi diakses jika URL pernah diketahui walau artikel disembunyikan, sampai file dihapus; jangan mengunggah materi sensitif.
 - URL publik default: https://gagasan-etos-palu.vercel.app; jika memasang subdomain kustom, ubah canonical, share origin, dan test OG kembali.
 - Meta WhatsApp dibuat di server saat permintaan. WhatsApp mungkin menyimpan cache preview untuk URL yang telah dibagikan.
+
+- DOCX/TXT/MD importer uses pinned Mammoth browser extraction of raw text. Original document stays on-device, plain text is edited and stored in Postgres.

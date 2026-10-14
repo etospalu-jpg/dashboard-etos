@@ -3,7 +3,7 @@
 const G=window.GG,$=G.$,s=G.s,esc=G.esc;
 const short=(x,n=160)=>String(x||'').length>n?String(x).slice(0,n-1)+'…':String(x||'');
 const published=a=>a.status==='published'&&a.share_enabled;
-function card(a){const image=G.cover(a);return '<article class="article-card">'+(image?'<img loading="lazy" alt="Sampul '+esc(a.title)+'" src="'+esc(image)+'">':'')+'<div class="article-card-content"><span class="kicker">'+esc(a.category)+'</span><h3>'+esc(a.title)+'</h3><p>'+esc(short(a.excerpt))+'</p><div class="card-bottom"><span>'+esc(a.author_name)+' · '+esc(G.date(a.published_at))+'</span><button data-read="'+esc(a.id)+'" type="button">Baca ↗</button></div></div></article>'}
+function card(a){const image=G.cover(a);return '<article class="article-card">'+(image?'<img loading="lazy" data-read="'+esc(a.id)+'" alt="Sampul '+esc(a.title)+'" src="'+esc(image)+'">':'')+'<div class="article-card-content"><span class="kicker">'+esc(a.category)+'</span><h3 data-read="'+esc(a.id)+'">'+esc(a.title)+'</h3><p>'+esc(short(a.excerpt))+'</p><div class="card-bottom"><span>'+esc(a.author_name)+' · '+esc(G.date(a.published_at))+'</span><button data-read="'+esc(a.id)+'" type="button">Baca ↗</button></div></div></article>'}
 function feed(){
  const q=$('search').value.trim().toLowerCase(),c=$('category-filter').value;
  const all=s.articles.filter(a=>published(a)&&(!c||a.category===c)&&(!q||(a.title+' '+a.excerpt+' '+a.author_name+' '+a.body).toLowerCase().includes(q)));

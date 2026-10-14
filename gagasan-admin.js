@@ -13,7 +13,7 @@ async function api(action,params={}){
 }
 function currentMonth(){const parts=new Intl.DateTimeFormat('en-US',{year:'numeric',month:'2-digit',timeZone:'Asia/Makassar'}).formatToParts(new Date());return parts.find(x=>x.type==='year').value+'-'+parts.find(x=>x.type==='month').value}
 function periodArticle(a){const month=$('gagasan-period').value;const dt=a.status==='published'?a.published_at:a.created_at;return !month||String(dt||'').slice(0,7)===month}
-function cohortList(){const list=[...new Set(all.awardees.map(a=>a.angkatan).filter(Boolean))].sort();$('gagasan-cohort').innerHTML='<option value="">Seluruh angkatan</option>'+list.map(x=>'<option>'+esc(x)+'</option>').join('')}
+function cohortList(){const select=$('gagasan-cohort'),prior=select.value,list=[...new Set(all.awardees.map(a=>a.angkatan).filter(Boolean))].sort();select.innerHTML='<option value="">Seluruh angkatan</option>'+list.map(x=>'<option>'+esc(x)+'</option>').join('');if(list.includes(prior))select.value=prior}
 function authors(){
  const cohort=$('gagasan-cohort').value,roster=all.awardees.filter(a=>!cohort||a.angkatan===cohort);
  const relevant=all.articles.filter(a=>a.status==='published'&&periodArticle(a)),authors=new Map();

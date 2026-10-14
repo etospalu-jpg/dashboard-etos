@@ -42,7 +42,7 @@ async function prepare(file,title,category){
 }
 async function upload(file,title,category){
  if(!s.user?.id)throw Error('Silakan masuk ke akun Awardee.');
- const blob=await prepare(file,title,category),id=window.crypto?.randomUUID?.()||Date.now()+'-'+Math.random().toString(36).slice(2);
+ const blob=await prepare(file,title,category),id=window.crypto?.randomUUID?.()||'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.floor(Math.random()*16);return(c==='x'?r:(r&3|8)).toString(16)});
  const path=s.user.id+'/'+id+'.jpg';
  const {error}=await G.sb.storage.from('gagasan-covers').upload(path,blob,{contentType:'image/jpeg',cacheControl:'3600',upsert:false});
  if(error)throw Error('Storage menolak foto: '+error.message);

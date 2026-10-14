@@ -51,9 +51,29 @@ async function save(status){
  }catch(e){if(uploaded&&!committed)await Pic.cleanup(uploaded);G.notice('Gagal menyimpan: '+e.message,true)}
  finally{s.saving=false;[$('save-draft'),$('publish-article')].forEach(b=>b.disabled=false)}
 }
+async function importDocument(file){
+ if(!file)return;
+ if(file.size>5*1024*1024||!file.size)throw Error('Dokumen maksimal 5 MB.');
+ const name=String(file.name||''),extension=name.split('.').pop().toLowerCase();
+ if(!['docx','txt','md'].includes(extension))throw Error('Unggah DOCX, TXT atau MD.');
+ if($('article-body').value.trim()&&!confirm('Ganti isi tulisan pada editor dengan isi dokumen?'))return;
+ let text='';
+ if(extension==='docx'){
+  if(!window.mammoth?.extractRawText)throw Error('Pembaca dokumen Word belum tersedia. Coba muat ulang atau salin teks ke editor.');
+  const result=await window.mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()});
+  text=result.value||'';
+ }else text=await file.text();
+ text=text.replace(/\\r\\n/g,'\\n').trim();
+ if(!text||text.length>50000)throw Error('Dokumen kosong atau lebih dari 50.000 karakter.');
+ $('article-body').value=text;
+ if(!$('article-title').value.trim())$('article-title').value=name.replace(/\\.(docx|txt|md)$/i,'').replace(/[-_]+/g,' ').slice(0,180);
+ $('article-body').dispatchEvent(new Event('input',{bubbles:true}));
+ G.notice('Isi dokumen berhasil dimuat. Periksa dan lengkapi ringkasan sebelum diterbitkan.');
+}
 function init(){
  $('article-form').addEventListener('submit',e=>{e.preventDefault();save('published')});
  $('save-draft').addEventListener('click',()=>save('draft'));
+ $('article-import').addEventListener('change',async e=>{const f=e.target.files?.[0];try{await importDocument(f)}catch(error){G.notice('Tidak dapat membaca dokumen: '+error.message,true)}finally{e.target.value=''}});
  $('editor-cancel').addEventListener('click',()=>G.view('mine'));
  $('mine-create').addEventListener('click',()=>edit());
  $('create-cta').addEventListener('click',()=>{if(s.member)edit();else $('login-panel').scrollIntoView({behavior:'smooth'})});

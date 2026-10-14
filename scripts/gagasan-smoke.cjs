@@ -4,6 +4,8 @@ const ROOT=path.join(__dirname,'..');
 const source=p=>fs.readFileSync(path.join(ROOT,p),'utf8');
 const html=source('gagasan.html'),admin=source('readmap-admin.html'),publicCode=source('gagasan-public/api/article.js');
 for(const file of ['gagasan-foundation.js','gagasan-feed.js','gagasan-covers.js','gagasan-editor.js','gagasan-admin.js','gagasan-public/api/article.js','ops/readmap-admin-handler.js'])new vm.Script(source(file),{filename:file});
+assert(html.includes('id="article-import"'),'DOCX/TXT import control missing');
+assert(html.includes('mammoth@1.13.0'),'Pinned DOCX importer missing');
 for(const id of ['login-form','feed-grid','featured','article-form','save-draft','publish-article','cover-preview-box','article-cover','mine-list','read-title','share-article'])assert(html.includes('id="'+id+'"'),'Missing UI '+id);
 for(const file of ['gagasan-foundation.js','gagasan-feed.js','gagasan-covers.js','gagasan-editor.js'])assert(html.includes('/'+file+'?v='),'Missing script '+file);
 for(const id of ['gagasan-period','gagasan-stats','gagasan-authors','gagasan-articles'])assert(admin.includes('id="'+id+'"'),'Missing admin UI '+id);

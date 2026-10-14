@@ -3,7 +3,7 @@
 <title>Ruang Gagasan — Karya Awardee ETOS ID Palu</title><meta name="description" content="Ruang menulis dan membaca gagasan Awardee ETOS ID Palu. Opini, esai, refleksi, dan resensi buku.">
 <link rel="icon" href="/favicon.svg?v=38"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/gagasan.css?v=1"></head>
+<link rel="stylesheet" href="/gagasan.css?v=2"></head>
 <body>
 <div class="notice-stack" id="toast" role="status" aria-live="polite" hidden></div>
 <header class="site-header"><div class="header-inner">
@@ -32,7 +32,7 @@
 <label class="editor-label">Judul tulisan <span>*</span><input id="article-title" required maxlength="180" placeholder="Tuliskan judul yang menarik…" class="title-input"></label>
 <div class="two-fields"><label class="editor-label">Kategori <span>*</span><select id="article-category" required><option>Opini</option><option>Esai</option><option>Resensi Buku</option><option>Refleksi</option><option>Gagasan &amp; Inovasi</option><option>Artikel Ilmiah Populer</option></select></label><label class="editor-label">Perkiraan waktu baca<input id="read-time" value="0 menit" readonly class="readonly-input"></label></div>
 <label class="editor-label">Ringkasan tulisan <span>*</span><textarea id="article-excerpt" rows="3" maxlength="400" placeholder="Ringkas gagasan utamamu dalam dua atau tiga kalimat…"></textarea><small>Ditampilkan di daftar artikel dan preview WhatsApp. Minimal 20 karakter saat diterbitkan.</small></label>
-<div class="editor-label">Isi tulisan <span>*</span></div>
+<div class="editor-label">Isi tulisan <span>*</span></div><div class="writing-import"><label for="article-import" class="upload-label" style="margin-top:0">↥ Ambil tulisan dari Word atau file teks</label><input id="article-import" type="file" accept=".docx,.txt,.md,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown" hidden><small>File dibaca menjadi draf di perangkatmu. Konten bisa dirapikan sebelum diterbitkan; dokumen asli tidak diunggah ke Storage.</small></div>
 <div class="writing-toolbar"><button type="button" data-format="bold" title="Tebal"><strong>B</strong></button><button type="button" data-format="italic" title="Miring"><em>I</em></button><button type="button" data-format="h2" title="Subjudul">H₂</button><button type="button" data-format="quote" title="Kutipan">❞</button><button type="button" data-format="list" title="Daftar">☷</button><span>Gunakan format sederhana agar nyaman dibaca.</span></div>
 <textarea id="article-body" class="article-body-input" rows="19" placeholder="Ada banyak hal yang layak ditulis. Mulailah dari satu kalimat…" required></textarea><div class="writing-count"><span id="word-count">0 kata</span><span>Teks tersimpan di database; bukan file Word.</span></div>
 <div class="editor-preview" id="editor-preview" hidden><h3>Pratinjau tulisan</h3><div id="preview-content"></div></div>
@@ -44,4 +44,4 @@
 <footer class="site-footer"><div><strong>RUANG GAGASAN<span class="punct">.</span></strong><span>Menulis, berpikir, bertumbuh.</span></div><span>ETOS ID Palu · Dibuat untuk perjalanan intelektual Awardee</span><a href="/readmap.html">Ruang Awardee ↗</a></footer>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/dist/umd/supabase.min.js"></script>
-<script defer src="/gagasan-foundation.js?v=1"></script><script defer src="/gagasan-feed.js?v=1"></script><script defer src="/gagasan-covers.js?v=1"></script><script defer src="/gagasan-editor.js?v=1"></script></body></html>
+<script defer src="/gagasan-foundation.js?v=1"></script><script defer src="/gagasan-feed.js?v=1"></script><script defer src="/gagasan-covers.js?v=1"></script><script defer src="https://cdn.jsdelivr.net/npm/mammoth@1.13.0/mammoth.browser.min.js"></script><script defer src="/gagasan-editor.js?v=2"></script></body></html>
