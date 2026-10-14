@@ -23,7 +23,7 @@ async function importFile(e){
  const output=document.getElementById('tahsin-import-result');output.textContent='Membaca file…';
  try{
   if(file.size>4*1024*1024)throw Error('Ukuran file maksimal 4 MB.');
-  if(!window.XLSX)throw Error('Pembaca Excel belum tersedia. Coba muat ulang Dashboard.');
+  if(!window.XLSX){await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';script.onload=resolve;script.onerror=()=>reject(Error('Pembaca Excel gagal dimuat. Pastikan internet tersedia.'));document.head.appendChild(script)})}if(!window.XLSX)throw Error('Pembaca Excel tidak tersedia.');
   const wb=XLSX.read(await file.arrayBuffer(),{type:'array'}),sh=wb.Sheets[wb.SheetNames[0]];
   if(!sh)throw Error('Sheet pertama kosong.');
   const grid=XLSX.utils.sheet_to_json(sh,{header:1,defval:'',raw:false}).slice(0,1050);
