@@ -12,3 +12,10 @@ assert(sql.includes("'readmap-reading-evidence',false,2097152"),'Expected a priv
 assert(sql.includes('cardinality(evidence_paths) <= 3'),'Three photo max required');
 assert(!src.includes('file_b64'),'Never store photos as DB base64');
 console.log('READMAP evidence contracts: PASS');
+
+assert(src.includes("const ext=blob.type==='image/jpeg'?'jpg':'webp'"),'Fallback JPEG filename required');
+assert(src.includes('Supabase Storage menolak unggahan:'),'Upload rejection must be visible');
+assert(src.includes("phase='memproses atau mengunggah foto'"),'Visible upload phase required');
+assert(src.includes("phase='menyimpan data buku'"),'Visible insert phase required');
+assert(src.includes("total!==null&&(!Number.isInteger(total)"),'Book page validation required');
+console.log('READMAP cover diagnosis contracts: PASS');

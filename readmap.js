@@ -77,34 +77,39 @@ async function cleanEvidence(paths){
 }
 
 async function compressedCover(file){
- if(!file)return null;
+ if(!file)throw Error('Pilih foto sampul terlebih dahulu.');
  const allowed=['image/jpeg','image/png','image/webp','image/heic','image/heif'];
- if(!allowed.includes(file.type)&&!/\.(jpg|jpeg|png|webp|heic|heif)$/i.test(file.name||''))throw Error('Gunakan foto sampul JPG, PNG, WebP, atau foto dari galeri.');
- if(file.size>15*1024*1024)throw Error('Ukuran foto awal maksimal 15 MB.');
- let img,url=null;
- try{
-  if(typeof createImageBitmap==='function')img=await createImageBitmap(file);
- }catch(_){}
+ if(!allowed.includes(file.type)&&!/\.(jpg|jpeg|png|webp|heic|heif)$/i.test(file.name||''))throw Error('Gunakan screenshot atau foto JPG, PNG, atau WebP.');
+ if(file.size===0)throw Error('File foto kosong. Pilih gambar lainnya.');
+ if(file.size>30*1024*1024)throw Error('Ukuran foto asli maksimal 30 MB. Pilih gambar lebih kecil.');
+ let img=null,url=null;
+ try{if(typeof createImageBitmap==='function')img=await createImageBitmap(file)}catch(_){}
  if(!img){
   url=URL.createObjectURL(file);
-  try{img=await new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('Foto tidak bisa dibaca. Coba kirim screenshot sampul dalam JPG atau PNG.'));image.src=url;})}
+  try{img=await new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('Browser tidak dapat membaca foto ini. Jika format HEIC, ubah ke JPG/PNG lalu unggah ulang.'));image.src=url})}
   finally{URL.revokeObjectURL(url)}
  }
- const scale=Math.min(1,760/img.width,1050/img.height);
- const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));
- const ctx=canvas.getContext('2d');if(!ctx)throw Error('Foto tidak dapat diproses di perangkat ini.');
- ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);img.close?.();
- const blob=await new Promise((resolve,reject)=>canvas.toBlob(x=>x?resolve(x):reject(Error('Gagal mengolah foto sampul.')),'image/webp',0.82));
- if(blob.size>5*1024*1024||blob.type!=='image/webp')throw Error('Perangkat tidak dapat mengompres foto. Gunakan screenshot dalam JPG/PNG.');
- return blob;
+ try{
+  if(!img.width||!img.height)throw Error('Dimensi gambar tidak valid.');
+  const scale=Math.min(1,760/img.width,1050/img.height);
+  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));
+  const ctx=canvas.getContext('2d');if(!ctx)throw Error('Browser tidak mendukung pemrosesan gambar.');
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+  const convert=async(type,quality)=>await new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(Error('Kompresi gambar gagal di browser ini.')) ,type,quality));
+  let blob=await convert('image/webp',0.8);
+  if(blob.type!=='image/webp')blob=await convert('image/jpeg',0.78);
+  if(!['image/webp','image/jpeg'].includes(blob.type)||blob.size>5*1024*1024)throw Error('Foto tidak dapat dikompresi ke ukuran yang didukung. Coba screenshot JPG/PNG.');
+  return blob;
+ }finally{img.close?.()}
 }
 async function uploadCover(file){
- const blob=await compressedCover(file);if(!blob)return null;
- if(isDemo()){return await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('Foto tidak dapat dibaca.'));reader.readAsDataURL(blob)})}
- if(!state.user?.id)throw Error('Sesi login belum siap.');
- const path=state.user.id+'/'+newId()+'.webp';
- const {error}=await sb.storage.from('readmap-book-covers').upload(path,blob,{contentType:'image/webp',upsert:false,cacheControl:'3600'});
- if(error)throw new Error('Unggah sampul gagal: '+error.message);
+ const blob=await compressedCover(file);
+ if(isDemo())return await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('Foto tidak dapat dibaca.'));reader.readAsDataURL(blob)});
+ if(!state.user?.id)throw Error('Sesi login belum siap. Silakan masuk kembali.');
+ const ext=blob.type==='image/jpeg'?'jpg':'webp';
+ const path=state.user.id+'/'+newId()+'.'+ext;
+ const {error}=await sb.storage.from('readmap-book-covers').upload(path,blob,{contentType:blob.type,upsert:false,cacheControl:'3600'});
+ if(error)throw Error('Supabase Storage menolak unggahan: '+error.message);
  return path;
 }
 async function deleteStoredCover(path){
@@ -219,23 +224,28 @@ on('enter-demo','click',enterDemo);
 on('open-demo-account','click',()=>{if(!isDemo())enterDemo()});
 on('leave-demo','click',exitDemo);
 on('reset-demo','click',async()=>{if(!confirm('Ulangi Mode Demo dari data contoh awal? Semua perubahan demo di browser ini akan direset.'))return;const fixture=window.READMAP_DEMO.reset(currentWeek);Object.assign(state,{books:fixture.books,entries:fixture.entries,videos:fixture.videos});await refreshCovers();render();notice('Mode Demo kembali ke 5 buku dan 5 video contoh.');});
-on('book-cover','change',()=>{clearCoverPreview();const file=$('book-cover').files?.[0];if(!file)return;if(!file.type.startsWith('image/')&&!/\.(jpg|jpeg|png|webp|heic|heif)$/i.test(file.name))return notice('Pilih foto atau screenshot sampul dari galeri.');state.coverPreviewUrl=URL.createObjectURL(file);$('book-cover-preview').src=state.coverPreviewUrl;show('book-cover-preview');$('cover-placeholder').hidden=true;notice('');});
+on('book-cover','change',()=>{clearCoverPreview();const file=$('book-cover').files?.[0];if(!file)return;if(!file.type.startsWith('image/')&&!/\.(jpg|jpeg|png|webp|heic|heif)$/i.test(file.name))return notice('Gunakan screenshot JPG/PNG/WebP.');if(file.size>30*1024*1024)return notice('Foto lebih dari 30 MB. Silakan pilih foto yang lebih kecil.');state.coverPreviewUrl=URL.createObjectURL(file);const image=$('book-cover-preview');image.onerror=()=>{clearCoverPreview();notice('Browser belum dapat menampilkan foto ini. Jika HEIC, gunakan screenshot JPG/PNG.')};image.src=state.coverPreviewUrl;show('book-cover-preview');$('cover-placeholder').hidden=true;notice('Foto '+file.name+' dipilih. Simpan Buku untuk mengunggahnya.');});
 on('member-login','submit',async e=>{e.preventDefault();if(!sb)return notice('Layanan login belum dapat dimuat.');const raw=$('username').value.trim().toUpperCase();const pin=$('pin').value.trim();if(!/^ETOS26-[A-F0-9]{10}$/.test(raw)||!/^\d{10}$/.test(pin))return notice('Periksa username dan PIN pribadi Anda.');const button=e.target.querySelector('button[type=submit]');button.disabled=true;try{const email=raw.toLowerCase()+'@readmap.etosidpalu.com';unwrap(await sb.auth.signInWithPassword({email,password:pin}));$('pin').value='';await identify()}catch(error){notice('Username atau PIN tidak sesuai. Hubungi pengelola jika memerlukan reset.')}finally{button.disabled=false}});
 on('signout','click',async()=>{
  if(isDemo()){exitDemo();return}
  await flushVideo();await sb.auth.signOut();state.awardee=null;state.user=null;hide('workspace');show('login');notice('Kamu berhasil keluar.');
 });
 on('book-form','submit',async e=>{
- e.preventDefault();const btn=e.target.querySelector('button[type=submit]');btn.disabled=true;let newCover=null;
+ e.preventDefault();const btn=e.target.querySelector('button[type=submit]');if(btn.disabled)return;btn.disabled=true;
+ let newCover=null,phase='memvalidasi data';
  try{
   const title=$('book-title').value.trim(),file=$('book-cover').files?.[0];
   if(title.length<2)throw Error('Judul buku minimal dua karakter.');
-  if(file)newCover=await uploadCover(file);
-  const book={awardee_id:member(),title,author:$('book-author').value.trim()||null,category:$('book-category').value,total_pages:Number($('book-total').value)||null,cover_path:newCover};
+  const rawTotal=$('book-total').value.trim(),total=rawTotal?Number(rawTotal):null;
+  if(total!==null&&(!Number.isInteger(total)||total<1||total>20000))throw Error('Total halaman harus 1 sampai 20.000.');
+  member();
+  if(file){phase='memproses atau mengunggah foto';notice('Memproses dan mengunggah foto sampul…');newCover=await uploadCover(file)}
+  phase='menyimpan data buku';notice('Menyimpan buku ke rak…');
+  const book={awardee_id:member(),title,author:$('book-author').value.trim()||null,category:$('book-category').value,total_pages:total,cover_path:newCover};
   if(isDemo()){state.books.unshift({...book,id:newId(),status:'Sedang Dibaca'});demoPersist();await refreshCovers();render();}
   else{const response=await sb.from('readmap_books').insert(book);unwrap(response);await loadAll()}
-  e.target.reset();clearCoverPreview();selectReadingBook();notice('Buku berhasil ditambahkan ke rak bukumu.');
- }catch(error){if(newCover&&!isDemo())await deleteStoredCover(newCover);err(error)}
+  e.target.reset();clearCoverPreview();selectReadingBook();notice('Buku berhasil disimpan'+(newCover?' beserta foto sampulnya.':'.'));
+ }catch(error){if(newCover&&!isDemo())await deleteStoredCover(newCover);notice('Gagal saat '+phase+': '+(error?.message||String(error)))}
  finally{btn.disabled=false}
 });
 
