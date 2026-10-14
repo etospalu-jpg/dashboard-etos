@@ -61,7 +61,7 @@ function enterDemo(){
  const fixture=window.READMAP_DEMO?.load(currentWeek);
  if(!fixture){notice('Mode Demo belum tersedia. Silakan muat ulang halaman.');return}
  state.demo=true;state.user=null;state.awardee='demo';state.books=fixture.books;state.entries=fixture.entries;state.videos=fixture.videos;
- hide('login');show('workspace');show('demo-banner');$('open-demo-account').hidden=true;refreshCovers().then(()=>{render();notice('')}).catch(err);
+ hide('login');show('workspace');show('demo-banner');$('open-demo-account').hidden=true;refreshCovers().then(()=>{render();notice('');window.dispatchEvent(new Event('readmap:ready'))}).catch(err);
 }
 function exitDemo(){
  if(ticker){clearInterval(ticker);ticker=null}
@@ -119,7 +119,7 @@ async function identify(){
   const found=unwrap(await sb.from('readmap_memberships').select('awardee_id').eq('user_id',state.user.id).maybeSingle());
   state.awardee=found?.awardee_id||null;
   if(!state.awardee)throw Error('Akun belum terhubung dengan data Etoser.');
-  hide('login');show('workspace');hide('demo-banner');$('open-demo-account').hidden=false;await loadAll();notice('');
+  hide('login');show('workspace');hide('demo-banner');$('open-demo-account').hidden=false;await loadAll();notice('');window.dispatchEvent(new Event('readmap:ready'));
  }catch(e){hide('workspace');show('login');err(e);await sb.auth.signOut();state.user=null}
 }
 async function loadAll(){
@@ -304,16 +304,16 @@ function updateAppNavigation(view){
  });
 }
 function selectTab(tab){
- const isVideo=tab==='videos';
+ if(!['books','videos','services','tahsin'].includes(tab))tab='books';
  document.querySelectorAll('[data-tab]').forEach(t=>{
   const active=t.dataset.tab===tab;
   t.classList.toggle('active',active);
   t.setAttribute('aria-selected',active?'true':'false');
   t.tabIndex=active?0:-1;
  });
- $('videos-panel').hidden=!isVideo;
- $('books-panel').hidden=isVideo;
- updateAppNavigation(isVideo?'videos':'books');
+ for(const section of ['books','videos','services','tahsin'])$(section+'-panel').hidden=section!==tab;
+ updateAppNavigation(tab);
+ if(tab==='services'||tab==='tahsin')window.dispatchEvent(new CustomEvent('readmap:panel',{detail:{panel:tab}}));
 }
 function scrollToApp(id){
  const target=$(id);
@@ -326,20 +326,23 @@ function jumpTo(tab,target){
 }
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{
  selectTab(b.dataset.tab);
- scrollToApp(b.dataset.tab==='books'?'books-panel':'videos-panel');
+ scrollToApp(b.dataset.tab+'-panel');
 }));
 document.querySelectorAll('[data-mobile-view]').forEach(b=>b.addEventListener('click',()=>{
  const view=b.dataset.mobileView;
  if(view==='home'){updateAppNavigation('home');window.scrollTo({top:0,behavior:'smooth'});return}
  if(view==='insights'){updateAppNavigation('insights');scrollToApp('learning-insights');return}
- selectTab(view);scrollToApp(view==='books'?'books-panel':'videos-panel');
+ selectTab(view);scrollToApp(view+'-panel');
 }));
 on('hero-book','click',()=>jumpTo('books',state.books.length?'reading-entry-card':'book-add-card'));
-on('hero-video','click',()=>jumpTo('videos','video-add-card'));
+on('hero-video','click',showVideoForm);
 on('quick-book','click',()=>jumpTo('books',state.books.length?'reading-entry-card':'book-add-card'));
-on('quick-video','click',()=>jumpTo('videos','video-add-card'));
+on('quick-video','click',()=>{selectTab('videos');scrollToApp('videos-panel')});
 on('shelf-add-book','click',()=>jumpTo('books','book-add-card'));
-on('shelf-add-video','click',()=>jumpTo('videos','video-add-card'));
+function showVideoForm(){selectTab('videos');show('video-add-card');$('video-add-card').scrollIntoView({behavior:'smooth',block:'start'});$('youtube-url').focus({preventScroll:true});}
+function closeVideoForm(){hide('video-add-card');}
+on('shelf-add-video','click',showVideoForm);
+on('close-video-form','click',closeVideoForm);
 on('youtube-url','input',()=>{
  const id=videoId($('youtube-url').value);
  if(!id){hide('video-preview');return}
@@ -363,7 +366,7 @@ on('video-form','submit',async e=>{
   const v={awardee_id:member(),youtube_id:id,title,thumbnail_url:imageUrl(id),duration_seconds:0,last_position_seconds:0,watched_intervals:[],status:'Belum Dimulai'};
   if(isDemo()){state.videos.unshift({...v,id:newId()});demoPersist();render();}
   else{unwrap(await sb.from('readmap_videos').insert({awardee_id:v.awardee_id,youtube_id:id,title,thumbnail_url:v.thumbnail_url}));await loadAll();}
-  e.target.reset();hide('video-preview');$('youtube-hint').textContent='Tautan video tersimpan. Pilih Tonton untuk membuka pemutar READMAP.';
+  e.target.reset();hide('video-preview');closeVideoForm();$('youtube-hint').textContent='Tautan video tersimpan. Pilih Tonton untuk membuka pemutar READMAP.';
   notice('Video masuk ke playlist belajar. Thumbnail asli YouTube ditampilkan otomatis.');
  }catch(error){err(error)}finally{btn.disabled=false}
 });
@@ -428,5 +431,6 @@ async function flushVideo(){
 on('save-insight','click',async()=>{try{if(!state.activeVideo)throw Error('Pilih video dahulu');await flushVideo();const insight=$('video-insight').value.trim();if(!isDemo())unwrap(await sb.from('readmap_videos').update({insight,updated_at:new Date().toISOString()}).eq('id',state.activeVideo.id));state.activeVideo.insight=insight;notice('Pembelajaran video tersimpan.')}catch(e){err(e)}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flushVideo().catch(()=>{})});
 window.addEventListener('pagehide',()=>{flushVideo().catch(()=>{})});
+window.ETOS_AWARDEE_BRIDGE={client:sb,getAwardee:()=>state.awardee,getIsDemo:()=>state.demo,openPanel:selectTab,notify:notice};
 if(!sb)notice('Koneksi Supabase gagal dimuat. Periksa jaringan.');else identify().catch(err);
 })();
