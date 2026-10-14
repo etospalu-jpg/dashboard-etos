@@ -12,10 +12,13 @@ async function refresh(){
  $('asrama-sync-status').textContent='Memeriksa status konektor…';
  try{
   const d=await call('asramaStatus');
-  $('asrama-sync-status').innerHTML=d.lastConnectorAt?
-   '<strong>Sinkronisasi otomatis aktif</strong><p>Perubahan terakhir diterima '+esc(prettyDate(d.lastConnectorAt))+' WITA.</p>':
-   d.connected?'<strong>Kunci sudah dibuat — menunggu sinkronisasi pertama</strong><p>Jalankan “Sinkronisasi sekarang” di menu ETOS · Asrama pada Google Sheets untuk memulai.</p>':
-   '<strong>Data awal tersedia · Sambungan otomatis belum aktif</strong><p>Aktifkan konektor satu kali melalui dua langkah di bawah. Spreadsheet tetap tidak diubah oleh Dashboard.</p>';
+  const minutesSincePing=d.lastConnectorAt?(Date.now()-new Date(d.lastConnectorAt).getTime())/60000:Infinity;
+  $('asrama-sync-status').innerHTML=d.lastConnectorAt&&minutesSincePing<=8?
+   '<strong>Konektor terhubung · Pemantauan otomatis berjalan</strong><p>Pemeriksaan terakhir '+esc(prettyDate(d.lastConnectorAt))+' WITA. Sheet dibaca sekitar setiap menit.</p>':
+   d.lastConnectorAt?
+   '<strong>Konektor belum memberi kabar terbaru</strong><p>Sinkronisasi terakhir '+esc(prettyDate(d.lastConnectorAt))+' WITA. Periksa pemicu dan log eksekusi Apps Script milik akun Google Palu.</p>':
+   d.connected?'<strong>Kunci sudah dibuat — menunggu koneksi pertama</strong><p>Jalankan etosForceSync, lalu etosInstallTriggers di proyek Apps Script mandiri.</p>':
+   '<strong>Data awal tersedia · Sambungan otomatis belum aktif</strong><p>Aktifkan pemantauan mandiri pada akun Google Palu. Spreadsheet pusat tidak perlu diubah.</p>';
   $('asrama-sync-totals').innerHTML=[['Pertemuan',d.sessionCount],['Catatan Absensi',d.recordCount],['Sumber','Google Sheets']].map(([name,v])=>'<div class="metric"><b>'+esc(v)+'</b><small>'+esc(name)+'</small></div>').join('');
   $('asrama-sync-events').innerHTML=d.sessions?.length?d.sessions.map(e=>
     '<div class="asrama-sync-row"><div><b>'+esc(e.name)+'</b><small>'+esc(e.date)+'</small></div><div><strong>'+e.present+'</strong><small>Hadir</small></div><div><strong>'+e.absent+'</strong><small>Izin/Sakit/Alpa</small></div></div>').join(''):
