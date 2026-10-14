@@ -91,7 +91,7 @@ BEGIN
   v_source:='asrama2026:'||v_code;
   SELECT s.id INTO v_session FROM public.attendance_sessions s
   WHERE s.source_external_key=v_source AND s.source_type='asrama' FOR UPDATE;
-  IF jsonb_object_length(v_status)=0 THEN
+  IF (SELECT count(*)::int FROM jsonb_object_keys(v_status))=0 THEN
     IF v_session IS NOT NULL THEN
       DELETE FROM public.attendance_records WHERE session_id=v_session;
       DELETE FROM public.attendance_sessions WHERE id=v_session;
@@ -120,7 +120,7 @@ BEGIN
    ON CONFLICT(session_id,awardee_id) DO UPDATE
     SET status=EXCLUDED.status,updated_at=now(),checked_at=now();
   END LOOP;
-  v_sessions:=v_sessions+1;v_count:=v_count+jsonb_object_length(v_status);
+  v_sessions:=v_sessions+1;v_count:=v_count+(SELECT count(*)::int FROM jsonb_object_keys(v_status));
  END LOOP;
  -- Other wilayah sessions are never touched.
  -- Missing agenda keys are not deleted; this avoids accidental data loss on partial fetches.
