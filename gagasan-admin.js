@@ -11,7 +11,7 @@ async function api(action,params={}){
  if(!r.ok)throw Error(obj.error||'Sesi Superadmin belum aktif. Login PIN lewat Dashboard ETOS.');
  return obj;
 }
-function currentMonth(){const d=new Date();return new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',timeZone:'Asia/Makassar'}).format(d)}
+function currentMonth(){const parts=new Intl.DateTimeFormat('en-US',{year:'numeric',month:'2-digit',timeZone:'Asia/Makassar'}).formatToParts(new Date());return parts.find(x=>x.type==='year').value+'-'+parts.find(x=>x.type==='month').value}
 function periodArticle(a){const month=$('gagasan-period').value;const dt=a.status==='published'?a.published_at:a.created_at;return !month||String(dt||'').slice(0,7)===month}
 function cohortList(){const list=[...new Set(all.awardees.map(a=>a.angkatan).filter(Boolean))].sort();$('gagasan-cohort').innerHTML='<option value="">Seluruh angkatan</option>'+list.map(x=>'<option>'+esc(x)+'</option>').join('')}
 function authors(){

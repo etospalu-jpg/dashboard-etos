@@ -20,7 +20,7 @@ G.md=text=>{
  for(const raw of lines){const s=raw.trim();if(!s){flush();continue}if(s.startsWith('## ')){flush();out.push('<h2>'+inline(s.slice(3))+'</h2>')}else if(s.startsWith('> ')){flush();out.push('<blockquote>'+inline(s.slice(2))+'</blockquote>')}else if(/^[-*] /.test(s)){if(para.length)flush();list.push(s.slice(2))}else{if(list.length)flush();para.push(s)}}
  flush();return out.join('\n')
 };
-G.view=id=>{G.s.view=id;['feed','mine','editor','article'].forEach(k=>$(k+'-view').hidden=k!==id);document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('nav-active',b.dataset.view===id));window.scrollTo({top:0,behavior:'instant'})};
+G.view=id=>{G.s.view=id;$('intro').hidden=id!=='feed';['feed','mine','editor','article'].forEach(k=>$(k+'-view').hidden=k!==id);document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('nav-active',b.dataset.view===id));window.scrollTo({top:0,behavior:'instant'})};
 G.copy=async a=>{const link=G.url(a);try{await navigator.clipboard.writeText(link);G.notice('Link disalin. Bagikan melalui WhatsApp!')}catch{window.prompt('Salin link:',link)}};
 G.refresh=async()=>{const res=await client.from('gagasan_articles').select('id,awardee_id,author_name,title,slug,excerpt,body,category,cover_path,status,share_enabled,published_at,created_at,updated_at').order('created_at',{ascending:false}).limit(1000);G.s.articles=G.check(res)||[];window.GGFeed?.draw()};
 G.boot=async()=>{let user=null;try{user=(await client.auth.getUser()).data?.user}catch(e){}G.s.user=user;G.s.member=null;
