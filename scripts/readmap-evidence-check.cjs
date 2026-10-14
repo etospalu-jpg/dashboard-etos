@@ -1,0 +1,14 @@
+'use strict';
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const src=fs.readFileSync('readmap.js','utf8'),html=fs.readFileSync('readmap.html','utf8');
+const sql=fs.readFileSync('supabase/migrations/20261015_readmap_storage_evidence.sql','utf8');
+new vm.Script(src,{filename:'readmap.js'});
+for(const id of ['entry-evidence','entry-evidence-help','reading-list'])assert(html.includes('id="'+id+'"'),'Missing '+id);
+assert(src.includes("const EVIDENCE_BUCKET='readmap-reading-evidence'"),'Storage bucket reference missing');
+assert(src.includes('.createSignedUrls(batch,3600)'),'Private signed URL missing');
+assert(src.includes('payload.evidence_paths=photoFiles.length?uploaded:previousPhotos'),'Preserve existing evidence on report edits');
+assert(src.includes('if(!persisted&&uploaded.length)await cleanEvidence(uploaded)'),'Cleanup incomplete uploads');
+assert(sql.includes("'readmap-reading-evidence',false,2097152"),'Expected a private bucket');
+assert(sql.includes('cardinality(evidence_paths) <= 3'),'Three photo max required');
+assert(!src.includes('file_b64'),'Never store photos as DB base64');
+console.log('READMAP evidence contracts: PASS');

@@ -4,7 +4,7 @@ const SUPABASE_URL='https://weklmapqizeldfdalbgs.supabase.co';
 const KEY='sb_publishable_cFm2Jvj2jvFyKcxbGniVWw_PL2SL7HC';
 const $=id=>document.getElementById(id);
 const sb=window.supabase?.createClient(SUPABASE_URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'etos-readmap-auth-v1'}});
-const state={user:null,awardee:null,books:[],entries:[],videos:[],player:null,activeVideo:null,intervals:[],lastTime:null,lastSample:0,saveAt:0,saving:false,demo:false,coverUrls:{},coverPreviewUrl:null};
+const state={user:null,awardee:null,books:[],entries:[],videos:[],player:null,activeVideo:null,intervals:[],lastTime:null,lastSample:0,saveAt:0,saving:false,demo:false,coverUrls:{},evidenceUrls:{},coverPreviewUrl:null};
 
 function demoPersist(){if(state.demo)window.READMAP_DEMO?.save(state)}
 function isDemo(){return state.demo}
@@ -21,6 +21,61 @@ async function refreshCovers(){
   if(!error&&data?.signedUrl)state.coverUrls[b.id]=data.signedUrl;
  }
 }
+
+const EVIDENCE_BUCKET='readmap-reading-evidence',EVIDENCE_LIMIT=3;
+function ownsEvidence(path){
+ return !!state.user?.id&&typeof path==='string'&&path.startsWith(state.user.id+'/')&&/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.webp$/i.test(path);
+}
+async function refreshEvidence(){
+ state.evidenceUrls={};
+ if(isDemo())return;
+ const paths=[...new Set(state.entries.flatMap(e=>Array.isArray(e.evidence_paths)?e.evidence_paths:[]).filter(ownsEvidence))];
+ for(let i=0;i<paths.length;i+=50){
+  const batch=paths.slice(i,i+50);
+  const {data,error}=await sb.storage.from(EVIDENCE_BUCKET).createSignedUrls(batch,3600);
+  if(error){console.warn('[READMAP] gagal memuat bukti bacaan');continue}
+  (data||[]).forEach((item,j)=>{if(item?.signedUrl)state.evidenceUrls[batch[j]]=item.signedUrl});
+ }
+}
+async function compressEvidence(file){
+ if(!file)return null;
+ const accepted=['image/jpeg','image/png','image/webp','image/heic','image/heif'];
+ if(!accepted.includes(file.type)&&!/\.(jpg|jpeg|png|webp|heic|heif)$/i.test(file.name||''))throw Error('Bukti harus berupa foto JPG, PNG, WebP, atau foto galeri.');
+ if(file.size>15*1024*1024)throw Error('Foto awal maksimal 15 MB.');
+ let img,url=null;
+ try{if(typeof createImageBitmap==='function')img=await createImageBitmap(file)}catch(_){}
+ if(!img){
+  url=URL.createObjectURL(file);
+  try{img=await new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('Foto tidak dapat dibaca. Gunakan screenshot JPG atau PNG.'));image.src=url})}
+  finally{URL.revokeObjectURL(url)}
+ }
+ const ratio=Math.min(1,1600/img.width,2000/img.height);
+ const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*ratio));canvas.height=Math.max(1,Math.round(img.height*ratio));
+ const ctx=canvas.getContext('2d');if(!ctx)throw Error('Perangkat tidak mendukung kompresi gambar.');
+ ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);img.close?.();
+ for(const quality of [0.82,0.72,0.6]){
+  const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Kompresi foto gagal.')),'image/webp',quality));
+  if(blob.type==='image/webp'&&blob.size<=2097152)return blob;
+ }
+ throw Error('Foto masih terlalu besar. Potong atau kecilkan screenshot agar lebih ringan.');
+}
+async function uploadEvidence(file){
+ const blob=await compressEvidence(file);
+ if(isDemo())return await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('Foto tidak dapat dibaca.'));reader.readAsDataURL(blob)});
+ if(!state.user?.id)throw Error('Sesi login belum siap.');
+ const path=state.user.id+'/'+newId()+'.webp';
+ const {error}=await sb.storage.from(EVIDENCE_BUCKET).upload(path,blob,{contentType:'image/webp',upsert:false,cacheControl:'3600'});
+ if(error)throw Error('Unggah bukti gagal: '+error.message);
+ return path;
+}
+async function cleanEvidence(paths){
+ if(isDemo()||!state.user?.id)return;
+ const own=[...new Set(paths.filter(ownsEvidence))];
+ if(!own.length)return;
+ const {error}=await sb.storage.from(EVIDENCE_BUCKET).remove(own);
+ if(error)console.warn('[READMAP] sebagian file bukti tidak terhapus');
+}
+
 async function compressedCover(file){
  if(!file)return null;
  const allowed=['image/jpeg','image/png','image/webp','image/heic','image/heif'];
@@ -65,7 +120,7 @@ function enterDemo(){
 }
 function exitDemo(){
  if(ticker){clearInterval(ticker);ticker=null}
- state.player?.destroy?.();state.player=null;state.activeVideo=null;state.demo=false;state.awardee=null;state.books=[];state.entries=[];state.videos=[];state.coverUrls={};
+ state.player?.destroy?.();state.player=null;state.activeVideo=null;state.demo=false;state.awardee=null;state.books=[];state.entries=[];state.videos=[];state.coverUrls={};state.evidenceUrls={};
  hide('demo-banner');hide('workspace');show('login');hide('player-card');notice('');identify().catch(err);
 }
 const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -131,7 +186,7 @@ async function loadAll(){
   sb.from('readmap_videos').select('*').eq('awardee_id',id).order('created_at',{ascending:false})
  ]);
  state.books=unwrap(b)||[];state.entries=unwrap(e)||[];state.videos=unwrap(v)||[];
- await refreshCovers();render();
+ await refreshCovers();await refreshEvidence();render();
 }
 function render(){
  $('week-label').textContent='Pekan mulai Senin, '+currentWeek; $('week-chip').textContent='Pekan '+currentWeek.slice(8)+'/'+currentWeek.slice(5,7);
@@ -140,7 +195,7 @@ function render(){
  if(state.books.some(b=>b.id===previouslySelected))$('entry-book').value=previouslySelected;
  $('books-list').innerHTML=state.books.length?state.books.map(bookCard).join(''):emptyState('📚','Rak bukumu masih kosong','Tambahkan buku pertama dan unggah fotonya, supaya perjalanan bacamu makin hidup.');
  $('books-list').querySelectorAll('.book-art img').forEach(img=>{img.addEventListener('error',()=>img.remove(),{once:true})});
- $('reading-list').innerHTML=state.entries.length?state.entries.map(e=>{const b=state.books.find(x=>x.id===e.book_id);return '<div class="item"><strong>'+safe(b?.title||'Buku')+'</strong><small>'+safe(e.week_start)+' · '+e.pages_read+' halaman</small><p>'+safe(e.insight)+'</p></div>'}).join('') :emptyState('✍️','Belum ada catatan pekanan','Mulai catat satu hal menarik dari bacaanmu pekan ini.');
+ $('reading-list').innerHTML=state.entries.length?state.entries.map(e=>{const b=state.books.find(x=>x.id===e.book_id),paths=Array.isArray(e.evidence_paths)?e.evidence_paths:[],urls=paths.map(p=>isDemo()?p:state.evidenceUrls[p]).filter(Boolean);return '<div class="item"><strong>'+safe(b?.title||'Buku')+'</strong><small>'+safe(e.week_start)+' · '+e.pages_read+' halaman</small><p>'+safe(e.insight)+'</p>'+(urls.length?'<div class="reading-evidence-gallery">'+urls.map((url,i)=>'<a href="'+safe(url)+'" target="_blank" rel="noopener noreferrer" aria-label="Lihat bukti '+(i+1)+'"><img src="'+safe(url)+'" alt="Foto bukti '+(i+1)+'" loading="lazy"></a>').join('')+'</div><button type="button" class="secondary" data-remove-evidence="'+safe(e.id)+'">Hapus foto bukti</button>':paths.length?'<small>Foto tidak tersedia. Coba muat ulang halaman.</small>':'')+'</div>'}).join(''):emptyState('✍️','Belum ada catatan pekanan','Mulai catat satu hal menarik dari bacaanmu pekan ini.');
  const total=state.entries.reduce((a,e)=>a+Number(e.pages_read||0),0);
  const complete=state.books.filter(b=>b.status==='Selesai').length;
  $('stats').innerHTML=[['Halaman dilaporkan',total],['Buku selesai',complete],['Video selesai',state.videos.filter(x=>x.status==='Selesai').length]].map(([k,v])=>'<div class="metric"><b>'+v+'</b><small>'+k+'</small></div>').join('');
@@ -218,13 +273,17 @@ async function saveBookPosition(b,position,total){
  else{unwrap(await sb.from('readmap_books').update({current_page:position,total_pages:total,status,updated_at:new Date().toISOString()}).eq('id',b.id).eq('awardee_id',member()));await loadAll()}
 }
 
-on('reading-form','submit',async e=>{e.preventDefault();try{
+on('reading-form','submit',async e=>{e.preventDefault();const submit=e.target.querySelector('button[type=submit]');if(submit.disabled)return;submit.disabled=true;const uploaded=[];let persisted=false;try{
  const mode=$('entry-mode').value,from=Number($('from-page').value),to=Number($('to-page').value);
  const pages=mode==='rentang'?to-from+1:Number($('pages-read').value);
  if(!Number.isInteger(pages)||pages<1||pages>20000||(mode==='rentang'&&(!Number.isInteger(from)||from<1||to>20000)))throw Error('Periksa jumlah halaman.');
  const bookId=$('entry-book').value;if(!bookId)throw Error('Tambahkan buku terlebih dahulu.');
  const payload={awardee_id:member(),book_id:bookId,week_start:currentWeek,input_mode:mode,from_page:mode==='rentang'?from:null,to_page:mode==='rentang'?to:null,pages_read:pages,insight:$('entry-insight').value.trim()};
  const b=state.books.find(x=>x.id===bookId);
+ const current=state.entries.find(item=>item.book_id===bookId&&item.week_start===currentWeek);
+ const previousPhotos=Array.isArray(current?.evidence_paths)?current.evidence_paths:[];
+ const photoFiles=Array.from($('entry-evidence').files||[]);
+ if(photoFiles.length>EVIDENCE_LIMIT)throw Error('Maksimal tiga foto bukti per laporan.');
  const rawPosition=$('entry-current-page').value;
  const proposed=mode==='rentang'?to:rawPosition!==''?Number(rawPosition):null;
  if(proposed!==null&&(!Number.isInteger(proposed)||proposed<0||proposed>20000))throw Error('Posisi halaman terakhir belum valid.');
@@ -232,13 +291,17 @@ on('reading-form','submit',async e=>{e.preventDefault();try{
  const position=proposed===null?null:Math.max(Number(b.current_page)||0,proposed);
 
  if(payload.insight.length<8)throw Error('Tulis sedikitnya satu kalimat pembelajaran.');
+ for(const file of photoFiles)uploaded.push(await uploadEvidence(file));
+ payload.evidence_paths=photoFiles.length?uploaded:previousPhotos;
  if(isDemo()){
   const index=state.entries.findIndex(v=>v.book_id===bookId&&v.week_start===currentWeek);
   if(index>=0)Object.assign(state.entries[index],payload);
   else state.entries.unshift({...payload,id:newId()});
-  demoPersist();render();
+  persisted=true;demoPersist();render();
  }else{
   unwrap(await sb.from('readmap_reading_entries').upsert(payload,{onConflict:'awardee_id,week_start,book_id'}));
+  persisted=true;
+  if(photoFiles.length)await cleanEvidence(previousPhotos);
   await loadAll();
  }
 
@@ -252,11 +315,28 @@ on('reading-form','submit',async e=>{e.preventDefault();try{
    await loadAll();
   }
  }
- $('entry-insight').value='';
+ $('entry-insight').value='';$('entry-evidence').value='';$('entry-evidence-help').textContent='Boleh dikosongkan. Foto baru mengganti bukti sebelumnya.';
  updateReadingForm();
  notice('Laporan tersimpan.'+(position===null?' Isi posisi halaman terakhir untuk menghitung persentase buku.':' Progres bukumu juga diperbarui.'));
 
- }catch(error){err(error)}});
+ }catch(error){if(!persisted&&uploaded.length)await cleanEvidence(uploaded);err(error)}finally{submit.disabled=false}});
+on('entry-evidence','change',()=>{const n=$('entry-evidence').files?.length||0;$('entry-evidence-help').textContent=n?n+' foto dipilih. Maksimal tiga; foto lama akan diganti setelah berhasil disimpan.':'Boleh dikosongkan. Foto baru mengganti bukti sebelumnya.'});
+$('reading-list').addEventListener('click',async e=>{
+ const button=e.target.closest('button[data-remove-evidence]');if(!button)return;
+ const entry=state.entries.find(item=>item.id===button.dataset.removeEvidence);
+ if(!entry||!(entry.evidence_paths||[]).length)return;
+ if(!confirm('Hapus seluruh foto bukti dari laporan ini? Catatan bacaan tetap disimpan.'))return;
+ button.disabled=true;
+ try{
+  const old=entry.evidence_paths.slice();
+  if(isDemo()){entry.evidence_paths=[];demoPersist();render()}
+  else{
+   unwrap(await sb.from('readmap_reading_entries').update({evidence_paths:[]}).eq('id',entry.id).eq('awardee_id',member()));
+   await cleanEvidence(old);await loadAll();
+  }
+  notice('Foto bukti berhasil dihapus.');
+ }catch(error){err(error)}finally{button.disabled=false}
+});
 $('books-list').addEventListener('click',async e=>{
  const button=e.target.closest('button');if(!button)return;
  const id=button.dataset.finish||button.dataset.deleteBook||button.dataset.editBook;
@@ -269,7 +349,11 @@ $('books-list').addEventListener('click',async e=>{
   button.disabled=true;
   try{
    if(isDemo()){state.books=state.books.filter(x=>x.id!==id);state.entries=state.entries.filter(x=>x.book_id!==id);demoPersist();await loadAll();}
-   else {unwrap(await sb.from('readmap_books').delete().eq('id',id).eq('awardee_id',member()));await deleteStoredCover(b.cover_path);await loadAll();}
+   else {
+    const old=state.entries.filter(entry=>entry.book_id===id).flatMap(entry=>entry.evidence_paths||[]);
+    unwrap(await sb.from('readmap_books').delete().eq('id',id).eq('awardee_id',member()));
+    await deleteStoredCover(b.cover_path);await cleanEvidence(old);await loadAll();
+   }
    notice('Buku berhasil dihapus.');
   }catch(error){err(error)}finally{button.disabled=false}
  }else{
