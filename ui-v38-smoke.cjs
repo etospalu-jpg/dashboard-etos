@@ -16,8 +16,8 @@ assert.match(appCss,/\.bo-hero\{background:linear-gradient\(/);
 assert.doesNotMatch(shell,/#0f6248|#0b1b15|#071b13/);
 assert.doesNotMatch(read('app-v369-backoffice.js'),/#0f6248|#071b13|#69d391/);
 assert.doesNotMatch(memberCss,/#0f6248|#071b13|#0b1b15/);
-assert.match(read('sw.js'),/VERSION='38\.0'/);
-assert.match(read('index.html'),/const V='38\.0'/);
+assert.match(read('sw.js'),/VERSION='38\.10'/);
+assert.match(read('index.html'),/const V='38\.10'/);
 assert.match(read('favicon.svg'),/fill="#142c49"/);
 assert.match(read('pwa-icon.svg'),/fill="#142c49"/);
 for(const file of ['app-core.js','app-public.js','app-polish.js','app-attendance-settings.js','app-attendance-detail.js','app-facilitator-intelligence.js','app-v369-backoffice.js','app-system.js','app-branding.js','app-mentoring-journal.js','readmap.js','readmap-admin.js']){
