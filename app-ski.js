@@ -49,7 +49,7 @@ const pin=()=>{try{return state.auth&&state.session?.kind==='pin'}catch{return f
 function safeLink(url,label){return '<a class="ski-link" href="'+E(url)+'" target="_blank" rel="noopener noreferrer">'+E(label)+' ↗</a>'}
 function safeErr(msg){return '<div class="ski-alert">'+E(msg)+'</div>'}
 async function call(action,data){
- const r=await fetch('/api/ski',{method:'POST',credentials:'include',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,data:data||{}})});
+ const r=await fetch('/api/secure',{method:'POST',credentials:'include',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({function:'skiPrivate',params:{action,data:data||{}}})});
  const b=await r.json().catch(()=>({}));if(!r.ok||b.success===false)throw new Error(b.error||'Layanan SKI belum tersedia.');
  return b.data;
 }

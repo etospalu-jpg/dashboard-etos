@@ -1,6 +1,6 @@
 'use strict';
 const {createClient}=require('@supabase/supabase-js');
-const session=require('../server-session');
+const session=require('./server-session');
 const SOURCE='https://datastudio.google.com/u/0/reporting/978106c1-dc1a-4edc-9a78-219fe6f4ae73/page/p_93dsqdpx7d';
 module.exports=async function handler(req,res){
  res.setHeader('Cache-Control','no-store, max-age=0');res.setHeader('Content-Type','application/json; charset=utf-8');

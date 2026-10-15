@@ -3,6 +3,10 @@
   "cleanUrls": false,
   "rewrites": [
     {
+      "source": "/ski-weekly-check",
+      "destination": "/api/system?skiWeekly=1"
+    },
+    {
       "source": "/tulisan/:ref",
       "destination": "/api/public-attendance?ref=:ref"
     },
@@ -193,7 +197,7 @@
   ],
   "crons": [
     {
-      "path": "/api/ski-weekly",
+      "path": "/ski-weekly-check",
       "schedule": "0 0 * * 1"
     }
   ]

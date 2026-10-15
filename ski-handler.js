@@ -14,8 +14,8 @@ function cookie(req,key){const raw=String(req.headers?.cookie||'');const item=ra
 function pinSessionHash(req){return crypto.createHash('sha256').update(cookie(req,'etos_session')).digest('hex')}
 function signature(req,owner,payload){return crypto.createHmac('sha256',session.secret()).update('etos-ski-v1|'+owner.secret_hash+'|'+pinSessionHash(req)+'|'+payload).digest('base64url')}
 function authorized(req,owner){const token=cookie(req,COOKIE),[body,sig]=token.split('.');if(!body||!sig)return false;const expected=signature(req,owner,body);if(sig.length!==expected.length||!crypto.timingSafeEqual(Buffer.from(sig),Buffer.from(expected)))return false;try{const p=JSON.parse(Buffer.from(body,'base64url').toString('utf8'));return p.v===1&&p.exp>Date.now()&&p.exp<=Date.now()+6*60*60*1000}catch{return false}}
-function setPrivateCookie(req,res,owner){const body=Buffer.from(JSON.stringify({v:1,exp:Date.now()+2*60*60*1000})).toString('base64url');res.setHeader('Set-Cookie',COOKIE+'='+encodeURIComponent(body+'.'+signature(req,owner,body))+'; Path=/api/ski; HttpOnly; Secure; SameSite=Strict; Max-Age=7200')}
-function clearPrivateCookie(res){res.setHeader('Set-Cookie',COOKIE+'=; Path=/api/ski; HttpOnly; Secure; SameSite=Strict; Max-Age=0')}
+function setPrivateCookie(req,res,owner){const body=Buffer.from(JSON.stringify({v:1,exp:Date.now()+2*60*60*1000})).toString('base64url');res.setHeader('Set-Cookie',COOKIE+'='+encodeURIComponent(body+'.'+signature(req,owner,body))+'; Path=/api/secure; HttpOnly; Secure; SameSite=Strict; Max-Age=7200')}
+function clearPrivateCookie(res){res.setHeader('Set-Cookie',COOKIE+'=; Path=/api/secure; HttpOnly; Secure; SameSite=Strict; Max-Age=0')}
 function hash(pass,salt){return crypto.scryptSync(pass,salt,64,{maxmem:64*1024*1024}).toString('hex')}
 function safeUrl(value){const v=String(value||'').trim();if(!v)return null;if(v.length>1200)throw Object.assign(new Error('Tautan terlalu panjang.'),{status:400});try{const u=new URL(v);if(!['https:','http:'].includes(u.protocol))throw Error();return u.href}catch{throw Object.assign(new Error('Bukti harus berupa tautan HTTP(S) valid.'),{status:400})}}
 function clean(value,n=1000){return String(value||'').trim().slice(0,n)}
@@ -60,7 +60,7 @@ module.exports=async function handler(req,res){
  if(!session.originAllowed(req))return respond(res,403,{success:false,error:'Asal permintaan ditolak.'});
  if(!session.verify(req))return respond(res,401,{success:false,error:'Masuk memakai PIN operasional dahulu.'});
  try{
- const client=db(),action=clean(req.body?.action,32)||'status',payload=req.body?.data||{};
+ const client=db(),action=clean(req.body?.params?.action||req.body?.action,32)||'status',payload=req.body?.params?.data||req.body?.data||{};
  const owner=queryResult(await client.from('ski_private_owner').select('*').eq('id',true).maybeSingle());
  if(action==='status')return respond(res,200,{success:true,data:{configured:!!owner,unlocked:!!owner&&authorized(req,owner)}});
  if(action==='setup'){
