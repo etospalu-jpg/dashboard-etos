@@ -13,7 +13,7 @@ body.etos-layer-locked .etos-cursor-layer{display:none}
 }
 @media(hover:hover) and (pointer:fine){
 .etos-motion-card[data-etos-motion-mode="glow"]:hover{
- background-image:radial-gradient(320px circle at var(--etos-pointer-x) var(--etos-pointer-y),rgba(84,156,234,.095),transparent 72%)!important;
+ background-image:none!important;
  border-color:#b6d2ec!important;
  box-shadow:0 14px 35px rgba(24,80,141,.12);
 }
@@ -24,26 +24,37 @@ body.etos-layer-locked .etos-cursor-layer{display:none}
 .etos-motion-card[data-etos-motion-mode="fill"]::before{
  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;
  background:linear-gradient(135deg,#2362a7,#163e70);
- clip-path:circle(0% at var(--etos-pointer-x) var(--etos-pointer-y));
- transition:clip-path .5s cubic-bezier(.2,.75,.25,1);
+ opacity:0;
+ transition:opacity .36s ease;
 }
 .etos-motion-card[data-etos-motion-mode="fill"]>*{position:relative;z-index:1}
-.etos-motion-card[data-etos-motion-mode="fill"]:hover::before{clip-path:circle(165% at var(--etos-pointer-x) var(--etos-pointer-y))}
+.etos-motion-card[data-etos-motion-mode="fill"]:hover::before{opacity:1}
 .etos-motion-card[data-etos-motion-mode="fill"]:hover{border-color:#4382c2!important;box-shadow:0 16px 38px rgba(15,58,112,.14)}
 .etos-motion-card[data-etos-motion-mode="fill"]:hover :is(h2,h3,p,small,strong,.kicker,.service-emblem){color:#fff!important}
 .etos-motion-card[data-etos-motion-mode="fill"]:hover button{background:#fff!important;color:#174677!important;border-color:#fff!important}
 .etos-motion-hero{
  --etos-pointer-x:78%;--etos-pointer-y:42%;position:relative;
 }
-body[data-etos-surface="dashboard"] .etos-motion-hero:hover,
-body[data-etos-surface="readmap"] .etos-motion-hero:hover{
- background-image:radial-gradient(460px circle at var(--etos-pointer-x) var(--etos-pointer-y),rgba(121,190,255,.18),transparent 77%),linear-gradient(115deg,#102a48,#17385f);
+/* All ETOS surfaces: eliminate oversized white circles and cursor light halos.
+   Keep the navy/blue styling, small hover borders, shadows and entrance motion. */
+.etos-cursor-orbit{display:none!important}
+#instant-shell::before,#instant-shell::after,
+#main-app .hero::before,#main-app .hero::after,
+#main-app .metric::after,
+.readmap-app .hero::before,.readmap-app .hero::after,
+.readmap-app .hero-orbit-art,
+.editorial-feed .featured-card::before,.editorial-feed .article-card::before{
+ display:none!important;content:none!important;
 }
-body[data-etos-surface="dashboard"] #main-app .etos-motion-hero:hover{
- background:radial-gradient(480px circle at var(--etos-pointer-x) var(--etos-pointer-y),rgba(125,188,249,.23),transparent 77%),linear-gradient(122deg,#102845,#1a3a61 69%,#29496b)!important;
- box-shadow:0 19px 40px rgba(10,44,84,.18)!important;
+#main-app .hero,#main-app .hero.etos-motion-hero:hover{
+ background:linear-gradient(122deg,#102845 0%,#1a3a61 69%,#29496b 100%)!important;
 }
+.readmap-app .hero.hero-personal,.readmap-app .hero.hero-personal.etos-motion-hero:hover{
+ background:linear-gradient(115deg,#102a48,#183b65)!important;
 }
+body[data-etos-surface="readmap"]{background:#f6f8f5}
+.etos-motion-card[data-etos-motion-mode="glow"]:hover{background-image:none!important}
+
 /* Calm one-time entrance on first load; no loop or motion of long strings. */
 @keyframes etosMotionEnter{from{opacity:0;transform:translate3d(0,12px,0)}to{opacity:1;transform:none}}
 .etos-motion-hero h1{animation:etosMotionEnter .65s cubic-bezier(.2,.75,.25,1) both}

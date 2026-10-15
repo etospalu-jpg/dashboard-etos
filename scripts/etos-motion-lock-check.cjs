@@ -6,7 +6,7 @@ const pages=['index.html','readmap.html','gagasan.html','profil-awardee.html'];
 for(const path of pages){
  const s=read(path);
  for(const asset of ['etos-layer-guard.js','etos-layer-guard.css','etos-living-motion.js','etos-living-motion.css']){
-  assert(s.includes('/'+asset+'?v=1'),path+' must load '+asset);
+  assert(s.includes('/'+asset+'?v='+(asset==='etos-living-motion.css'?'2':'1')),path+' must load '+asset);
  }
 }
 const admin=read('readmap-admin.html');
@@ -24,8 +24,16 @@ assert(motion.includes("pointerType!=='mouse'"),'Touch cursor should be disabled
 assert(motion.includes('etos-layer-locked'),'Cursor must disappear during form entry');
 assert(motion.includes('requestAnimationFrame(frame)'),'Follower must be smoothly animated');
 assert(motion.includes('--etos-pointer-x'),'Blue card fill must originate at pointer');
-assert(css.includes('clip-path:circle('),'Blue fill transition missing');
+assert(!css.includes('clip-path:circle('),'Oversized circular hover fill must be removed');
+assert(css.includes('opacity:1'),'Blue hover transition must remain');
 assert(css.includes('prefers-reduced-motion'),'CSS reduced motion unsupported');
+assert(css.includes('#main-app .hero::before,#main-app .hero::after'),'All dashboard hero rings must be disabled');
+assert(css.includes('.readmap-app .hero::before,.readmap-app .hero::after'),'READMAP hero rings must be disabled');
+assert(css.includes('.editorial-feed .featured-card::before,.editorial-feed .article-card::before'),'Gagasan article light circles must be disabled');
+assert(css.includes('.etos-cursor-orbit{display:none!important}'),'Cursor circle must be removed globally');
+assert(!css.includes('radial-gradient('),'Giant circular light halo must be removed on all pages');
+assert(css.includes('body[data-etos-surface="readmap"]'),'READMAP background must be solid');
+assert(!read('index.html').includes('width:420px;height:420px;border:1px'),'Initial loading page oversized circles must be removed');
 assert(css.includes('[data-etos-motion-mode="glow"]'),'Statistics need soft blue glow');
 assert(css.includes('[data-etos-motion-mode="fill"]'),'Navigation cards need blue fill');
 assert(!read('vercel.json').includes('gagasan-etos-palu.vercel.app'),'Do not reintroduce second Vercel project');

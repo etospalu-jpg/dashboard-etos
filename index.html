@@ -20,9 +20,7 @@
 <style>
 html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden;background:#f6f8fc;font-family:Inter,system-ui,sans-serif;color:#142c49}
 #instant-shell{position:fixed;inset:0;z-index:9998;background:#142c49;display:grid;place-items:center;pointer-events:none;overflow:hidden}
-#instant-shell:before,#instant-shell:after{content:"";position:absolute;border-radius:999px;filter:blur(1px);opacity:.45;animation:etosOrbit 2.8s ease-in-out infinite alternate}
-#instant-shell:before{width:420px;height:420px;border:1px solid rgba(153,185,227,.18);right:-120px;top:-150px}
-#instant-shell:after{width:300px;height:300px;border:54px solid rgba(184,154,102,.07);left:-90px;bottom:-150px;animation-delay:-1.1s}
+#instant-shell:before,#instant-shell:after{display:none!important;content:none!important}
 .instant-entry{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:18px;animation:etosEntry .42s cubic-bezier(.2,.8,.2,1) both}
 .instant-entry img{width:min(190px,46vw);height:auto;filter:drop-shadow(0 16px 36px rgba(0,0,0,.18))}
 .instant-entry-line{width:76px;height:2px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
@@ -33,7 +31,7 @@ html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden;background:#f6f8
 @keyframes etosSweep{0%{transform:translateX(-130%)}100%{transform:translateX(340%)}}
 @keyframes etosOrbit{from{transform:translate3d(0,0,0) scale(.96)}to{transform:translate3d(18px,12px,0) scale(1.04)}}
 @media(prefers-reduced-motion:reduce){.instant-entry,#instant-shell:before,#instant-shell:after,.instant-entry-line:after{animation:none!important}}
-</style><link rel="stylesheet" href="/etos-layer-guard.css?v=1"><link rel="stylesheet" href="/etos-living-motion.css?v=1"></head><body>
+</style><link rel="stylesheet" href="/etos-layer-guard.css?v=1"><link rel="stylesheet" href="/etos-living-motion.css?v=2"></head><body>
 <div id="instant-shell" aria-hidden="true"><div class="instant-entry"><img src="/brand-etos-white.svg?v=38.1" alt="ETOS ID Palu"><div class="instant-entry-line"></div><small>PALU · AWARDEE INTELLIGENCE</small></div></div>
 <div id="startup-error" role="alert"></div>
 <script>(function(){'use strict';
