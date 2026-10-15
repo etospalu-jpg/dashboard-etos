@@ -41,7 +41,7 @@ const reportKinds=[
 ['espresi','Pembaruan ESPRESI','Catat bukti pembaruan data ESPRESI Anda. Formulir prestasi Awardee dipisahkan.',FORM,'Formulir prestasi Awardee'],
 ['prestasi','Pemantauan Prestasi','Pantau Looker Studio dan catat hasil yang dapat dibuktikan.',LOOKER,'Buka pemantauan prestasi']
 ];
-const E=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&amp;','>':'&gt;','"':'&quot;',"'":'&#39;','"':'&quot;'}[c]));
+const E=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const toastS=(v,type='warn')=>window.toast?.(v,type);
 const monthNow=()=>{const d=new Date(Date.now()+8*60*60*1000);return d.toISOString().slice(0,7)};
 let tab='overview',period='2026-2',month=monthNow(),loaded=null,gate=null,busy=false;
@@ -55,18 +55,38 @@ async function call(action,data){
 }
 function ensure(){
  const nav=document.querySelector('#sidebar nav'),host=document.querySelector('.content-pad');
- if(nav&&!document.getElementById('ski-nav')){const b=document.createElement('button');b.id='ski-nav';b.className='nav-btn';b.type='button';b.dataset.view='ski';b.style.display='none';b.innerHTML='<i data-lucide="shield-check" class="w-4 h-4"></i>SKI Saya · Privat<span class="nav-dot"></span>';b.onclick=()=>window.openSki();const anchor=nav.querySelector('[data-view="mentoring"]');anchor?.after(b);}
+ if(nav&&!document.getElementById('ski-nav')){
+  const b=document.createElement('button');
+  b.id='ski-nav';b.className='nav-btn';b.type='button';b.dataset.view='ski';
+  b.hidden=true;b.style.display='none';b.setAttribute('aria-hidden','true');
+  b.innerHTML='<i data-lucide="shield-check" class="w-4 h-4"></i>SKI Saya · Privat<span class="nav-dot"></span>';
+  const anchor=nav.querySelector('[data-view="mentoring"]');anchor?.after(b);
+ }
  if(host&&!document.getElementById('view-ski')){const box=document.createElement('section');box.id='view-ski';box.className='view ski-page';host.appendChild(box);}
  syncNav();window.lucide?.createIcons?.();
 }
-function syncNav(){const n=document.getElementById('ski-nav');if(n)n.style.display=pin()?'flex':'none'}
+function syncNav(){
+ const n=document.getElementById('ski-nav');if(!n)return;
+ const show=pin();n.hidden=!show;n.style.display=show?'flex':'none';n.setAttribute('aria-hidden',String(!show));
+}
 const origUpdate=window.updateAuthUI;
 if(typeof origUpdate==='function')window.updateAuthUI=function(){const r=origUpdate.apply(this,arguments);syncNav();return r};
 try{secureViews.add('ski');titles.ski='SKI Saya'}catch(_){}
-window.openSki=async function(){
- ensure();if(!pin()){if(!state.auth){state.afterAuth=()=>window.openSki();window.openLogin?.()}else toastS('SKI pribadi hanya melalui akses operasional PIN.','warn');return}
- await window.goView('ski');await load();
+// The click guard navigates through window.goView, not the nav button's onclick.
+// Intercept that route so the original app cannot enter an empty SKI view.
+const skiGoViewBase=window.goView;
+window.goView=async function(view,force=false){
+ if(String(view)!=='ski')return skiGoViewBase.apply(this,arguments);
+ ensure();
+ if(!pin()){
+  if(!state.auth){state.afterAuth=()=>window.goView('ski',force);if(typeof window.openPinAccess==='function')window.openPinAccess();else window.openLogin?.();}
+  else toastS('SKI pribadi hanya melalui akses PIN Superadmin.','warn');
+  return;
+ }
+ await skiGoViewBase.call(this,'ski',force);
+ await load();
 };
+window.openSki=function(){return window.goView('ski')};
 async function load(){
  const root=document.getElementById('view-ski');if(!root)return;root.innerHTML='<div class="ski-loading">Memeriksa akses privat SKI…</div>';
  try{

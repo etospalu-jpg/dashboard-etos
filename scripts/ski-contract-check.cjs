@@ -5,7 +5,13 @@ const s=p=>fs.readFileSync(p,'utf8');
 const ui=s('app-ski.js'),api=s('ski-handler.js'),cron=s('ski-weekly-handler.js'),html=s('index.html');
 for(const f of ['app-ski.js','ski-handler.js','ski-weekly-handler.js','api/secure.js','api/system.js'])assert.doesNotThrow(()=>new Function(s(f)),f+' contains syntax error');
 assert.match(html,/app-ski\.js/);assert.match(html,/app-ski\.css/);assert.match(ui,/SKI Saya · Privat/);
-assert.match(ui,/2026-2/);assert.match(ui,/2027-1/);
+assert.match(ui,/2026-2/);
+assert.match(ui,/const skiGoViewBase=window.goView/,'SKI must intercept global navigation');
+assert.match(ui,/await load\(\)/,'SKI view must load its content');
+assert.match(ui,/n.hidden=!show/,'SKI nav must hide from public users');
+assert.match(s('app-auth-rbac.js'),/PIN_ONLY_VIEWS=new Set\(\[[^\]]*'ski'/,'SKI requires PIN in central RBAC');
+assert.match(s('app-auth-rbac.js'),/view==='ski'\?state\?\.session\?\.kind==='pin'/,'SKI navigation is visible only to PIN sessions');
+assert.match(s('app-ski.css'),/#sidebar #ski-nav\[hidden\]\{display:none!important/,'SKI hidden CSS rule missing');assert.match(ui,/2027-1/);
 const s26=ui.slice(ui.indexOf("'2026-2':["),ui.indexOf("'2027-1':["));
 const s27=ui.slice(ui.indexOf("'2027-1':["),ui.indexOf("const reportKinds"));
 function weights(t){return [...t.matchAll(/^\['[a-z_]+','[^']+',(\d+),/gm)].map(m=>Number(m[1]))}
