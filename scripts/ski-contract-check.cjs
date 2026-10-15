@@ -6,9 +6,14 @@ const ui=s('app-ski.js'),api=s('ski-handler.js'),cron=s('ski-weekly-handler.js')
 for(const f of ['app-ski.js','ski-handler.js','ski-weekly-handler.js','api/secure.js','api/system.js'])assert.doesNotThrow(()=>new Function(s(f)),f+' contains syntax error');
 assert.match(html,/app-ski\.js/);assert.match(html,/app-ski\.css/);assert.match(ui,/SKI Saya · Privat/);
 assert.match(ui,/2026-2/);
-assert.match(ui,/const skiGoViewBase=window.goView/,'SKI must intercept global navigation');
-assert.match(ui,/await load\(\)/,'SKI view must load its content');
+assert.doesNotMatch(ui,/const skiGoViewBase=window.goView/,'SKI must not intercept global navigation');
+assert.match(ui,/window.loadSki=async function/,'SKI must expose a native view loader');
+assert.match(s('app-core.js'),/if\(v==='ski'\)/,'Core router must load SKI');
+assert.match(s('app-core.js'),/state\.session\?\.kind!=='pin'/,'Core router must guard SKI');
+assert.match(s('app-interaction-fix.js'),/if\(view==='ski'\)/,'UI navigation guard must reject public SKI');
+assert.match(s('app-auth-rbac.js'),/state\?\.auth&&state\?\.session\?\.kind==='pin'/,'Navigation must hide SKI from public');
 assert.match(ui,/n.hidden=!show/,'SKI nav must hide from public users');
+assert.match(ui,/window.loadSki/,'SKI must render from every navigational path');
 assert.match(s('app-auth-rbac.js'),/PIN_ONLY_VIEWS=new Set\(\[[^\]]*'ski'/,'SKI requires PIN in central RBAC');
 assert.match(s('app-auth-rbac.js'),/view==='ski'\?state\?\.session\?\.kind==='pin'/,'SKI navigation is visible only to PIN sessions');
 assert.match(s('app-ski.css'),/#sidebar #ski-nav\[hidden\]\{display:none!important/,'SKI hidden CSS rule missing');assert.match(ui,/2027-1/);

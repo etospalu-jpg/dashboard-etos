@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 if(window.ETOS_SKI_READY)return;
-window.ETOS_SKI_READY='v1';
+window.ETOS_SKI_READY='v2-router';
 const REPORT='https://portal-etos-id.vercel.app/login';
 const FORM='https://docs.google.com/forms/d/e/1FAIpQLSdBixfOizFknYwwj1Ais4K8J__oGV-fosLETKJ66wh-ptwReA/viewform';
 const LOOKER='https://datastudio.google.com/u/0/reporting/978106c1-dc1a-4edc-9a78-219fe6f4ae73/page/p_93dsqdpx7d';
@@ -72,21 +72,20 @@ function syncNav(){
 const origUpdate=window.updateAuthUI;
 if(typeof origUpdate==='function')window.updateAuthUI=function(){const r=origUpdate.apply(this,arguments);syncNav();return r};
 try{secureViews.add('ski');titles.ski='SKI Saya'}catch(_){}
-// The click guard navigates through window.goView, not the nav button's onclick.
-// Intercept that route so the original app cannot enter an empty SKI view.
-const skiGoViewBase=window.goView;
-window.goView=async function(view,force=false){
- if(String(view)!=='ski')return skiGoViewBase.apply(this,arguments);
+// Central router owns navigation; this module only implements private page loading.
+// Avoid wrappers around window.goView: they previously allowed an empty view to open.
+window.openSki=function(){ensure();return window.goView('ski')};
+window.loadSki=async function(force=false){
  ensure();
  if(!pin()){
-  if(!state.auth){state.afterAuth=()=>window.goView('ski',force);if(typeof window.openPinAccess==='function')window.openPinAccess();else window.openLogin?.();}
-  else toastS('SKI pribadi hanya melalui akses PIN Superadmin.','warn');
+  loaded=null;
+  const root=document.getElementById('view-ski');
+  if(root)root.innerHTML=safeErr('Akses SKI terkunci. Masuk sebagai pemilik melalui PIN operasional.');
+  if(state.view==='ski')window.goView('dashboard');
   return;
  }
- await skiGoViewBase.call(this,'ski',force);
- await load();
+ return load();
 };
-window.openSki=function(){return window.goView('ski')};
 async function load(){
  const root=document.getElementById('view-ski');if(!root)return;root.innerHTML='<div class="ski-loading">Memeriksa akses privat SKI…</div>';
  try{
