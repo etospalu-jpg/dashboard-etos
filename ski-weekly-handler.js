@@ -18,7 +18,7 @@ module.exports=async function handler(req,res){
  try{
    const key=session.secret();
    if(!key||!['secret','legacy'].includes(session.kind(key)))throw new Error('DB key unavailable');
-   const supabase=createClient(session.PROJECT_URL,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+   const supabase=createClient(session.PROJECT_URL,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},global:{fetch:session.directFetch}});
    const result=await supabase.from('ski_weekly_checks').insert({source_url:SOURCE,access_state:state,http_status:status,summary}).select('id').single();
    if(result.error)throw result.error;
    res.status(200).end(JSON.stringify({ok:true,checked:true,access_state:state,source_verified:false,achievements_imported:0}));

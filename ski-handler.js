@@ -8,7 +8,7 @@ const STATES=new Set(['belum','proses','siap','terkirim','terverifikasi']);
 const PERIODS=new Set(['2026-2','2027-1']);
 const CODES=new Set(['duta','yic','capacity','coaching','akademik','espresi','pembinaan','penokohan','kualitas','bulanan','publikasi','seleksi','ktg','anggaran','uang_muka','arsip']);
 const respond=(res,n,data)=>{res.status(n);res.setHeader('Content-Type','application/json; charset=utf-8');res.setHeader('Cache-Control','private, no-store, max-age=0');res.end(JSON.stringify(data))};
-function db(){const key=session.secret();if(!key||!['secret','legacy'].includes(session.kind(key)))throw Object.assign(new Error('Server database belum tersedia.'),{status:503});return createClient(session.PROJECT_URL,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}})}
+function db(){const key=session.secret();if(!key||!['secret','legacy'].includes(session.kind(key)))throw Object.assign(new Error('Server database belum tersedia.'),{status:503});return createClient(session.PROJECT_URL,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},global:{fetch:session.directFetch}})}
 function queryResult(r){if(r.error)throw Object.assign(new Error('Akses data SKI gagal: '+r.error.message),{status:503});return r.data}
 function cookie(req,key){const raw=String(req.headers?.cookie||'');const item=raw.split(';').map(s=>s.trim()).find(s=>s.startsWith(key+'='));if(!item)return'';try{return decodeURIComponent(item.slice(key.length+1))}catch{return''}}
 function pinSessionHash(req){return crypto.createHash('sha256').update(cookie(req,'etos_session')).digest('hex')}
