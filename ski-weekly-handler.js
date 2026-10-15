@@ -16,9 +16,16 @@ module.exports=async function handler(req,res){
    else summary='Looker Studio menolak atau tidak melayani akses otomatis (HTTP '+status+'). Tidak ada data prestasi yang diimpor.';
  }catch(e){summary='Sumber Looker Studio tidak dapat dijangkau: '+String(e?.name||'koneksi terputus')+'. Tidak ada data yang diimpor.'}
  try{
-   const key=session.secret();
-   if(!key||!['secret','legacy'].includes(session.kind(key)))throw new Error('DB key unavailable');
-   const supabase=createClient(session.PROJECT_URL,key,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},global:{fetch:session.directFetch}});
+   // A Vercel Cron request is authenticated by CRON_SECRET above.
+   // Create an ephemeral, locally signed operational context so that the existing
+   // ETOS Edge proxy performs its normal session check before server-side writes.
+   const ephemeral=session.setCookie({getHeader:()=>null,setHeader:()=>{}});
+   const credential=session.credential({headers:{cookie:'etos_session='+encodeURIComponent(ephemeral)}});
+   if(!credential?.server)throw new Error('Cron session failed');
+   const supabase=createClient(session.PROJECT_URL,session.PUBLISHABLE_KEY,{
+    auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},
+    global:{fetch:session.proxyFetch,headers:{'x-etos-proxy':'1'}}
+   });
    const result=await supabase.from('ski_weekly_checks').insert({source_url:SOURCE,access_state:state,http_status:status,summary}).select('id').single();
    if(result.error)throw result.error;
    res.status(200).end(JSON.stringify({ok:true,checked:true,access_state:state,source_verified:false,achievements_imported:0}));

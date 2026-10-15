@@ -26,9 +26,13 @@ assert.match(api,/session\.originAllowed\(req\)/);assert.match(api,/session\.ver
 assert.match(api,/crypto\.scryptSync/);assert.match(api,/HttpOnly; Secure; SameSite=Strict/);
 assert.match(api,/\['terkirim','terverifikasi'\]/);
 assert.match(cron,/process\.env\.CRON_SECRET/);assert.match(cron,/achievements_imported:0/);
-assert.match(s('server-session.js'),/directFetch:nativeFetch/,'SKI needs native server fetch');
-assert.match(api,/global:\{fetch:session\.directFetch\}/,'SKI must bypass proxy for service API key');
-assert.match(cron,/global:\{fetch:session\.directFetch\}/,'Weekly SKI must bypass proxy for service API key');
+assert.match(s('server-session.js'),/proxyFetch/,'ETOS proxy must be available');
+assert.match(api,/global:\{fetch:session\.proxyFetch,headers:\{'x-etos-proxy':'1'\}\}/,'SKI must use authenticated ETOS proxy');
+assert.match(api,/const credential=session\.credential\(req\)/,'Proxy must be bound to signed PIN session');
+assert.doesNotMatch(api,/createClient\(session\.PROJECT_URL,key/,'Raw server secret is not a data API key');
+assert.match(cron,/global:\{fetch:session\.proxyFetch,headers:\{'x-etos-proxy':'1'\}\}/,'Weekly SKI must use authenticated ETOS proxy');
+assert.match(cron,/session\.credential\(\{headers:\{cookie:/,'Weekly check must prepare valid server session');
+assert.doesNotMatch(cron,/createClient\(session\.PROJECT_URL,key/,'No raw server secret on cron data API');
 assert.match(s('app-core.js'),/skiNav\.style\.setProperty\('display',allowed\?'flex':'none','important'\)/,'Public SKI menu requires hard hiding');
 const config=JSON.parse(s('vercel.json'));assert.ok(config.crons.some(x=>x.path==='/ski-weekly-check'&&x.schedule==='0 0 * * 1'));
 assert.ok(config.rewrites.some(x=>x.source==='/ski-weekly-check'&&x.destination==='/api/system?skiWeekly=1'));
