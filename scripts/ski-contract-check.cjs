@@ -15,7 +15,7 @@ assert.match(s('app-auth-rbac.js'),/state\?\.auth&&state\?\.session\?\.kind==='p
 assert.match(ui,/n.hidden=!show/,'SKI nav must hide from public users');
 assert.match(ui,/window.loadSki/,'SKI must render from every navigational path');
 assert.match(s('app-auth-rbac.js'),/PIN_ONLY_VIEWS=new Set\(\[[^\]]*'ski'/,'SKI requires PIN in central RBAC');
-assert.match(s('app-auth-rbac.js'),/view==='ski'\?state\?\.session\?\.kind==='pin'/,'SKI navigation is visible only to PIN sessions');
+assert.match(s('app-auth-rbac.js'),/view==='ski'\?!!\(state\?\.auth&&state\?\.session\?\.kind==='pin'\)/,'SKI navigation is visible only to PIN sessions');
 assert.match(s('app-ski.css'),/#sidebar #ski-nav\[hidden\]\{display:none!important/,'SKI hidden CSS rule missing');assert.match(ui,/2027-1/);
 const s26=ui.slice(ui.indexOf("'2026-2':["),ui.indexOf("'2027-1':["));
 const s27=ui.slice(ui.indexOf("'2027-1':["),ui.indexOf("const reportKinds"));
