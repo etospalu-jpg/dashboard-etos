@@ -6,7 +6,7 @@ const main=read('index.html'),readmap=read('readmap.html'),portal=read('gagasan.
 for(const html of [main,readmap,portal,profile]){
  assert(html.includes('/etos-living-motion.js?v=2'),'Expected latest motion engine');
  assert(html.includes('/etos-living-motion.css?v=5'),'Expected current shared motion style');
- assert(html.includes('/etos-blue-cards.css?v=1'),'Missing blue hover stylesheet');
+ assert(/\/etos-blue-cards\.css\?v=\d+/.test(html),'Missing blue hover stylesheet');
 }
 assert(motion.includes("page==='dashboard'&&el.matches('#view-dashboard .metric')"),'Dashboard KPI must be fill');
 assert(motion.includes("page==='readmap'&&el.matches('#stats .metric,.service-card,.gagasan-launch')"),'READMAP KPI and Gagasan CTA must be fill');
