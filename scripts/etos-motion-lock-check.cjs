@@ -6,7 +6,7 @@ const pages=['index.html','readmap.html','gagasan.html','profil-awardee.html'];
 for(const path of pages){
  const s=read(path);
  for(const asset of ['etos-layer-guard.js','etos-layer-guard.css','etos-living-motion.js','etos-living-motion.css']){
-  assert(s.includes('/'+asset+'?v='+(asset==='etos-living-motion.css'?'3':'1')),path+' must load '+asset);
+  assert(s.includes('/'+asset+'?v='+(asset==='etos-living-motion.css'?'4':'1')),path+' must load '+asset);
  }
 }
 const admin=read('readmap-admin.html');
@@ -31,6 +31,9 @@ assert(css.includes('box-shadow:none;background:transparent;'),'Cursor ring shou
 assert(css.includes('prefers-reduced-motion'),'CSS reduced motion unsupported');
 assert(!css.includes('radial-gradient('),'Large pointer-following light halos must be absent');
 assert(css.includes('background:none!important;'),'Large white/light card bloom must be suppressed');
+assert(!css.includes('background-image:none!important'),'Hover must never strip navy/gradient backgrounds');
+assert(css.includes('.featured-card.etos-motion-card:hover'),'Editorial featured card must preserve dark background on hover');
+assert(css.includes('background:linear-gradient(135deg,#123150,#142d48)!important'),'Article hover must retain readable navy');
 assert(css.includes('.editorial-feed .featured-card::before,.editorial-feed .article-card::before'),'Gagasan featured/article glow override required');
 assert(css.includes('body[data-etos-surface="dashboard"] #main-app .hero'),'Dashboard hero should be free of broad glow');
 assert(css.includes('body[data-etos-surface="readmap"] .readmap-app .hero.hero-personal'),'READMAP hero should be free of broad glow');

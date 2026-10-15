@@ -13,7 +13,7 @@ body.etos-layer-locked .etos-cursor-layer{display:none}
 }
 @media(hover:hover) and (pointer:fine){
 .etos-motion-card[data-etos-motion-mode="glow"]:hover{
- background-image:none!important;
+ /* Preserve each card's background/gradient: remove light bloom without removing navy. */
  border-color:#b6d2ec!important;
  box-shadow:0 14px 35px rgba(24,80,141,.12);
 }
@@ -45,10 +45,14 @@ body[data-etos-surface="readmap"] .readmap-app .hero.hero-personal.etos-motion-h
  background:linear-gradient(115deg,#102a48,#183b65)!important;
 }
 body[data-etos-surface="readmap"]{background:#f6f8f5}
-.etos-motion-card[data-etos-motion-mode="glow"]:hover{background-image:none!important}
 /* These pseudo-elements rendered LIGHT, not structural circles. */
 .editorial-feed .featured-card::before,.editorial-feed .article-card::before{
  background:none!important;
+}
+/* Keep the editorial headline readable on hover, independent of other motion rules. */
+body[data-etos-surface="gagasan"] .editorial-feed .featured-card.etos-motion-card:hover{
+ background:linear-gradient(135deg,#123150,#142d48)!important;
+ color:#fff;
 }
 /* Maintain all ornamental rings: dashboard and READMAP hero, cursor, and loading screen. */
 }
@@ -59,7 +63,7 @@ body[data-etos-surface="readmap"]{background:#f6f8f5}
 .etos-motion-hero :is(.hero-actions,.editorial-masthead-actions){animation:etosMotionEnter .65s cubic-bezier(.2,.75,.25,1) .13s both}
 body[data-etos-surface="gagasan"] .etos-motion-card[data-etos-motion-mode="glow"]:hover{transform:translateY(-4px)}
 body[data-etos-surface="profile"] .etos-motion-card[data-etos-motion-mode="glow"]:hover{transform:translateY(-3px)}
-@media(hover:none),(pointer:coarse){.etos-cursor-layer{display:none!important}.etos-motion-card[data-etos-motion-mode="glow"]:hover{background-image:none!important}}
+@media(hover:none),(pointer:coarse){.etos-cursor-layer{display:none!important}}
 @media(prefers-reduced-motion:reduce){
  .etos-cursor-layer{display:none!important}
  .etos-motion-card,.etos-motion-hero h1,.etos-motion-hero p,.etos-motion-hero .hero-actions,.etos-motion-hero .editorial-masthead-actions{animation:none!important;transition:none!important;transform:none!important}
