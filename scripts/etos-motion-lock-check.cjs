@@ -6,7 +6,7 @@ const pages=['index.html','readmap.html','gagasan.html','profil-awardee.html'];
 for(const path of pages){
  const s=read(path);
  for(const asset of ['etos-layer-guard.js','etos-layer-guard.css','etos-living-motion.js','etos-living-motion.css']){
-  assert(s.includes('/'+asset+'?v='+(asset==='etos-living-motion.css'?'2':'1')),path+' must load '+asset);
+  assert(s.includes('/'+asset+'?v='+(asset==='etos-living-motion.css'?'3':'1')),path+' must load '+asset);
  }
 }
 const admin=read('readmap-admin.html');
@@ -24,16 +24,22 @@ assert(motion.includes("pointerType!=='mouse'"),'Touch cursor should be disabled
 assert(motion.includes('etos-layer-locked'),'Cursor must disappear during form entry');
 assert(motion.includes('requestAnimationFrame(frame)'),'Follower must be smoothly animated');
 assert(motion.includes('--etos-pointer-x'),'Blue card fill must originate at pointer');
-assert(!css.includes('clip-path:circle('),'Oversized circular hover fill must be removed');
-assert(css.includes('opacity:1'),'Blue hover transition must remain');
+assert(css.includes('clip-path:circle('),'Blue circular fill animation must be restored');
+assert(css.includes('.etos-cursor-orbit{width:29px;height:29px'),'Cursor follower ring must remain');
+assert(!css.includes('.etos-cursor-orbit{display:none!important}'),'Cursor follower ring must be visible');
+assert(css.includes('box-shadow:none;background:transparent;'),'Cursor ring should have no halo');
 assert(css.includes('prefers-reduced-motion'),'CSS reduced motion unsupported');
-assert(css.includes('#main-app .hero::before,#main-app .hero::after'),'All dashboard hero rings must be disabled');
-assert(css.includes('.readmap-app .hero::before,.readmap-app .hero::after'),'READMAP hero rings must be disabled');
-assert(css.includes('.editorial-feed .featured-card::before,.editorial-feed .article-card::before'),'Gagasan article light circles must be disabled');
-assert(css.includes('.etos-cursor-orbit{display:none!important}'),'Cursor circle must be removed globally');
-assert(!css.includes('radial-gradient('),'Giant circular light halo must be removed on all pages');
-assert(css.includes('body[data-etos-surface="readmap"]'),'READMAP background must be solid');
-assert(!read('index.html').includes('width:420px;height:420px;border:1px'),'Initial loading page oversized circles must be removed');
+assert(!css.includes('radial-gradient('),'Large pointer-following light halos must be absent');
+assert(css.includes('background:none!important;'),'Large white/light card bloom must be suppressed');
+assert(css.includes('.editorial-feed .featured-card::before,.editorial-feed .article-card::before'),'Gagasan featured/article glow override required');
+assert(css.includes('body[data-etos-surface="dashboard"] #main-app .hero'),'Dashboard hero should be free of broad glow');
+assert(css.includes('body[data-etos-surface="readmap"] .readmap-app .hero.hero-personal'),'READMAP hero should be free of broad glow');
+assert(!css.includes('#main-app .hero::before,#main-app .hero::after'),'Do not remove dashboard decorative rings');
+assert(!css.includes('.readmap-app .hero::before,.readmap-app .hero::after'),'Do not remove READMAP decorative rings');
+assert(read('index.html').includes('width:420px;height:420px;border:1px'),'Initial screen ornament ring must remain');
+assert(!read('index.html').includes('#instant-shell:before,#instant-shell:after{display:none'),'Initial screen ornament rings must not be hidden');
+assert(read('readmap-refined.css').includes('.hero.hero-personal:before'),'READMAP original rings must remain intact');
+assert(read('gagasan-portal-v2.css').includes('.featured-card:before'),'Gagasan existing components must remain intact');
 assert(css.includes('[data-etos-motion-mode="glow"]'),'Statistics need soft blue glow');
 assert(css.includes('[data-etos-motion-mode="fill"]'),'Navigation cards need blue fill');
 assert(!read('vercel.json').includes('gagasan-etos-palu.vercel.app'),'Do not reintroduce second Vercel project');

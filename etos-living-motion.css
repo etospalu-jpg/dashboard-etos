@@ -2,9 +2,9 @@
 .etos-cursor-layer{position:fixed;top:0;left:0;width:0;height:0;z-index:90;pointer-events:none;opacity:0;transition:opacity .2s ease}
 .etos-cursor-layer.is-visible{opacity:1}
 .etos-cursor-orbit,.etos-cursor-point{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;transform:translate3d(-100px,-100px,0) translate(-50%,-50%);will-change:transform}
-.etos-cursor-orbit{width:29px;height:29px;border:1.5px solid rgba(68,141,218,.82);box-shadow:0 0 16px rgba(67,149,229,.12);background:rgba(108,171,240,.055);transition:width .28s,height .28s,border-color .28s,background .28s}
+.etos-cursor-orbit{width:29px;height:29px;border:1.5px solid rgba(68,141,218,.82);box-shadow:none;background:transparent;transition:width .28s,height .28s,border-color .28s,background .28s}
 .etos-cursor-point{width:4px;height:4px;background:#3d91d6}
-.etos-cursor-layer.is-interactive .etos-cursor-orbit{width:47px;height:47px;border-color:rgba(62,138,227,.52);background:rgba(86,161,240,.075)}
+.etos-cursor-layer.is-interactive .etos-cursor-orbit{width:47px;height:47px;border-color:rgba(62,138,227,.52);background:transparent}
 body.etos-layer-locked .etos-cursor-layer{display:none}
 /* Glow is painted inside white surfaces; text remains readable and the layout doesn't shift. */
 .etos-motion-card[data-etos-motion-mode="glow"]{
@@ -24,37 +24,34 @@ body.etos-layer-locked .etos-cursor-layer{display:none}
 .etos-motion-card[data-etos-motion-mode="fill"]::before{
  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;
  background:linear-gradient(135deg,#2362a7,#163e70);
- opacity:0;
- transition:opacity .36s ease;
+ clip-path:circle(0% at var(--etos-pointer-x) var(--etos-pointer-y));
+ transition:clip-path .5s cubic-bezier(.2,.75,.25,1);
 }
 .etos-motion-card[data-etos-motion-mode="fill"]>*{position:relative;z-index:1}
-.etos-motion-card[data-etos-motion-mode="fill"]:hover::before{opacity:1}
+.etos-motion-card[data-etos-motion-mode="fill"]:hover::before{clip-path:circle(165% at var(--etos-pointer-x) var(--etos-pointer-y))}
 .etos-motion-card[data-etos-motion-mode="fill"]:hover{border-color:#4382c2!important;box-shadow:0 16px 38px rgba(15,58,112,.14)}
 .etos-motion-card[data-etos-motion-mode="fill"]:hover :is(h2,h3,p,small,strong,.kicker,.service-emblem){color:#fff!important}
 .etos-motion-card[data-etos-motion-mode="fill"]:hover button{background:#fff!important;color:#174677!important;border-color:#fff!important}
 .etos-motion-hero{
  --etos-pointer-x:78%;--etos-pointer-y:42%;position:relative;
 }
-/* All ETOS surfaces: eliminate oversized white circles and cursor light halos.
-   Keep the navy/blue styling, small hover borders, shadows and entrance motion. */
-.etos-cursor-orbit{display:none!important}
-#instant-shell::before,#instant-shell::after,
-#main-app .hero::before,#main-app .hero::after,
-#main-app .metric::after,
-.readmap-app .hero::before,.readmap-app .hero::after,
-.readmap-app .hero-orbit-art,
-.editorial-feed .featured-card::before,.editorial-feed .article-card::before{
- display:none!important;content:none!important;
-}
-#main-app .hero,#main-app .hero.etos-motion-hero:hover{
+/* Keep every decorative ring and fluid cursor circle; remove only the large illumination. */
+body[data-etos-surface="dashboard"] #main-app .hero,
+body[data-etos-surface="dashboard"] #main-app .hero.etos-motion-hero:hover{
  background:linear-gradient(122deg,#102845 0%,#1a3a61 69%,#29496b 100%)!important;
 }
-.readmap-app .hero.hero-personal,.readmap-app .hero.hero-personal.etos-motion-hero:hover{
+body[data-etos-surface="readmap"] .readmap-app .hero.hero-personal,
+body[data-etos-surface="readmap"] .readmap-app .hero.hero-personal.etos-motion-hero:hover{
  background:linear-gradient(115deg,#102a48,#183b65)!important;
 }
 body[data-etos-surface="readmap"]{background:#f6f8f5}
 .etos-motion-card[data-etos-motion-mode="glow"]:hover{background-image:none!important}
-
+/* These pseudo-elements rendered LIGHT, not structural circles. */
+.editorial-feed .featured-card::before,.editorial-feed .article-card::before{
+ background:none!important;
+}
+/* Maintain all ornamental rings: dashboard and READMAP hero, cursor, and loading screen. */
+}
 /* Calm one-time entrance on first load; no loop or motion of long strings. */
 @keyframes etosMotionEnter{from{opacity:0;transform:translate3d(0,12px,0)}to{opacity:1;transform:none}}
 .etos-motion-hero h1{animation:etosMotionEnter .65s cubic-bezier(.2,.75,.25,1) both}
