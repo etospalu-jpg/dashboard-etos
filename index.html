@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="id"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#142c49">
-<meta name="etos-build" content="20261015-unified-gagasan-v38.1"><title>ETOS ID Palu — Awardee Intelligence</title>
+<meta name="etos-build" content="20261015-etos-living-motion-v38.2"><title>ETOS ID Palu — Awardee Intelligence</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=36.26"><link rel="preload" as="image" href="/brand-etos-white.svg?v=38.0">
 <meta name="application-name" content="ETOS ID Palu">
 <meta name="mobile-web-app-capable" content="yes">
@@ -33,7 +33,7 @@ html,body{margin:0;width:100%;min-height:100%;overflow-x:hidden;background:#f6f8
 @keyframes etosSweep{0%{transform:translateX(-130%)}100%{transform:translateX(340%)}}
 @keyframes etosOrbit{from{transform:translate3d(0,0,0) scale(.96)}to{transform:translate3d(18px,12px,0) scale(1.04)}}
 @media(prefers-reduced-motion:reduce){.instant-entry,#instant-shell:before,#instant-shell:after,.instant-entry-line:after{animation:none!important}}
-</style></head><body>
+</style><link rel="stylesheet" href="/etos-layer-guard.css?v=1"><link rel="stylesheet" href="/etos-living-motion.css?v=1"></head><body>
 <div id="instant-shell" aria-hidden="true"><div class="instant-entry"><img src="/brand-etos-white.svg?v=38.1" alt="ETOS ID Palu"><div class="instant-entry-line"></div><small>PALU · AWARDEE INTELLIGENCE</small></div></div>
 <div id="startup-error" role="alert"></div>
 <script>(function(){'use strict';
@@ -56,4 +56,4 @@ async function reflection(){const m=location.pathname.match(/^\/r\/([^/?#]+)/i);
 function idleEnhancements(){const run=async()=>{await loadGroup(['app-auth-recovery','app-auth-mfa'],true);try{window.dispatchEvent(new CustomEvent('etos:enhancements-ready'));window.lucide?.createIcons?.()}catch(_){}};if('requestIdleCallback'in window)requestIdleCallback(()=>run(),{timeout:1600});else setTimeout(run,250)}
 async function dashboard(){const shellPromise=fetch('/shell.html?v='+V,{cache:'no-store'}),libsPromise=libs();const r=await shellPromise;if(!r.ok)throw new Error('shell HTTP '+r.status);const html=await r.text();mountShell(html);brand();revealShell();if(document.readyState==='loading')await new Promise(resolve=>document.addEventListener('DOMContentLoaded',resolve,{once:true}));await libsPromise;await loadSeries(['supabase-adapter','app-instant-cache-v367','app-supabase-authority','app-core','app-responsive-v3619','app-public','app-secure','app-click-guard']);await loadGroup(['app-access','app-auth-rbac','app-interaction-fix','app-attendance-settings','app-attendance-detail','app-facilitator-intelligence','app-email-center','app-restore-core'],false);await load('/tahsin-attendance-import.js?v='+V,false,7000);await load('/app-polish.js?v='+V,true,6000);await load('/app-pin-policy.js?v='+V,false,7000);await load('/app-v367-performance.js?v='+V,false,7000);await load('/app-v368-experience.js?v='+V,false,7000);await load('/app-v369-backoffice.js?v='+V,false,7000);brand();try{window.dispatchEvent(new CustomEvent('etos:enhancements-ready'));window.lucide?.createIcons?.()}catch(_){}if(typeof window.boot!=='function')throw new Error('boot tidak ditemukan');await window.boot();idleEnhancements()}
 (async()=>{try{if(await reflection())return;await dashboard()}catch(e){revealShell();softError(e)}})();
-})();</script></body></html>
+})();</script><script defer src="/etos-layer-guard.js?v=1"></script><script defer src="/etos-living-motion.js?v=1"></script></body></html>

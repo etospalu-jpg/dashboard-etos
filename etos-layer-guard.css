@@ -1,0 +1,10 @@
+/* Shared ETOS overlay behavior. A foreground editor owns scrolling until closed. */
+html.etos-layer-locked,body.etos-layer-locked{overscroll-behavior:none!important;overflow:hidden!important}
+.modal.open,.drawer.open,.service-dialog:not([hidden]),.login-backdrop:not([hidden]){overscroll-behavior:contain;touch-action:pan-y}
+.modal.open .modal-card,.drawer.open .drawer-panel,.service-dialog:not([hidden]) .service-dialog-inner,.login-panel:not([hidden]){
+ max-height:calc(100dvh - 28px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;
+}
+body.etos-layer-locked .modal.open,body.etos-layer-locked .drawer.open{isolation:isolate}
+@media(max-width:700px){.modal.open,.drawer.open,.service-dialog:not([hidden]){padding:12px}
+.modal.open .modal-card,.service-dialog:not([hidden]) .service-dialog-inner,.login-panel:not([hidden]){max-height:calc(100dvh - 20px)}
+.drawer.open .drawer-panel{height:100dvh;max-height:100dvh}}

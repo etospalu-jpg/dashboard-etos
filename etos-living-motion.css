@@ -1,0 +1,59 @@
+/* ETOS Living Motion System · navy / sky-blue, shared across four ETOS surfaces */
+.etos-cursor-layer{position:fixed;top:0;left:0;width:0;height:0;z-index:90;pointer-events:none;opacity:0;transition:opacity .2s ease}
+.etos-cursor-layer.is-visible{opacity:1}
+.etos-cursor-orbit,.etos-cursor-point{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;transform:translate3d(-100px,-100px,0) translate(-50%,-50%);will-change:transform}
+.etos-cursor-orbit{width:29px;height:29px;border:1.5px solid rgba(68,141,218,.82);box-shadow:0 0 16px rgba(67,149,229,.12);background:rgba(108,171,240,.055);transition:width .28s,height .28s,border-color .28s,background .28s}
+.etos-cursor-point{width:4px;height:4px;background:#3d91d6}
+.etos-cursor-layer.is-interactive .etos-cursor-orbit{width:47px;height:47px;border-color:rgba(62,138,227,.52);background:rgba(86,161,240,.075)}
+body.etos-layer-locked .etos-cursor-layer{display:none}
+/* Glow is painted inside white surfaces; text remains readable and the layout doesn't shift. */
+.etos-motion-card[data-etos-motion-mode="glow"]{
+ --etos-pointer-x:50%;--etos-pointer-y:50%;
+ transition:box-shadow .36s cubic-bezier(.2,.75,.25,1),border-color .36s ease,transform .36s cubic-bezier(.2,.75,.25,1),background-color .3s ease;
+}
+@media(hover:hover) and (pointer:fine){
+.etos-motion-card[data-etos-motion-mode="glow"]:hover{
+ background-image:radial-gradient(320px circle at var(--etos-pointer-x) var(--etos-pointer-y),rgba(84,156,234,.095),transparent 72%)!important;
+ border-color:#b6d2ec!important;
+ box-shadow:0 14px 35px rgba(24,80,141,.12);
+}
+.etos-motion-card[data-etos-motion-mode="fill"]{
+ --etos-pointer-x:50%;--etos-pointer-y:50%;position:relative;isolation:isolate;
+ transition:background .42s ease,border-color .32s,box-shadow .32s,transform .32s;
+}
+.etos-motion-card[data-etos-motion-mode="fill"]::before{
+ content:"";position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;
+ background:linear-gradient(135deg,#2362a7,#163e70);
+ clip-path:circle(0% at var(--etos-pointer-x) var(--etos-pointer-y));
+ transition:clip-path .5s cubic-bezier(.2,.75,.25,1);
+}
+.etos-motion-card[data-etos-motion-mode="fill"]>*{position:relative;z-index:1}
+.etos-motion-card[data-etos-motion-mode="fill"]:hover::before{clip-path:circle(165% at var(--etos-pointer-x) var(--etos-pointer-y))}
+.etos-motion-card[data-etos-motion-mode="fill"]:hover{border-color:#4382c2!important;box-shadow:0 16px 38px rgba(15,58,112,.14)}
+.etos-motion-card[data-etos-motion-mode="fill"]:hover :is(h2,h3,p,small,strong,.kicker,.service-emblem){color:#fff!important}
+.etos-motion-card[data-etos-motion-mode="fill"]:hover button{background:#fff!important;color:#174677!important;border-color:#fff!important}
+.etos-motion-hero{
+ --etos-pointer-x:78%;--etos-pointer-y:42%;position:relative;
+}
+body[data-etos-surface="dashboard"] .etos-motion-hero:hover,
+body[data-etos-surface="readmap"] .etos-motion-hero:hover{
+ background-image:radial-gradient(460px circle at var(--etos-pointer-x) var(--etos-pointer-y),rgba(121,190,255,.18),transparent 77%),linear-gradient(115deg,#102a48,#17385f);
+}
+body[data-etos-surface="dashboard"] #main-app .etos-motion-hero:hover{
+ background:radial-gradient(480px circle at var(--etos-pointer-x) var(--etos-pointer-y),rgba(125,188,249,.23),transparent 77%),linear-gradient(122deg,#102845,#1a3a61 69%,#29496b)!important;
+ box-shadow:0 19px 40px rgba(10,44,84,.18)!important;
+}
+}
+/* Calm one-time entrance on first load; no loop or motion of long strings. */
+@keyframes etosMotionEnter{from{opacity:0;transform:translate3d(0,12px,0)}to{opacity:1;transform:none}}
+.etos-motion-hero h1{animation:etosMotionEnter .65s cubic-bezier(.2,.75,.25,1) both}
+.etos-motion-hero p{animation:etosMotionEnter .7s cubic-bezier(.2,.75,.25,1) .07s both}
+.etos-motion-hero :is(.hero-actions,.editorial-masthead-actions){animation:etosMotionEnter .65s cubic-bezier(.2,.75,.25,1) .13s both}
+body[data-etos-surface="gagasan"] .etos-motion-card[data-etos-motion-mode="glow"]:hover{transform:translateY(-4px)}
+body[data-etos-surface="profile"] .etos-motion-card[data-etos-motion-mode="glow"]:hover{transform:translateY(-3px)}
+@media(hover:none),(pointer:coarse){.etos-cursor-layer{display:none!important}.etos-motion-card[data-etos-motion-mode="glow"]:hover{background-image:none!important}}
+@media(prefers-reduced-motion:reduce){
+ .etos-cursor-layer{display:none!important}
+ .etos-motion-card,.etos-motion-hero h1,.etos-motion-hero p,.etos-motion-hero .hero-actions,.etos-motion-hero .editorial-masthead-actions{animation:none!important;transition:none!important;transform:none!important}
+ .etos-motion-card[data-etos-motion-mode="fill"]::before{display:none!important}
+}
