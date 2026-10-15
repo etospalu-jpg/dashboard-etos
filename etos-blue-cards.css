@@ -33,3 +33,14 @@
 @media (prefers-reduced-motion:reduce){
   .etos-motion-card[data-etos-motion-mode="fill"]::before{transition:none!important}
 }
+
+/* Contrasting fill surface: prevent labels becoming white over unfilled white tiles. */
+@media (hover:hover) and (pointer:fine) {
+body[data-etos-surface="readmap"] .readmap-app #stats .metric.etos-motion-card[data-etos-motion-mode="fill"]::before{display:block!important;content:""!important;pointer-events:none;background:linear-gradient(135deg,#367ac0,#173e69)!important}
+body[data-etos-surface="readmap"] .readmap-app #stats .metric.etos-motion-card[data-etos-motion-mode="fill"]:hover,
+body[data-etos-surface="profile"] .profile-wrap .metric.etos-motion-card[data-etos-motion-mode="fill"]:hover,
+body[data-etos-surface="dashboard"] #view-dashboard .metric.etos-motion-card[data-etos-motion-mode="fill"]:hover{background:#173e69!important;color:#fff!important;border-color:#3679b2!important}
+body[data-etos-surface="readmap"] .readmap-app #stats .metric.etos-motion-card[data-etos-motion-mode="fill"]:hover :is(b,strong,small,span,p),
+body[data-etos-surface="profile"] .profile-wrap .metric.etos-motion-card[data-etos-motion-mode="fill"]:hover :is(strong,span,small,p),
+body[data-etos-surface="dashboard"] #view-dashboard .metric.etos-motion-card[data-etos-motion-mode="fill"]:hover :is(.eyebrow,.metric-number,small,span,strong,div[class*="text-"]){color:#fff!important;opacity:1!important}
+}

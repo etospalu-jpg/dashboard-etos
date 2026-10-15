@@ -1,0 +1,23 @@
+// Regression check: photo URLs, readable cursor fill, no decorative profile icons.
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const read=p=>fs.readFileSync(p,'utf8');
+const js=read('profil-awardee.js'),html=read('profil-awardee.html'),blue=read('etos-blue-cards.css');
+assert.doesNotThrow(()=>new Function(js),'Profile client JS');
+assert.match(js,/a\.photo_url/);
+assert.match(js,/googleusercontent\.com\/d\//);
+assert.match(js,/drive\.google\.com\/thumbnail\?id=/);
+assert.match(js,/img\.onerror=\(\)=>nextPhoto\(\)/);
+assert.match(js,/img\.onload=/);
+assert.doesNotMatch(html,/class="metric-icon"/);
+assert.doesNotMatch(html,/class="journey-icon"/);
+assert.match(blue,/#stats \.metric\.etos-motion-card\[data-etos-motion-mode="fill"\]::before/);
+assert.match(blue,/display:block!important;content:""!important/);
+assert.match(blue,/background:#173e69!important;color:#fff!important/);
+assert.match(read('readmap.html'),/etos-blue-cards\.css\?v=4/);
+assert.match(html,/profil-awardee\.js\?v=4/);
+const vers=read('index.html').match(/const V='([^']+)'/)?.[1];
+assert.equal(vers,'38.7');
+assert.match(read('sw.js'),/const VERSION='38\.7'/);
+assert.match(read('app-core.js'),/loadSki/);
+assert.match(read('app-core.js'),/view==='ski'/);
+console.log('ETOS PHOTO + HOVER CONTRAST + SKI ROUTING: PASS');

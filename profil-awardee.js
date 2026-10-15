@@ -21,12 +21,26 @@ function renderIdentity(a){
  $('identity-cohort').textContent='Angkatan '+(a.cohort||'—');
  $('identity-status').textContent=a.status||'Awardee';
  $('identity-motto').textContent=a.motto||'Setiap langkah memiliki ceritanya sendiri.';
- const photo=String(a.photo_url||'');
- if(/^https:\/\//i.test(photo)){
-  const img=$('identity-img');img.src=photo;
-  img.onload=()=>{$('identity-initial').hidden=true;img.hidden=false};
-  img.onerror=()=>{img.hidden=true;$('identity-initial').hidden=false};
+
+ const img=$('identity-img'),initial=$('identity-initial');
+ const raw=String(a.photo_url||'').trim();
+ const match=raw.match(/\/file\/d\/([A-Za-z0-9_-]+)/)||raw.match(/[?&]id=([A-Za-z0-9_-]+)/);
+ const candidates=match?[
+  'https://lh3.googleusercontent.com/d/'+match[1],
+  'https://drive.google.com/thumbnail?id='+encodeURIComponent(match[1])+'&sz=w640',
+  'https://drive.google.com/uc?export=view&id='+encodeURIComponent(match[1])
+ ]:(/^https:\/\//i.test(raw)?[raw]:[]);
+ let photoIndex=0;
+ img.hidden=true;initial.hidden=false;
+ img.alt='Foto '+String(a.name||'Awardee');
+ img.referrerPolicy='no-referrer';img.decoding='async';
+ function nextPhoto(){
+  if(photoIndex>=candidates.length){img.hidden=true;initial.hidden=false;return;}
+  img.hidden=true;initial.hidden=false;img.src=candidates[photoIndex++];
  }
+ img.onload=()=>{if(img.naturalWidth>0){initial.hidden=true;img.hidden=false;}else nextPhoto();};
+ img.onerror=()=>nextPhoto();
+ nextPhoto();
 }
 function renderStatistics(s,semesters,summary){
  $('stat-writing').textContent=format(s.published_articles);
