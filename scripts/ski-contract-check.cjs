@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const s=p=>fs.readFileSync(p,'utf8');
-const ui=s('app-ski.js'),api=s('ski-handler.js'),cron=s('api/ski-weekly.js'),html=s('index.html');
+const ui=s('app-ski.js'),api=s('ski-handler.js'),cron=s('ski-weekly-handler.js'),html=s('index.html');
 for(const f of ['app-ski.js','ski-handler.js','ski-weekly-handler.js','api/secure.js','api/system.js'])assert.doesNotThrow(()=>new Function(s(f)),f+' contains syntax error');
 assert.match(html,/app-ski\.js/);assert.match(html,/app-ski\.css/);assert.match(ui,/SKI Saya · Privat/);
 assert.match(ui,/2026-2/);assert.match(ui,/2027-1/);
