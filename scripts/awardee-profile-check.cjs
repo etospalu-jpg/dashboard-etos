@@ -14,6 +14,12 @@ assert((shell.match(/href="\/gagasan\.html"/g)||[]).length>=2,'Dashboard must ha
 assert(readmap.includes('href="/profil-awardee.html"'),'Personal profile not linked from Awardee workspace');
 assert(readmap.includes('id="readmap-personal"'),'Awardee compact personal snapshot missing');
 assert(readmap.includes('/readmap-personal.js?v='),'Personal preview script not loaded');
+assert(readmap.includes('id="nickname-settings"')&&readmap.includes('id="nickname-form"'),'Nickname preferences form must exist');
+assert(teaser.includes("sb.rpc('readmap_set_nickname'"),'Nickname must be saved via own session');
+assert(teaser.includes("data.identity.nickname"),'Personal greeting must use stored preferred nickname');
+assert(html.includes('id="identity-nickname"'),'Profile must show the preferred nickname');
+assert(file('profil-awardee.js').includes('a.nickname'),'Profile must read the preferred nickname');
+assert(file('supabase/migrations/20261015_readmap_nickname_preferences.sql').includes('v_user uuid := auth.uid()'),'Nickname update must verify logged-in user');
 for(const id of ['identity-name','identity-major','identity-campus','identity-cohort','stat-writing','stat-draft','stat-books','stat-pages','stat-achievements','stat-lastip','ip-chart','academic-summary','recent-writings','profile-error','profile-main']){
  assert(html.includes('id="'+id+'"'),'Missing profile widget '+id);
 }

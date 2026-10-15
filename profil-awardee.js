@@ -14,6 +14,7 @@ function error(text){
 }
 function renderIdentity(a){
  $('identity-name').textContent=a.name||'Awardee ETOS';
+ const nickname=String(a.nickname||'').trim();$('identity-nickname').hidden=!nickname;$('identity-nickname').textContent=nickname?'Panggilan: '+nickname:'';
  $('identity-initial').textContent=initials(a.name);
  $('identity-major').textContent=a.major||'Program studi belum tercatat';
  $('identity-campus').textContent=a.campus||'Kampus belum tercatat';

@@ -1,0 +1,34 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const root=path.join(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p),'utf8');
+for(const name of ['etos-living-motion.js','readmap-personal.js','profil-awardee.js'])new vm.Script(read(name),{filename:name});
+const main=read('index.html'),readmap=read('readmap.html'),portal=read('gagasan.html'),profile=read('profil-awardee.html'),style=read('etos-blue-cards.css'),motion=read('etos-living-motion.js');
+for(const html of [main,readmap,portal,profile]){
+ assert(html.includes('/etos-living-motion.js?v=2'),'Expected latest motion engine');
+ assert(html.includes('/etos-living-motion.css?v=5'),'Expected current shared motion style');
+ assert(html.includes('/etos-blue-cards.css?v=1'),'Missing blue hover stylesheet');
+}
+assert(motion.includes("page==='dashboard'&&el.matches('#view-dashboard .metric')"),'Dashboard KPI must be fill');
+assert(motion.includes("page==='readmap'&&el.matches('#stats .metric,.service-card,.gagasan-launch')"),'READMAP KPI and Gagasan CTA must be fill');
+assert(motion.includes("page==='profile'&&el.matches('.profile-wrap .metric')"),'Personal statistics must be fill');
+assert(style.includes('body[data-etos-surface="dashboard"] #view-dashboard .metric'),'Dashboard KPI blue hover is missing');
+assert(style.includes('body[data-etos-surface="readmap"] .readmap-app .gagasan-launch'),'Ruang Gagasan CTA blue hover is missing');
+assert(!style.includes('radial-gradient('),'White glow must not be reintroduced');
+assert(readmap.includes('id="nickname-settings"')&&readmap.includes('id="nickname-reset"'),'Nickname settings and reset are missing');
+assert(readmap.includes('id="nickname-status"'),'Nickname accessible status missing');
+assert(profile.includes('id="identity-nickname"')&&profile.includes('/readmap.html#nickname-settings'),'Profile nickname link missing');
+const code=read('readmap-personal.js');
+assert(code.includes("sb.rpc('readmap_set_nickname',{p_nickname:next})"),'Nickname RPC signature mismatch');
+assert(code.includes("data.identity.nickname"),'Saved nickname must be loaded from private snapshot');
+assert(code.includes("!$('demo-banner').hidden"),'Demo must not save real nickname');
+assert(!code.includes("from('awardees')"),'Official names must remain unchanged');
+const sql=read('supabase/migrations/20261015_readmap_nickname_preferences.sql');
+assert(sql.includes('CREATE TABLE IF NOT EXISTS public.readmap_nicknames'),'Preferences storage missing');
+assert(sql.includes('ALTER TABLE public.readmap_nicknames ENABLE ROW LEVEL SECURITY'),'Private preferences table needs RLS');
+assert(sql.includes('REVOKE ALL ON TABLE public.readmap_nicknames FROM PUBLIC, anon, authenticated'),'No direct public table access allowed');
+assert(sql.includes('m.user_id = v_user'),'Must check own membership');
+assert(sql.includes('v_user uuid := auth.uid()'),'Must resolve identity server-side');
+assert(sql.includes("REVOKE ALL ON FUNCTION public.readmap_set_nickname(text) FROM PUBLIC, anon"),'No public writes');
+assert(sql.includes("GRANT EXECUTE ON FUNCTION public.readmap_set_nickname(text) TO authenticated"),'Authenticated writes allowed');
+assert(!sql.includes('UPDATE public.awardees SET name'),'Never overwrite official names');
+console.log('ETOS BLUE HOVER + ACCOUNT NICKNAME: PASS');

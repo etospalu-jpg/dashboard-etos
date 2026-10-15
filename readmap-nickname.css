@@ -1,0 +1,25 @@
+/* Quiet account preference panel — available only to the signed-in Awardee. */
+.nickname-settings{margin:34px 0 26px;padding:21px 24px;background:#fff;border:1px solid #dce8f5;border-radius:17px;box-shadow:0 5px 20px rgba(23,53,89,.04)}
+.nickname-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:15px}
+.nickname-heading .kicker{font-size:9px;color:#336eaa;letter-spacing:.13em;font-weight:800;margin:0 0 7px}
+.nickname-heading h3{font:800 19px/1.35 Manrope,"DM Sans",system-ui,sans-serif;letter-spacing:-.03em;color:#173758;margin:0}
+.nickname-heading p:not(.kicker){margin:7px 0 0;color:#6d829a;font-size:11px;line-height:1.7}
+.nickname-icon{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#ebf3fc;color:#245d9b;font:800 14px Manrope,sans-serif;flex:0 0 auto}
+.nickname-form{margin-top:16px}.nickname-form>label{font-size:11px;font-weight:800;color:#3b5876;display:block;margin:0 0 8px}
+.nickname-actions{display:flex;align-items:stretch;gap:9px;flex-wrap:wrap}
+.nickname-actions input{flex:1 1 180px;min-width:0;max-width:360px;min-height:44px;padding:10px 13px;border:1px solid #d7e4f1;border-radius:10px;background:#fcfdff;color:#173758;font-size:12px}
+.nickname-actions input:focus{outline:none;border-color:#3980ca;box-shadow:0 0 0 3px #deebf9}
+.nickname-actions button{font-size:11px;font-weight:800;border-radius:10px;padding:11px 16px;min-height:44px;cursor:pointer}
+.nickname-actions #nickname-save{background:#1d538c;color:#fff;border:1px solid #1d538c}
+.nickname-actions #nickname-save:hover{background:#153e6b}
+.nickname-actions .nickname-reset{border:1px solid #d9e6f3;color:#35618d;background:#f3f7fc}
+.nickname-actions button:disabled{opacity:.55;cursor:wait}
+.nickname-form>small{display:block;margin-top:10px;color:#8193a7;font-size:10px;line-height:1.5}
+.nickname-status{font-size:11px;color:#24629b;font-weight:600;margin:9px 0 0;min-height:0;line-height:1.6}
+.identity-nickname{font-size:12px;color:#336da8;font-weight:750;margin:7px 0 0}
+.nickname-profile-link{margin-top:18px;padding:18px 21px;background:#fff;border:1px solid #dce8f4;border-radius:15px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.nickname-profile-link strong{font:800 14px Manrope,sans-serif;color:#173758}
+.nickname-profile-link p{font-size:11px;color:#8092a6;margin:5px 0 0;line-height:1.6}
+.nickname-profile-link a{font-size:11px;font-weight:750;color:#255c99;white-space:nowrap}
+.nickname-profile-link a:hover{text-decoration:underline}
+@media(max-width:640px){.nickname-settings{padding:17px}.nickname-actions{display:grid;grid-template-columns:1fr 1fr}.nickname-actions input{grid-column:1/-1;max-width:none;width:100%}.nickname-actions button{padding:10px 11px;font-size:10px}.nickname-profile-link{align-items:flex-start;flex-direction:column;gap:10px}}

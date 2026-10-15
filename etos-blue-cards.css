@@ -1,0 +1,35 @@
+/* ETOS Blue Hover — cards respond to cursor position, no white spotlight */
+@media (hover:hover) and (pointer:fine) {
+  body[data-etos-surface="dashboard"] #view-dashboard .metric.etos-motion-card[data-etos-motion-mode="fill"]:hover{
+    border-color:#3674b7!important;box-shadow:0 17px 38px rgba(12,59,111,.15)!important;
+  }
+  body[data-etos-surface="dashboard"] #view-dashboard .metric.etos-motion-card[data-etos-motion-mode="fill"]:hover :is(.eyebrow,.metric-number,div[class*="text-"],span,small,strong){
+    color:#fff!important;
+  }
+  body[data-etos-surface="dashboard"] #view-dashboard .metric.etos-motion-card[data-etos-motion-mode="fill"]:hover .metric::after{border-color:rgba(255,255,255,.18)!important}
+  body[data-etos-surface="readmap"] .readmap-app #stats .metric.etos-motion-card[data-etos-motion-mode="fill"]:hover :is(b,strong,small,span){
+    color:#fff!important;
+  }
+  body[data-etos-surface="readmap"] .readmap-app .gagasan-launch.etos-motion-card[data-etos-motion-mode="fill"]:hover :is(strong,small,span){
+    color:#fff!important;
+  }
+  body[data-etos-surface="readmap"] .readmap-app .gagasan-launch.etos-motion-card[data-etos-motion-mode="fill"]:hover{
+    border-color:#3679bd!important;box-shadow:0 12px 28px #13437125!important;
+  }
+  body[data-etos-surface="profile"] .profile-wrap .metric.etos-motion-card[data-etos-motion-mode="fill"]:hover :is(strong,span,small){
+    color:#fff!important;
+  }
+  body[data-etos-surface="dashboard"] #view-dashboard .metric.etos-motion-card,
+  body[data-etos-surface="readmap"] .readmap-app #stats .metric.etos-motion-card,
+  body[data-etos-surface="readmap"] .readmap-app .gagasan-launch.etos-motion-card,
+  body[data-etos-surface="profile"] .profile-wrap .metric.etos-motion-card{
+    overflow:hidden;
+  }
+  body[data-etos-surface="dashboard"] #view-dashboard .metric.etos-motion-card[data-etos-motion-mode="fill"]::before,
+  body[data-etos-surface="readmap"] .readmap-app .gagasan-launch.etos-motion-card[data-etos-motion-mode="fill"]::before{
+    background:linear-gradient(135deg,#2a70b7,#153a68);
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  .etos-motion-card[data-etos-motion-mode="fill"]::before{transition:none!important}
+}

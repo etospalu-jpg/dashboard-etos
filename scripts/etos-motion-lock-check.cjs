@@ -6,7 +6,7 @@ const pages=['index.html','readmap.html','gagasan.html','profil-awardee.html'];
 for(const path of pages){
  const s=read(path);
  for(const asset of ['etos-layer-guard.js','etos-layer-guard.css','etos-living-motion.js','etos-living-motion.css']){
-  assert(s.includes('/'+asset+'?v='+(asset==='etos-living-motion.css'?'4':'1')),path+' must load '+asset);
+  assert(s.includes('/'+asset+'?v='+(asset==='etos-living-motion.css'?'5':asset==='etos-living-motion.js'?'2':'1')),path+' must load '+asset);
  }
 }
 const admin=read('readmap-admin.html');
@@ -34,6 +34,10 @@ assert(css.includes('background:none!important;'),'Large white/light card bloom 
 assert(!css.includes('background-image:none!important'),'Hover must never strip navy/gradient backgrounds');
 assert(css.includes('.featured-card.etos-motion-card:hover'),'Editorial featured card must preserve dark background on hover');
 assert(css.includes('background:linear-gradient(135deg,#123150,#142d48)!important'),'Article hover must retain readable navy');
+assert(read('etos-living-motion.js').includes("el.dataset.etosMotionMode=blueCard?'fill':'glow'"),'Blue hover must be selectively enabled on KPI and CTA cards');
+assert(read('etos-blue-cards.css').includes('#view-dashboard .metric.etos-motion-card'),'Four dashboard statistics must use blue hover');
+assert(read('etos-blue-cards.css').includes('.readmap-app .gagasan-launch.etos-motion-card'),'Ruang Gagasan CTA must use blue hover');
+assert(!read('etos-blue-cards.css').includes('radial-gradient('),'Blue hover must not restore broad white glow');
 assert(css.includes('.editorial-feed .featured-card::before,.editorial-feed .article-card::before'),'Gagasan featured/article glow override required');
 assert(css.includes('body[data-etos-surface="dashboard"] #main-app .hero'),'Dashboard hero should be free of broad glow');
 assert(css.includes('body[data-etos-surface="readmap"] .readmap-app .hero.hero-personal'),'READMAP hero should be free of broad glow');

@@ -50,9 +50,10 @@
   scope.querySelectorAll(candidate).forEach(el=>{
    if(el.closest('.modal,.drawer,.service-dialog,.login-panel,[data-etos-no-motion]'))return;
    el.classList.add('etos-motion-card');
-   if(page==='readmap'&&el.matches('.service-card,.gagasan-launch'))
-    el.dataset.etosMotionMode='fill';
-   else el.dataset.etosMotionMode='glow';
+   const blueCard=(page==='dashboard'&&el.matches('#view-dashboard .metric'))||
+      (page==='readmap'&&el.matches('#stats .metric,.service-card,.gagasan-launch'))||
+      (page==='profile'&&el.matches('.profile-wrap .metric'));
+   el.dataset.etosMotionMode=blueCard?'fill':'glow';
   });
   scope.querySelectorAll(hero).forEach(el=>el.classList.add('etos-motion-hero'));
  }
