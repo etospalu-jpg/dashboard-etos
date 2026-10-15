@@ -9,13 +9,13 @@ async function request(action,body){
 }
 async function render(){
  try{
-  const d=await request();$('summary').textContent=d.active+' dari '+d.total+' akun Etoser aktif sudah dibuat.';
+  const d=await request();$('summary').textContent=d.active+' dari '+d.total+' akun Awardee aktif sudah dibuat.';
   $('generate').disabled=d.active>=d.total;
   $('member-list').innerHTML=d.members.map(m=>'<div class="item"><strong>'+esc(m.name)+'</strong><small>'+esc(m.angkatan)+' · '+esc(m.username||'Belum dibuat')+'</small>'+(m.provisioned?'<button class="secondary" data-reset="'+esc(m.username)+'">Reset PIN</button>':'')+'</div>').join('');
  }catch(e){tell(e.message);$('summary').textContent='Akses tidak tersedia. Masuk dengan PIN Superadmin pada Dashboard terlebih dahulu.';}
 }
 $('generate').addEventListener('click',async()=>{
- if(!confirm('Buat username dan PIN acak untuk Etoser aktif yang belum memiliki akun? Kredensial baru hanya ditampilkan satu kali.'))return;
+ if(!confirm('Buat username dan PIN acak untuk Awardee aktif yang belum memiliki akun? Kredensial baru hanya ditampilkan satu kali.'))return;
  $('generate').disabled=true;
  let failed=false,loops=0;
  try{
@@ -39,7 +39,7 @@ $('member-list').addEventListener('click',async e=>{
 });
 $('download').addEventListener('click',()=>{
  if(!records.length)return;
- const rows=[['Nama Etoser','Angkatan','Username','PIN'],...records.map(x=>[x.name,x.angkatan,x.username,x.pin])];
+ const rows=[['Nama Awardee','Angkatan','Username','PIN'],...records.map(x=>[x.name,x.angkatan,x.username,x.pin])];
  const csv='\uFEFF'+rows.map(cols=>cols.map(v=>'"'+String(v??'').replace(/^[=+@\-]/,m=>"'"+m).replace(/"/g,'""')+'"').join(',')).join('\r\n');
  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download='READMAP-kredensial-baru-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
@@ -54,7 +54,7 @@ function bars(id,values,suffix){
 async function overview(){
  try{
   const d=await request('overview');
-  const items=[['Etoser Aktif',d.totals.awardees],['Akun Diterbitkan',d.totals.members],['Halaman Dilaporkan',d.totals.pages],['Video Selesai',d.totals.videosFinished],['Buku Selesai',d.totals.booksFinished],['Laporan Bacaan',d.totals.readingReports]];
+  const items=[['Awardee Aktif',d.totals.awardees],['Akun Diterbitkan',d.totals.members],['Halaman Dilaporkan',d.totals.pages],['Video Selesai',d.totals.videosFinished],['Buku Selesai',d.totals.booksFinished],['Laporan Bacaan',d.totals.readingReports]];
   $('overview-stats').innerHTML=items.map(([k,v])=>'<div class="metric"><b>'+Number(v).toLocaleString('id-ID')+'</b><small>'+esc(k)+'</small></div>').join('');
   bars('overview-weeks',d.weekly,'hlm');
   bars('overview-categories',d.categories,'hlm');

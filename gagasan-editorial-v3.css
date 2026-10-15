@@ -1,0 +1,54 @@
+/* ETOS ID Palu · Ruang Gagasan / editorial-first v3 */
+:root{--editorial-ink:#122d4b;--editorial-muted:#687d91;--editorial-border:#dce6f0;--editorial-ease:cubic-bezier(.2,.75,.25,1)}
+body{background:#f7f9fc}
+#workspace,.editorial-masthead-inner{max-width:1220px;margin-inline:auto}
+.editorial-masthead{background:#fff;border-bottom:1px solid #e0e8f1;box-shadow:0 5px 22px #1a3e6110}
+.editorial-masthead-inner{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px 30px;padding:26px 25px 25px}
+.editorial-masthead-title .eyebrow{font:800 9px/1.3 "DM Sans",sans-serif;letter-spacing:.17em;margin:0 0 8px;color:#2861a4}
+.editorial-masthead-title h1{font:800 clamp(35px,4.5vw,55px)/1.08 Manrope,"DM Sans",sans-serif;letter-spacing:-.066em;margin:0;color:#142e4d}
+.editorial-masthead-title h1 .punct{color:#3475ba}
+.editorial-masthead-title>p:last-child{font-size:12px;color:#70869b;margin:11px 0 0;line-height:1.6}
+.editorial-masthead-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap}
+.editorial-masthead-actions .button{min-height:40px;padding:11px 15px;white-space:nowrap;border-radius:10px;font-size:11px;box-shadow:none}
+.editorial-masthead-actions .button.primary{background:#15385d}
+.editorial-masthead-actions .button.secondary{background:#f2f6fb;border:1px solid #d6e5f3}
+.editorial-count{grid-column:1/-1;display:flex;gap:12px;align-items:center;justify-content:flex-start;border-top:1px solid #edf1f6;margin-top:8px;padding-top:11px;font-size:10px;color:#7a8ca2}
+.editorial-count strong{color:#315f96;font-size:13px;font-weight:800}
+.editorial-count i{height:3px;width:3px;background:#a5b9cd;border-radius:50%}
+.editorial-feed{padding:27px 25px 85px}
+.editorial-section-label{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 1px 13px;font:800 10px/1.35 "DM Sans",sans-serif;color:#2864a7;letter-spacing:.14em}
+.editorial-section-label>span:last-child{font-weight:600;letter-spacing:0;font-size:10px;color:#8092a6}
+.editorial-feed .featured{margin:0 0 35px}
+.editorial-feed .featured-card{min-height:355px;grid-template-columns:1fr 1fr;background:linear-gradient(135deg,#123150,#142d48);border-radius:20px;box-shadow:0 20px 45px #0b36551e}
+.editorial-feed .featured-visual{height:100%;min-height:355px;overflow:hidden}
+.editorial-feed .featured-visual img{object-fit:cover}
+.editorial-feed .featured-copy{padding:34px 39px}
+.editorial-feed .featured-copy h3{font-size:clamp(26px,3.1vw,39px);font-weight:800;line-height:1.22}
+.editorial-feed .featured-copy>p{color:#d2dfec;line-height:1.8;font-size:12px}
+.editorial-feed .featured-bottom{align-items:center}
+.editorial-library-heading{margin:6px 0 19px}
+.editorial-library-heading .eyebrow{color:#3778bd;font-size:9px;letter-spacing:.15em;margin:0 0 9px}
+.editorial-library-heading h2{font:800 clamp(25px,3.1vw,34px)/1.2 Manrope,"DM Sans",sans-serif;letter-spacing:-.05em;margin:0;color:#132e4c}
+.editorial-library-heading p:last-child{font-size:11px;color:#74879d;margin:8px 0 0}
+.editorial-feed .filter-row{margin-bottom:15px}
+.editorial-feed .category-chips{margin-bottom:11px}
+.editorial-feed .articles-grid{gap:18px}
+.editorial-feed .article-card{border-radius:16px;box-shadow:0 8px 23px #1336570d;border-color:#e2ebf3}
+.editorial-feed .article-card:hover{box-shadow:0 19px 40px #1c466126;transform:translateY(-5px)}
+.editorial-feed .article-card h3{font-size:19px;line-height:1.4;letter-spacing:-.03em}
+.editorial-feed .article-card .card-bottom{border-top-color:#e5edf6}
+.editorial-feed .card-author{gap:0}
+.editorial-feed .card-author b{color:#274869}
+.editorial-feed .share-round{border-radius:9px}
+.editorial-feed .featured-label{letter-spacing:.08em}
+.editorial-feed .featured-read{color:#fff}
+.editorial-feed .empty-state{min-height:210px;border:1px dashed #c6d9ee;border-radius:15px}
+.editorial-feed .empty-state h3{font:800 22px/1.3 Manrope,sans-serif;margin:6px 0}
+.editorial-feed .reveal-card.is-visible:hover{transform:translateY(-5px)}
+/* Keep public reading and writer tools uncluttered, but preserve their functionality. */
+#mine-view,#editor-view,#article-view{padding-top:34px}
+#mine-view .section-heading h2,#editor-view .section-heading h2{font-size:clamp(24px,2.7vw,34px)}
+.site-footer{margin-top:0}
+@media(max-width:900px){.editorial-feed .featured-card{grid-template-columns:1fr 1fr}.editorial-feed .featured-visual{min-height:300px}.editorial-feed .featured-copy{padding:26px}.editorial-feed .featured-copy h3{font-size:27px}.editorial-masthead-inner{padding:22px}}
+@media(max-width:700px){.editorial-masthead-inner{grid-template-columns:1fr;gap:14px;padding:20px 16px 17px}.editorial-masthead-title h1{font-size:37px}.editorial-masthead-actions{justify-content:flex-start}.editorial-masthead-actions .button{flex:0 0 auto;padding:10px 13px}.editorial-count{margin-top:0;padding-top:10px}.editorial-feed{padding:25px 15px 58px}.editorial-feed .featured-card{grid-template-columns:1fr}.editorial-feed .featured-visual{min-height:0;height:228px}.editorial-feed .featured-copy{padding:23px}.editorial-feed .featured-copy h3{font-size:26px}.editorial-feed .featured{margin-bottom:26px}.editorial-library-heading h2{font-size:26px}.editorial-feed .articles-grid{grid-template-columns:1fr}.editorial-feed .featured-bottom{align-items:flex-start}}
+@media(prefers-reduced-motion:reduce){.editorial-feed .article-card,.editorial-feed .featured-visual img{transition:none!important}}

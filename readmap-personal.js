@@ -15,6 +15,7 @@ async function refresh(){
   if(run!==current||result.error||!result.data?.identity||$('workspace').hidden||!$('demo-banner').hidden)return;
   const data=result.data,semesters=Array.isArray(data.semesters)?data.semesters:[],last=semesters.at(-1),summary=data.academic_summary;
   const name=String(data.identity.name||'Awardee').trim();
+  $('awardee-first-name').textContent=name.split(/\s+/)[0]||'Awardee';
   $('personal-hello').textContent='Halo, '+(name.split(/\s+/)[0]||'Awardee')+'!';
   $('personal-affiliation').textContent=[data.identity.major,data.identity.campus].filter(Boolean).join(' · ')||'Profil akademik dan karya pribadimu';
   $('personal-articles').textContent=Number(data.stats?.published_articles||0).toLocaleString('id-ID');

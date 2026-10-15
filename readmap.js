@@ -171,14 +171,14 @@ function bookCard(b){
  const img=url?'<img loading="lazy" src="'+safe(url)+'" alt="Sampul '+safe(b.title)+'">':'';
  return '<article class="item book-item" data-book-card="'+safe(b.id)+'"><div class="book-art"><span class="book-placeholder">📖</span>'+img+'</div><div class="book-detail"><strong>'+safe(b.title)+'</strong><small>'+safe(b.author||'Penulis tidak dicantumkan')+'</small><span class="book-label">'+safe(b.category)+'</span><div class="completion-title"><span>Progres membaca</span><b>'+(p.percent==null?'—':p.percent+'%')+'</b></div>'+progressHTML(p.percent,'Penyelesaian '+b.title)+'<small class="completion-detail">'+(p.total?p.current+' / '+p.total+' halaman':'Posisi '+p.current+' · Total halaman belum diisi')+'</small><small class="completion-state">'+safe(b.status)+'</small><div class="card-actions"><button class="secondary" data-edit-book="'+safe(b.id)+'">Ubah Progres</button><button class="secondary" data-finish="'+safe(b.id)+'">'+(b.status==='Selesai'?'Baca Lagi':'Tandai Selesai')+'</button><button class="delete-button" data-delete-book="'+safe(b.id)+'">Hapus</button></div><form class="book-position-editor" hidden><label>Halaman terakhir dibaca<input type="number" min="0" max="20000" data-current required value="'+p.current+'"></label><label>Total halaman buku<input type="number" min="1" max="20000" data-total required value="'+(p.total||'')+'"></label><small>Persentase dihitung dari halaman terakhir ÷ total halaman. Bisa diperbarui kapan saja.</small><button type="submit" data-save-book="'+safe(b.id)+'">Simpan Progres</button></form></div></article>';
 }
-function member(){if(!state.awardee)throw Error('Akun belum terhubung dengan Etoser.');return state.awardee}
+function member(){if(!state.awardee)throw Error('Akun belum terhubung dengan Awardee.');return state.awardee}
 async function identify(){
  const {data}=await sb.auth.getUser();state.user=data.user;
  if(!state.user){hide('workspace');show('login');return}
  try{
   const found=unwrap(await sb.from('readmap_memberships').select('awardee_id').eq('user_id',state.user.id).maybeSingle());
   state.awardee=found?.awardee_id||null;
-  if(!state.awardee)throw Error('Akun belum terhubung dengan data Etoser.');
+  if(!state.awardee)throw Error('Akun belum terhubung dengan data Awardee.');
   hide('login');show('workspace');hide('demo-banner');$('open-demo-account').hidden=false;await loadAll();notice('');window.dispatchEvent(new Event('readmap:ready'));
  }catch(e){hide('workspace');show('login');err(e);await sb.auth.signOut();state.user=null}
 }

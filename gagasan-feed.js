@@ -11,7 +11,7 @@ function card(a,i){
  '<span class="cover-arrow" aria-hidden="true">↗</span></a>'+
  '<div class="article-card-content"><div class="card-topline"><span class="kicker">'+esc(a.category)+'</span><span class="read-minute">'+Math.max(1,Math.ceil(G.words(a.body)/200))+' menit baca</span></div>'+
  '<h3><a href="'+esc(url)+'">'+esc(a.title)+'</a></h3><p>'+esc(shorten(G.description(a),150))+'</p>'+
- '<div class="card-bottom"><span class="card-author"><span class="mini-avatar">E</span><span><b>'+esc(a.author_name)+'</b><small>'+esc(G.date(a.published_at))+'</small></span></span>'+
+ '<div class="card-bottom"><span class="card-author"><span><b>'+esc(a.author_name)+'</b><small>'+esc(G.date(a.published_at))+'</small></span></span>'+
  '<button type="button" data-share="'+esc(a.id)+'" class="share-round" title="Salin tautan '+esc(a.title)+'" aria-label="Bagikan tulisan '+esc(a.title)+'">↗</button></div></div></article>';
 }
 function featured(a){

@@ -83,7 +83,7 @@ function renderReport(data){
   'Untuk pekan ini: '+short(latestT.goal,145):
   (kajian.length&&latestK?.action_plan?'Coba lanjutkan komitmen Kajian terakhirmu: '+short(latestK.action_plan,145):
    'Pilih satu hal kecil untuk dipelajari dan dicoba pekan ini.');
- $('welcome-recommendation').textContent=(count?'Refleksi pribadimu sudah tercatat '+count+' kali.':'Yuk mulai catat pembelajaranmu.')+learningSummary+' '+advice;
+ $('welcome-recommendation').textContent=count?'Kamu memiliki '+count+' catatan refleksi. Lanjutkan belajar dengan langkah yang konsisten.':'Belajar perlahan, catat yang bermakna, dan lihat perjalananmu bertumbuh.';
 }
 async function pullReflectionReport(){
  if(!member())return;
