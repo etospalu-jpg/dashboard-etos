@@ -1,4 +1,4 @@
-const VERSION='38.0';
+const VERSION='38.1';
 const STATIC_CACHE='etos-pwa-static-'+VERSION;
 const RUNTIME_CACHE='etos-pwa-runtime-'+VERSION;
 const CORE=[
@@ -22,6 +22,10 @@ self.addEventListener('fetch',event=>{
   if(req.method!=='GET'||req.headers.has('range'))return;
   const url=new URL(req.url);
   if(url.origin!==self.location.origin||url.pathname.startsWith('/api/'))return;
+  if(url.pathname==='/shell.html'){
+    event.respondWith(fetch(req,{cache:'no-store'}).catch(async()=>await caches.match(req)||await caches.match('/offline.html')));
+    return;
+  }
   if(req.mode==='navigate'){
     event.respondWith(
       fetch(req).then(res=>{
@@ -31,7 +35,7 @@ self.addEventListener('fetch',event=>{
     );
     return;
   }
-  const asset=/\.(?:js|css|svg|png|jpg|jpeg|webp|ico|woff2?)$/i.test(url.pathname)||url.pathname==='/manifest.webmanifest'||url.pathname==='/shell.html';
+  const asset=/\.(?:js|css|svg|png|jpg|jpeg|webp|ico|woff2?)$/i.test(url.pathname)||url.pathname==='/manifest.webmanifest';
   if(!asset)return;
   event.respondWith(
     caches.match(req).then(hit=>{

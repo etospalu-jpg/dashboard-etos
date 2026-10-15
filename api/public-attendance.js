@@ -1,4 +1,6 @@
 const PROJECT_URL='https://weklmapqizeldfdalbgs.supabase.co';
+// Consolidated public article renderer: reuse this existing Vercel Function instead of adding a thirteenth.
+const articlePage=require('../gagasan-public/api/article');
 const PUBLISHABLE_KEY='sb_publishable_cFm2Jvj2jvFyKcxbGniVWw_PL2SL7HC';
 const PUBLIC_EDGE=PROJECT_URL+'/functions/v1/public-api';
 const REFLECTION_EDGE=PROJECT_URL+'/functions/v1/public-reflection';
@@ -25,6 +27,8 @@ async function tahsinData(req,res){
 }
 async function dataHealth(res){try{const [stats,list]=await Promise.all([edge(PUBLIC_EDGE,{function:'getDashboardStats',params:null}),edge(PUBLIC_EDGE,{function:'getAwardeeList',params:null})]);const rows=Array.isArray(list?.data)?list.data:[];return out(res,200,{success:true,data:{source:'supabase',total:Number(stats?.data?.total??rows.length),active:Number(stats?.data?.aktif??0),alumni:Number(stats?.data?.alumni??0),withPhoto:rows.filter(x=>String(x.photo_url||x.foto||'').trim()).length}})}catch(e){console.warn('[data-health]',e.message);return out(res,502,{success:false,error:'Supabase public data belum sehat.'},'no-store')}}
 module.exports=async function handler(req,res){
+ // /tulisan/:ref is internally rewritten here; keep SSR Open Graph on the .com domain.
+ if(req.method==='GET'&&typeof req.query?.ref==='string')return articlePage(req,res);
  if(!['GET','POST'].includes(req.method))return out(res,405,{success:false,error:'Method not allowed'},'no-store');
  if(req.method==='GET'&&String(req.query?.data_health||'')==='1')return dataHealth(res);
  if(req.method==='POST'&&req.body?.action==='public_data')return publicData(req,res);

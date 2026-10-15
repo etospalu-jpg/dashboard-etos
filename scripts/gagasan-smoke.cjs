@@ -24,7 +24,12 @@ assert(source('gagasan-public/api/article.js').includes('ETOS_LOGO'),'Official l
 assert(source('gagasan-foundation.js').includes('dashboard.etosidpalu.com/tulisan'),'Wrong share domain');
 assert(source('gagasan-admin.js').includes('dashboard.etosidpalu.com/tulisan'),'Wrong admin share domain');
 assert(source('gagasan-foundation.js').includes("G.url=a=>G.publicBase+'/'+a.id"),'Share URL must not add old /t/ segment');
-assert(JSON.parse(source('vercel.json')).rewrites.some(x=>x.source==='/tulisan/:ref'),'External route missing');
+assert(JSON.parse(source('vercel.json')).rewrites.some(x=>x.source==='/tulisan/:ref'&&x.destination==='/api/public-attendance?ref=:ref'),'Unified same-project article route missing');
+assert(source('api/public-attendance.js').includes("if(req.method==='GET'&&typeof req.query?.ref==='string')return articlePage(req,res)"),'Article must reuse public Vercel function');
+assert(!source('vercel.json').includes('gagasan-etos-palu.vercel.app'),'External project still referenced by dashboard routing');
+assert(source('index.html').includes("cache:'no-store'"),'Shell must bypass stale browser cache');
+assert(source('sw.js').includes("url.pathname==='/shell.html'"),'Service worker must use network-first for shell');
+assert(source('shell.html').includes('Masuk sebagai Awardee'),'Official Awardee entrance not fixed');
 assert(source('gagasan-reader.css').includes('.brand-logo'),'Reader styles missing');
 
 assert(!html.includes('id="article-excerpt"'),'Awardee must not fill in a manual summary');
