@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.1.2",
   "scripts": {
-    "build": "npm run build:css && node build-static.js && node ui-v38-smoke.cjs && node scripts/readmap-evidence-check.cjs && node scripts/gagasan-smoke.cjs && node scripts/awardee-profile-check.cjs && node scripts/editorial-refinement-check.cjs && node scripts/etos-motion-lock-check.cjs && node scripts/etos-blue-nickname-check.cjs && node scripts/ski-contract-check.cjs && node scripts/ski-navigation-smoke.cjs && node scripts/etos-photo-hover-check.cjs",
+    "build": "npm run build:css && node build-static.js && node ui-v38-smoke.cjs && node scripts/readmap-evidence-check.cjs && node scripts/gagasan-smoke.cjs && node scripts/awardee-profile-check.cjs && node scripts/editorial-refinement-check.cjs && node scripts/etos-motion-lock-check.cjs && node scripts/etos-blue-nickname-check.cjs && node scripts/ski-contract-check.cjs && node scripts/ski-navigation-smoke.cjs && node scripts/keislaman-360-contract.cjs && node scripts/etos-photo-hover-check.cjs",
     "build:css": "tailwindcss -i ./tailwind.input.css -o ./tailwind.generated.css --minify"
   },
   "dependencies": {

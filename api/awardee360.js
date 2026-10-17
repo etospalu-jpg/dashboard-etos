@@ -95,9 +95,9 @@ function automaticAnalysis({academic,attendance,coaching,reflections,cases,achie
 
 module.exports=async function handler(req,res){
   if(req.method!=='POST')return out(res,405,{success:false,error:'Method not allowed'});
-  if(!session.verify(req))return out(res,401,{success:false,error:'PIN fasilitator diperlukan untuk Awardee 360°.'});
+  if(!session.verify(req)||!session.originAllowed(req))return out(res,401,{success:false,error:'PIN Superadmin diperlukan untuk Awardee 360°.'});
   try{
-    const c=session.credential(req);if(!c)bad('Session PIN tidak valid.',401);
+    const c=session.credential(req);if(!c?.server||!c.session)bad('Sesi PIN Superadmin tidak valid.',401);
     const a=await resolveAwardee(req.body?.params?.id_awardee||req.body?.params||'',c);
     if(!a)return out(res,404,{success:false,error:'Awardee tidak ditemukan.'});
     const id=a.id;
@@ -128,6 +128,20 @@ module.exports=async function handler(req,res){
     try{idp=await palu.detail(a.name,a.angkatan||'',false);idp.connected=true}catch(e){idp={connected:false,error:e.message||'IDP belum terhubung.',summary:null,values:[]}}
     const withIpk=academic.filter(x=>x.ipk!==null&&x.ipk!==''),latestAcademic=withIpk.filter(x=>!x.is_summary).at(-1)||withIpk.find(x=>x.is_summary)||null;
     const analysis=automaticAnalysis({academic,attendance,coaching,reflections:reflections||[],cases:cases||[],achievements,organizations,idp,journal:journal||[]});
+    // Each source is restricted to this verified awardee id. Optional failures are explicit.
+    const paths={
+      books:'readmap_books?select=id,title,author,category,total_pages,current_page,status,created_at,updated_at&order=updated_at.desc&limit=1000',
+      reading:'readmap_reading_entries?select=id,book_id,week_start,pages_read,insight,evidence_paths,created_at&order=week_start.desc&limit=1000',
+      weeks:'readmap_weekly_status?select=week_start,no_reading,note,submitted_at&order=week_start.desc&limit=1000',
+      videos:'readmap_videos?select=id,youtube_id,title,duration_seconds,last_position_seconds,watched_intervals,status,insight,last_watched_at,created_at&order=created_at.desc&limit=1000',
+      tahsin:'tahsin_weekly_reflections?select=id,session_id,lesson,challenges,confidence,practice_frequency,improvement_goal,previous_goal_review,submitted_at,attendance_sessions(activity_name,activity_date)&order=submitted_at.desc&limit=1000',
+      writings:'gagasan_articles?select=id,title,slug,excerpt,category,status,published_at,created_at&order=created_at.desc&limit=1000'
+    };
+    const values=await Promise.all(Object.entries(paths).map(async([key,path])=>{
+      try{return[key,{available:true,rows:await q('/rest/v1/'+path+'&awardee_id=eq.'+encodeURIComponent(id),c)}]}
+      catch(error){console.warn('[Awardee360 source]',key,error?.status||'unavailable');return[key,{available:false,rows:[]}]}
+    }));
+    const learning=Object.fromEntries(values);
     const response={
       awardee:a,
       contact:contactRows?.[0]||null,
@@ -146,6 +160,7 @@ module.exports=async function handler(req,res){
       journal:journal||[],
       monthlySummaries:monthlySummaries||[],
       idp,
+      learning,
       automaticAnalysis:analysis,
       access:{role:'superadmin',kind:'pin',private_ops:true,development:true,hidden_sections:[]},
       summary:{

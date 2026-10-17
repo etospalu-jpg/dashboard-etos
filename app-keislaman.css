@@ -1,0 +1,6 @@
+.ki-tabs{display:flex;gap:8px;overflow:auto;padding:4px;margin:0 0 19px;background:#ecf2fa;border-radius:15px}
+.ki-tab{flex:1;min-width:140px;border-radius:11px;border:0;background:transparent;color:#466181;font-weight:750;padding:13px 10px;font-size:12px;cursor:pointer}
+.ki-tab.active{background:#0e43ab;color:#fff;box-shadow:0 7px 20px #0e43ab22}
+.ki-page-row[hidden]{display:none!important}.ki-page-row{margin-bottom:10px}.ki-page .ki-show-more{width:100%;justify-content:center;margin-top:12px}
+.ki-page details summary{list-style:none}.ki-page details summary::-webkit-details-marker{display:none}
+@media(max-width:600px){.ki-tabs{gap:3px}.ki-tab{min-width:110px;font-size:10px;padding:12px 6px}}

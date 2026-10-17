@@ -8,7 +8,7 @@ window.etosAuthClient=authClient;
 const legacy={signInPin:window.etosAuth.signInPin?.bind(window.etosAuth),getSession:window.etosAuth.getSession?.bind(window.etosAuth),signOut:window.etosAuth.signOut?.bind(window.etosAuth),openLogin:window.openLogin,goView:window.goView};
 let lastBridgeToken='',inviteSetupShown=false;
 const roleNames={superadmin:'Superadmin',admin:'Admin',facilitator:'Fasilitator',operator:'Operator',viewer:'Viewer'};
-const PIN_ONLY_VIEWS=new Set(['coaching','mentoring','profile','datacenter','settings','system','communication','ski']);
+const PIN_ONLY_VIEWS=new Set(['coaching','mentoring','profile','datacenter','settings','system','communication','keislaman','ski']);
 const viewRoles={
  dashboard:['public','viewer','operator','facilitator','admin','superadmin'],
  directory:['public','viewer','operator','facilitator','admin','superadmin'],
@@ -51,7 +51,7 @@ function inviteFlag(){const q=new URLSearchParams(location.search),h=new URLSear
 async function maybeInviteSetup(){if(inviteSetupShown||!inviteFlag())return;ensureModals();for(let i=0;i<12;i++){const{data}=await authClient.auth.getSession();if(data?.session){inviteSetupShown=true;openModal('invite-password-modal');setTimeout(()=>document.getElementById('invite-password')?.focus(),100);return}await new Promise(r=>setTimeout(r,150))}}
 function roleOf(){if(!state?.auth)return'public';return String(state?.session?.kind==='pin'?'superadmin':state?.session?.role||state?.session?.profile?.role||state?.role||'viewer').toLowerCase()}
 function canView(view){if(PIN_ONLY_VIEWS.has(view))return !!(state?.auth&&state?.session?.kind==='pin');const allowed=viewRoles[view];return !allowed||allowed.includes(roleOf())}
-function applyRoleUI(){const role=roleOf();document.querySelectorAll('.nav-btn[data-view]').forEach(b=>{const view=b.dataset.view,show=view==='ski'?!!(state?.auth&&state?.session?.kind==='pin'):PIN_ONLY_VIEWS.has(view)?true:canView(view);if(view==='ski')b.hidden=!show;b.style.display=show?'':'none';b.setAttribute('aria-hidden',show?'false':'true');b.classList.toggle('pin-locked',PIN_ONLY_VIEWS.has(view)&&state?.session?.kind!=='pin')});const ac=document.getElementById('access-control-card');if(ac)ac.style.display=(state?.session?.kind==='pin'||role==='superadmin')?'':'none'}
+function applyRoleUI(){const role=roleOf();document.querySelectorAll('.nav-btn[data-view]').forEach(b=>{const view=b.dataset.view,show=(view==='ski'||view==='keislaman')?!!(state?.auth&&state?.session?.kind==='pin'):PIN_ONLY_VIEWS.has(view)?true:canView(view);if(view==='ski'||view==='keislaman')b.hidden=!show;b.style.display=show?'':'none';b.setAttribute('aria-hidden',show?'false':'true');b.classList.toggle('pin-locked',PIN_ONLY_VIEWS.has(view)&&state?.session?.kind!=='pin')});const ac=document.getElementById('access-control-card');if(ac)ac.style.display=(state?.session?.kind==='pin'||role==='superadmin')?'':'none'}
 window.ETOSApplyRoleUI=applyRoleUI;
 window.checkAuth=async function(){const{data}=await getSession();state.auth=!!data?.session;state.session=data?.session||null;state.role=data?.session?.role||data?.session?.profile?.role||null;window.updateAuthUI?.()};
 const baseUpdate=window.updateAuthUI;

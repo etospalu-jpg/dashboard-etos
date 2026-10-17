@@ -11,15 +11,11 @@ function needPin(next){
 }
 function ensureActions(){
  const view=document.getElementById('view-attendance');if(!view||document.getElementById('attendance-private-actions'))return;
- const x=document.createElement('div');x.id='attendance-private-actions';x.className='grid md:grid-cols-3 gap-3 mt-4';
+ const x=document.createElement('div');x.id='attendance-private-actions';x.className='grid md:grid-cols-2 gap-3 mt-4';
  x.innerHTML=`
  <button class="card p-5 text-left hover:border-[#a8c4e7] transition" onclick="openAttendanceDetail()">
   <div class="flex items-start gap-3"><div class="w-10 h-10 rounded-xl bg-[#e9f1fb] text-[#315f96] flex items-center justify-center"><i data-lucide="table-properties" class="w-4 h-4"></i></div>
   <div><div class="text-[11px] font-extrabold">Lihat Detail Absensi</div><div class="text-[9px] text-[#70849a] mt-1 leading-4">Peserta per agenda, filter tanggal/bulan/periode, dan export Excel.</div></div><i data-lucide="lock-keyhole" class="w-4 h-4 ml-auto text-[#70849a]"></i></div>
- </button>
- <button class="card p-5 text-left hover:border-[#a8c4e7] transition" onclick="openReflectionHub()">
-  <div class="flex items-start gap-3"><div class="w-10 h-10 rounded-xl bg-[#f2eee6] text-[#8b7047] flex items-center justify-center"><i data-lucide="message-square-text" class="w-4 h-4"></i></div>
-  <div><div class="text-[11px] font-extrabold">Lihat Refleksi Kajian</div><div class="text-[9px] text-[#70849a] mt-1 leading-4">Jawaban refleksi per agenda dan temuan fasilitator.</div></div><i data-lucide="lock-keyhole" class="w-4 h-4 ml-auto text-[#70849a]"></i></div>
  </button>
  <button class="card p-5 text-left hover:border-[#a8c4e7] transition" onclick="openEmailCenter()">
   <div class="flex items-start gap-3"><div class="w-10 h-10 rounded-xl bg-[#eaf0f7] text-[#31577d] flex items-center justify-center"><i data-lucide="mail-plus" class="w-4 h-4"></i></div>

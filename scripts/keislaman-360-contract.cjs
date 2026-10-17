@@ -1,0 +1,26 @@
+// Cross-module regression contract for ETOS Islamic monitoring and Awardee 360.
+const fs=require('node:fs'),assert=require('node:assert/strict'),vm=require('node:vm');
+const read=p=>fs.readFileSync(p,'utf8');
+for(const p of ['app-keislaman.js','app-awardee360-enhance.js','app-core.js','app-auth-rbac.js','app-interaction-fix.js','app-secure.js','api/awardee360.js'])new vm.Script(read(p),{filename:p});
+const back=read('api/awardee360.js'),view=read('app-secure.js'),ext=read('app-awardee360-enhance.js'),ki=read('app-keislaman.js');
+const nav=read('shell.html'),boot=read('index.html'),core=read('app-core.js'),role=read('app-auth-rbac.js'),att=read('app-attendance-detail.js');
+assert.match(back,/!session\.verify\(req\)\|\|!session\.originAllowed\(req\)/);
+assert.match(back,/!c\?\.server\|\|!c\.session/);
+for(const x of ['books','reading','weeks','videos','tahsin','writings'])assert.match(back,new RegExp(''+x+':'));
+assert.match(back,/awardee_id=eq\./);
+assert.match(ext,/page\(body,body\.querySelectorAll\('tbody tr'\)\)/,'Absensi must be paginated');
+assert.match(ext,/i>=5/,'Initial page is five');
+assert.match(ext,/hidden\.slice\(0,5\)/,'Progressive expansion required');
+assert.match(ext,/session\?\.kind!=='pin'/);
+assert.match(ext,/priorAuthUi/);
+assert.match(view,/window\.a360Enhance\?\.\(data,id\)/);
+assert.match(nav,/data-view="keislaman"/);assert.match(nav,/id="view-keislaman"/);
+assert.match(role,/view==='ski'\|\|view==='keislaman'/);
+assert.match(core,/window\.loadKeislaman\(force\)/);
+assert.match(boot,/app-keislaman\.js/);
+assert.match(boot,/app-awardee360-enhance\.js/);
+assert.match(ki,/tahsinOverview/);assert.match(ki,/getReflectionHub/);
+assert.match(ki,/Menunggu integrasi Murojaahku/);
+assert.doesNotMatch(att,/onclick="openReflectionHub\(\)"/,'Kajian shortcut moved from Attendance');
+const apiCount=fs.readdirSync('api').filter(x=>x.endsWith('.js')).length;assert.ok(apiCount<=12,'Vercel Hobby 12-function cap');
+console.log('ETOS: PIN 360, READMAP, 5-row pagination, Keislaman routing/monitoring and API cap PASS');

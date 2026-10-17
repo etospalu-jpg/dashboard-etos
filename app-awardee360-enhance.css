@@ -1,0 +1,7 @@
+#awardee-drawer [data-a360-entry][hidden]{display:none!important}
+#awardee-drawer .a360-more{display:flex;width:100%;justify-content:center;margin:12px 0 0}
+#awardee-drawer .a360-progress{height:7px;background:#e5edf8;border-radius:99px;margin:12px 0 5px;overflow:hidden}
+#awardee-drawer .a360-progress span{display:block;height:100%;background:linear-gradient(90deg,#0e43ab,#38bdf8);border-radius:99px}
+#awardee-drawer .a360-overview{padding:18px;background:#f4f8ff;border:1px solid #dce8f6;border-radius:18px}
+#awardee-drawer.a360-expanded .drawer-panel{width:min(100vw,1120px)!important;max-width:1120px!important}
+@media(max-width:680px){#awardee-drawer.a360-expanded .drawer-panel{width:100vw!important;max-width:100vw!important}}
