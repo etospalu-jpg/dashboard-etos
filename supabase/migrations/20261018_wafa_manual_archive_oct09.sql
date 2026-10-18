@@ -93,8 +93,7 @@ BEGIN
  SET last_sync_at=now(),last_session_count=v_sessions,last_record_count=v_count,updated_at=now()
  WHERE integration_id='asrama_2026';
  RETURN jsonb_build_object('sessions',v_sessions,'records',v_count,'syncedAt',now());
-END;$function$
-
+END;$function$;
 
 -- Archive only the pre-reflection Asrama WAFA session (9 Oct 2026).
 -- Seven attendance records and the original link remain on disk for audit.
