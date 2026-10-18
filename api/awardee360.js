@@ -107,7 +107,7 @@ module.exports=async function handler(req,res){
       q(`/rest/v1/organization_records?awardee_id=eq.${id}&select=*&order=start_year.desc.nullslast`,c),
       q(`/rest/v1/achievements?awardee_id=eq.${id}&select=*&order=year.desc.nullslast`,c),
       q(`/rest/v1/portfolios?awardee_id=eq.${id}&select=*&order=updated_at.desc.nullslast&limit=1`,c).catch(()=>[]),
-      q(`/rest/v1/attendance_records?awardee_id=eq.${id}&select=status,notes,checked_at,attendance_sessions(activity_name,activity_date,target_cohort,period_id)&order=checked_at.desc.nullslast`,c),
+      q(`/rest/v1/attendance_records?awardee_id=eq.${id}&select=status,notes,checked_at,attendance_sessions!inner(activity_name,activity_date,target_cohort,period_id,status)&attendance_sessions.status=eq.aktif&order=checked_at.desc.nullslast`,c),
       q(`/rest/v1/coaching_sessions?awardee_id=eq.${id}&select=*&order=session_date.desc.nullslast`,c),
       q(`/rest/v1/mentoring_cases?awardee_id=eq.${id}&select=*&order=created_at.desc`,c),
       q(`/rest/v1/rule_analyses?awardee_id=eq.${id}&select=*&order=analyzed_at.desc&limit=10`,c).catch(()=>[]),
