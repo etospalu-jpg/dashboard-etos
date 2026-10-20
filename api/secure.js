@@ -7,6 +7,7 @@ const intelligence=require('../facilitator-intelligence-handler');
 const emailCenter=require('../email-center-handler');
 const skiPrivate=require('../ski-handler');
 const readmapAdmin=require('../ops/readmap-admin-handler');
+const murajaah=require('../integrations/murajaah/handler.cjs');
 const JOURNAL=new Set(['getFacilitatorJournalHub','saveFacilitatorJournalEntry','deleteFacilitatorJournalEntry','generateFacilitatorMonthlySummary','getMentoringJournal','saveMentoringJournal']);
 const ATTENDANCE=new Set(['getAbsensiList','getAttendanceDetail','getAbsensiEntryOptions','saveAbsensiEntry','getAttendanceSettings','saveAttendancePeriod','deleteAttendancePeriod','saveAttendanceAgenda','deleteAttendanceAgenda']);
 const ATTENDANCE_PIN_REQUIRED=new Set(['getAbsensiEntryOptions','saveAbsensiEntry','getAttendanceSettings','saveAttendancePeriod','deleteAttendancePeriod','saveAttendanceAgenda','deleteAttendanceAgenda']);
@@ -19,6 +20,7 @@ module.exports=async function handler(req,res){
  if(ATTENDANCE_PIN_REQUIRED.has(fn)&&!session.verify(req))return deny(res,'PIN Superadmin diperlukan untuk mengubah data absensi.');
  if(COACHING_PIN_REQUIRED.has(fn)&&!session.verify(req))return deny(res,'PIN Superadmin diperlukan untuk mencatat coaching.');
  if(fn==='readmapAdmin')return readmapAdmin(req,res);
+ if(fn==='murajaah2023')return murajaah(req,res);
  if(fn==='emailCenter')return emailCenter(req,res);
  if(fn==='skiPrivate')return skiPrivate(req,res);
  if(INTELLIGENCE.has(fn))return intelligence(req,res);
