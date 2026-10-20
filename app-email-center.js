@@ -17,7 +17,7 @@ function ensure(){
  if(settingsView&&!document.getElementById('email-settings-shortcut')){const box=document.createElement('div');box.id='email-settings-shortcut';box.className='card p-5 md:p-6 mb-5';box.innerHTML='<div class="flex flex-col md:flex-row md:items-center justify-between gap-4"><div><div class="eyebrow">Communication</div><h3 class="section-title text-[20px] mt-2">Email Center</h3><p class="text-[10px] text-[#7b8981] mt-2">Kelola sender, domain, template, reminder, dan riwayat email ETOS ID Palu.</p></div><button class="btn btn-primary" onclick="openEmailCenter()"><i data-lucide="mail" class="w-4 h-4"></i>Buka Email Center</button></div>';settingsView.prepend(box)}
  return v
 }
-function tabs(){return '<div class="flex gap-2 overflow-x-auto pb-1">'+[['compose','Tulis Email','send'],['templates','Template','file-text'],['history','Riwayat','history'],['setup','Setup Domain','settings-2']].map(x=>'<button class="btn '+(tab===x[0]?'btn-primary':'btn-soft')+' shrink-0" onclick="setEmailTab(\''+x[0]+'\')"><i data-lucide="'+x[2]+'" class="w-4 h-4"></i>'+x[1]+'</button>').join('')+'</div>'}
+function tabs(){return '<div class="flex gap-2 overflow-x-auto pb-1">'+[['compose','Tulis Email','send'],['readmap','Distribusi READMAP','key-round'],['templates','Template','file-text'],['history','Riwayat','history'],['setup','Setup Domain','settings-2']].map(x=>'<button class="btn '+(tab===x[0]?'btn-primary':'btn-soft')+' shrink-0" onclick="setEmailTab(\''+x[0]+'\')"><i data-lucide="'+x[2]+'" class="w-4 h-4"></i>'+x[1]+'</button>').join('')+'</div>'}
 function header(){const s=D?.settings||{},st=D?.stats||{};return '<div class="flex flex-col xl:flex-row xl:items-end justify-between gap-4 mb-5"><div><div class="eyebrow">Communication Center · PIN</div><h2 class="section-title text-[28px] mt-2">Email Center</h2><p class="text-[11px] text-[#7b8981] mt-2 max-w-[760px]">Pengumuman agenda, reminder refleksi, laporan, dan komunikasi pembinaan dari <b>'+E(s.sender_email||'info@etosidpalu.com')+'</b>.</p></div><div class="flex items-center gap-2"><span class="pill '+(s.ready?'pill-green':'pill-gold')+'">'+(s.ready?'Email Aktif':'Setup Belum Selesai')+'</span><button class="btn btn-soft" onclick="loadEmailCenter(true)"><i data-lucide="refresh-cw" class="w-4 h-4"></i>Perbarui</button></div></div><div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5"><div class="card-flat p-4"><div class="eyebrow">Awardee Aktif</div><div class="text-[24px] font-extrabold mt-2">'+Number(st.active||0)+'</div></div><div class="card-flat p-4"><div class="eyebrow">Punya Email</div><div class="text-[24px] font-extrabold mt-2">'+Number(st.withEmail||0)+'</div></div><div class="card-flat p-4"><div class="eyebrow">Belum Ada Email</div><div class="text-[24px] font-extrabold mt-2">'+Number(st.missingEmail||0)+'</div></div><div class="card-flat p-4"><div class="eyebrow">Domain</div><div class="text-[14px] font-extrabold mt-2">'+E(s.domainStatus||s.domain_status||'not_started')+'</div></div></div>'+tabs()+'<div id="email-panel" class="mt-4"></div>'}
 function tplOpts(){return '<option value="">— Tulis sendiri —</option>'+(D?.templates||[]).filter(x=>x.is_active!==false).map(x=>'<option value="'+E(x.id)+'">'+E(x.name)+'</option>').join('')}
 function compose(){
@@ -34,7 +34,7 @@ window.sendEmailCampaign=async function(ev){ev.preventDefault();if(!isPin())retu
 function templates(){return '<div class="flex justify-between items-center mb-3"><div><div class="eyebrow">Reusable Content</div><h3 class="section-title text-[19px] mt-2">Template Email</h3></div><button class="btn btn-primary" onclick="editEmailTemplate()"><i data-lucide="plus" class="w-4 h-4"></i>Template</button></div><div class="grid xl:grid-cols-2 gap-3">'+(D?.templates||[]).map(x=>'<div class="card p-5"><span class="pill pill-gray">'+E(x.category)+'</span><h4 class="text-[12px] font-extrabold mt-3">'+E(x.name)+'</h4><div class="text-[10px] mt-2">'+E(x.subject)+'</div><p class="text-[9px] text-[#7c8982] mt-3 whitespace-pre-line line-clamp-4">'+E(x.body_text)+'</p><div class="flex gap-2 mt-4"><button class="btn btn-soft flex-1" onclick="useEmailTemplate(\''+E(x.id)+'\')">Gunakan</button><button class="btn btn-soft !p-2" onclick="editEmailTemplate(\''+E(x.id)+'\')"><i data-lucide="pencil" class="w-4 h-4"></i></button><button class="btn btn-soft !p-2" onclick="deleteEmailTemplate(\''+E(x.id)+'\')"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>').join('')+'</div>'}
 function history(){return '<div class="card overflow-hidden"><div class="p-5 border-b border-[#e8eeea]"><div class="eyebrow">Delivery History</div><h3 class="section-title text-[19px] mt-2">Riwayat Pengiriman</h3></div><div class="divide-y divide-[#edf1ef]">'+((D?.campaigns||[]).map(x=>'<button class="w-full p-4 text-left hover:bg-[#fafcfb]" onclick="openEmailCampaign(\''+E(x.id)+'\')"><div class="flex flex-col md:flex-row md:items-center justify-between gap-3"><div><b class="text-[11px]">'+E(x.name)+'</b><div class="text-[9px] text-[#849189] mt-1">'+E(x.subject)+' · '+E(fmt(x.created_at))+'</div></div><div class="flex gap-2"><span class="pill '+(x.status==='sent'?'pill-green':x.status==='failed'?'pill-gold':'pill-gray')+'">'+E(x.status)+'</span><span class="pill pill-gray">'+Number(x.accepted_count||0)+'/'+Number(x.recipient_count||0)+'</span></div></div></button>').join('')||'<div class="empty">Belum ada pengiriman.</div>')+'</div></div>'}
 function setup(){const s=D?.settings||{},dns=Array.isArray(s.dns_records)?s.dns_records:[];return '<div class="grid xl:grid-cols-[.9fr_1.1fr] gap-4"><div class="space-y-4"><form class="card p-5 space-y-3" onsubmit="saveEmailIdentity(event)"><div class="eyebrow">Sender</div><h3 class="section-title text-[19px] mt-2">Identitas Pengirim</h3><input id="sender-name" class="input" value="'+E(s.sender_name||'ETOS ID Palu')+'" required><input id="sender-email" type="email" class="input" value="'+E(s.sender_email||'info@etosidpalu.com')+'" required><input id="sender-reply" type="email" class="input" value="'+E(s.reply_to||'')+'" placeholder="Reply-To opsional"><button class="btn btn-primary w-full" type="submit">Simpan Identitas</button></form><form class="card p-5 space-y-3" onsubmit="saveResendKey(event)"><div class="flex justify-between gap-3"><div><div class="eyebrow">Resend API</div><h3 class="section-title text-[19px] mt-2">Kunci Pengiriman</h3></div><span class="pill '+(s.keyConfigured?'pill-green':'pill-gold')+'">'+(s.keyConfigured?'Tersimpan':'Belum Ada')+'</span></div><p class="text-[9px] leading-5 text-[#7b8981]">Kunci disimpan terenkripsi di Supabase Vault dan tidak ditampilkan kembali.</p><input id="resend-key" type="password" class="input" autocomplete="new-password" placeholder="re_••••••••"><button class="btn btn-primary w-full" type="submit">Simpan & Tes Resend</button></form></div><div class="card p-5"><div class="flex justify-between gap-3"><div><div class="eyebrow">Domain Authentication</div><h3 class="section-title text-[19px] mt-2">'+E(s.provider_domain||'etosidpalu.com')+'</h3></div><span class="pill '+((s.domainStatus||s.domain_status)==='verified'?'pill-green':'pill-gold')+'">'+E(s.domainStatus||s.domain_status||'not_started')+'</span></div><p class="text-[9px] text-[#7d8983] mt-2">Domain email boleh berbeda dari domain dashboard Vercel.</p><div class="space-y-2 mt-4">'+dns.map(x=>'<div class="card-flat p-3"><div class="text-[9px] font-extrabold">'+E(x.type)+' · '+E(x.name)+'</div><div class="text-[9px] font-mono break-all mt-2">'+E(x.value)+'</div><button class="btn btn-soft mt-2" onclick="copyDns(\''+encodeURIComponent(String(x.value))+'\')">Salin</button></div>').join('')+'</div><button class="btn btn-primary w-full mt-4" onclick="verifyEmailDomain()">Cek & Verifikasi Domain</button></div></div>'}
-function render(){const v=ensure();if(!v)return;v.innerHTML=header();const p=document.getElementById('email-panel');p.innerHTML=tab==='compose'?compose():tab==='templates'?templates():tab==='history'?history():setup();if(tab==='compose'){const a=document.getElementById('mail-audience');if(seed?.audienceType)a.value=seed.audienceType;renderEmailAudience();emailModeChanged()}window.lucide?.createIcons?.()}
+function render(){const v=ensure();if(!v)return;v.innerHTML=header();const p=document.getElementById('email-panel');p.innerHTML=tab==='compose'?compose():tab==='readmap'?readmapDistribution():tab==='templates'?templates():tab==='history'?history():setup();if(tab==='compose'){const a=document.getElementById('mail-audience');if(seed?.audienceType)a.value=seed.audienceType;renderEmailAudience();emailModeChanged()}window.lucide?.createIcons?.()}
 window.setEmailTab=function(x){tab=x;preview=null;render()}
 window.useEmailTemplate=function(id){tab='compose';seed=null;render();setTimeout(()=>{const s=document.getElementById('mail-template');if(s){s.value=id;emailTemplateChanged(id)}},0)}
 function templateModal(){if(document.getElementById('email-template-modal'))return;const d=document.createElement('div');d.id='email-template-modal';d.className='modal';d.innerHTML='<div class="modal-card max-w-[700px] p-6"><div class="flex justify-between"><div><div class="eyebrow">Email Template</div><h3 id="et-title" class="section-title text-[21px] mt-2">Template</h3></div><button class="btn btn-ghost !p-2" onclick="closeModal(\'email-template-modal\')"><i data-lucide="x" class="w-4 h-4"></i></button></div><form class="space-y-3 mt-5" onsubmit="saveEmailTemplate(event)"><input id="et-id" type="hidden"><input id="et-name" class="input" placeholder="Nama template" required><input id="et-cat" class="input" placeholder="Kategori" value="Umum"><input id="et-subject" class="input" placeholder="Subjek" required><textarea id="et-body" class="input min-h-[230px]" required></textarea><button class="btn btn-primary w-full" type="submit">Simpan Template</button></form></div>';document.body.appendChild(d)}
@@ -49,5 +49,81 @@ function campaignModal(){if(document.getElementById('email-campaign-modal'))retu
 window.openEmailCampaign=async function(id){campaignModal();openModal('email-campaign-modal');const b=document.getElementById('ec-body');b.innerHTML='<div class="empty">Memuat…</div>';try{const x=await api('campaign_detail',{id}),c=x.campaign||{},r=x.deliveries||[];document.getElementById('ec-title').textContent=c.name||'Detail Pengiriman';b.innerHTML='<div class="space-y-2">'+r.map(v=>'<div class="card-flat p-3 flex justify-between gap-3"><div><b class="text-[10px]">'+E(v.recipient_name||'—')+'</b><div class="text-[9px] text-[#87948d]">'+E(v.recipient_email)+'</div></div><span class="pill '+(v.status==='failed'?'pill-gold':'pill-green')+'">'+E(v.status)+'</span></div>').join('')+'</div>'}catch(err){b.innerHTML='<div class="empty">'+E(err.message)+'</div>'}}
 window.openEmailCenter=function(x=null){seed=x;tab='compose';preview=null;if(!isPin())return Gate(()=>openEmailCenter(x));goView('communication')}
 window.loadEmailCenter=async function(force=false){const v=ensure();if(!isPin())return Gate(()=>loadEmailCenter(force));if(loading&&!force)return D;loading=true;if(!D)v.innerHTML='<div class="empty">Memuat Email Center…</div>';try{D=await api('overview',{refreshProvider:!!force});render();return D}catch(err){v.innerHTML='<div class="empty">'+E(err.message)+'</div>';T(err.message,'error');throw err}finally{loading=false}}
+
+let readmapRows=[],readmapCheck=null,readmapToken=null,readmapBusy=false;
+function readmapDistribution(){
+ return '<div class="grid xl:grid-cols-[1.04fr_.96fr] gap-4"><section class="card p-5 md:p-6 space-y-4">'+
+ '<div><div class="eyebrow">READMAP · Private onboarding</div><h3 class="section-title text-[19px] mt-2">Distribusi Akun READMAP</h3><p class="text-[10px] text-[#71849b] mt-2">Unggah CSV hasil penerbitan akun: Nama Etoser, Angkatan, Username, PIN. Username dan PIN hanya diproses sesaat untuk email pribadi. PIN tidak dimasukkan ke riwayat atau template kampanye.</p></div>'+
+ '<label class="block"><span class="field-label">CSV Kredensial READMAP</span><input id="readmap-mail-file" type="file" accept=".csv,text/csv" class="input mt-2" onchange="readmapCSVChange(this)"></label>'+
+ '<div id="readmap-mail-summary" class="card-flat p-4 text-[10px]">Belum ada CSV diunggah.</div>'+
+ '<div class="flex gap-2 flex-wrap"><button type="button" class="btn btn-soft flex-1" onclick="readmapPreviewSend()">Periksa  Penerima</button><button type="button" id="readmap-mail-send" class="btn btn-primary flex-1" onclick="readmapSend()" disabled><i data-lucide="send" class="w-4 h-4"></i>Kirim  Email Pribadi</button></div>'+
+ '<p class="text-[9px] text-[#7c8982]">Pengiriman hanya aktif bila seluruh baris cocok dengan akun READMAP dan email Awardee. PIN akun tidak diubah. Penerimaan email oleh provider belum menjamin email masuk inbox.</p></section>'+
+ '<section class="card p-5"><div class="eyebrow">Pemeriksaan Privasi</div><h3 class="section-title text-[17px] mt-2">Preview Penerima</h3><div id="readmap-mail-preview" class="empty mt-4">Upload CSV lalu klik Periksa Penerima.</div></section></div>';
+}
+function parseReadmapCSV(raw){
+ const grid=[];let cell='',line=[],quoted=false;
+ const s=String(raw||'').replace(/^\uFEFF/,'');
+ for(let i=0;i<s.length;i++){
+  const ch=s[i];if(ch==='"'){if(quoted&&s[i+1]==='"'){cell+='"';i++}else quoted=!quoted}
+  else if(ch===','&&!quoted){line.push(cell);cell=''}
+  else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&s[i+1]==='\n')i++;line.push(cell);cell='';if(line.some(v=>v.trim()))grid.push(line);line=[]}
+  else cell+=ch;
+ }
+ if(quoted)throw Error('CSV memiliki kutip yang tidak berpasangan.');
+ line.push(cell);if(line.some(v=>v.trim()))grid.push(line);
+ const header=(grid.shift()||[]).map(x=>x.trim().toLowerCase());
+ const required=['nama etoser','angkatan','username','pin'];
+ if(!required.every(k=>header.includes(k)))throw Error('CSV wajib memiliki kolom Nama Etoser, Angkatan, Username dan PIN.');
+ if(!grid.length||grid.length>50)throw Error('CSV wajib berisi 1–50 akun.');
+ return grid.map(parts=>{
+  if(parts.length!==header.length)throw Error('Baris CSV tidak sesuai dengan header.');
+  const field=name=>String(parts[header.indexOf(name)]||'').trim();
+  return {name:field('nama etoser'),angkatan:field('angkatan'),username:field('username'),pin:field('pin')};
+ });
+}
+window.readmapCSVChange=async function(el){
+ const file=el?.files?.[0],summary=document.getElementById('readmap-mail-summary');
+ readmapRows=[];readmapCheck=null;readmapToken=null;
+ const send=document.getElementById('readmap-mail-send');if(send)send.disabled=true;
+ if(!file)return;
+ try{
+  if(file.size>32768)throw Error('CSV terlalu besar; maksimum 32 KB.');
+  readmapRows=parseReadmapCSV(await file.text());
+  readmapToken='readmap-'+crypto.randomUUID();
+  summary.textContent=readmapRows.length+' akun berhasil dibaca. PIN tidak ditampilkan. Klik Periksa Penerima.';
+  document.getElementById('readmap-mail-preview').textContent='Belum diverifikasi dengan database ETOS.';
+ }catch(err){summary.textContent=err.message||'CSV tidak valid.';T(err.message,'warn')}
+};
+window.readmapPreviewSend=async function(){
+ if(readmapBusy||!readmapRows.length)return T('Unggah CSV kredensial dahulu.','warn');
+ readmapBusy=true;
+ try{
+  const result=await api('readmap_preview',{rows:readmapRows});
+  readmapCheck=result;
+  const box=document.getElementById('readmap-mail-preview');
+  box.innerHTML='<div class="grid grid-cols-3 gap-2 mb-4"><div class="card-flat p-3"><b>'+Number(result.total||0)+'</b><small class="block">Total</small></div><div class="card-flat p-3"><b>'+Number(result.ready||0)+'</b><small class="block">Cocok</small></div><div class="card-flat p-3"><b>'+Number(result.blocked||0)+'</b><small class="block">Tertahan</small></div></div>'+
+   (result.recipients||[]).map(r=>'<div class="card-flat p-2 my-2"><b class="text-[10px]">'+E(r.name)+'</b><div class="text-[9px]">'+E(r.email||r.reason||'Belum ada email')+' · '+E(r.angkatan)+'</div></div>').join('');
+  document.getElementById('readmap-mail-send').disabled=!!result.blocked||result.ready!==readmapRows.length;
+  T(result.blocked?'Ada data yang perlu diperbaiki sebelum dikirim.':'Seluruh penerima terverifikasi.',result.blocked?'warn':'success');
+ }catch(err){readmapCheck=null;document.getElementById('readmap-mail-send').disabled=true;T(err.message||'Gagal memeriksa data.','error')}
+ finally{readmapBusy=false}
+};
+window.readmapSend=async function(){
+ if(readmapBusy||!readmapRows.length||!readmapCheck||readmapCheck.blocked||readmapCheck.ready!==readmapRows.length)return T('Lakukan pemeriksaan seluruh penerima dahulu.','warn');
+ if(!confirm('Kirim '+readmapRows.length+' email READMAP secara individual, termasuk username dan PIN rahasia masing-masing?'))return;
+ readmapBusy=true;
+ const button=document.getElementById('readmap-mail-send');button.disabled=true;
+ try{
+  const response=await api('readmap_send',{rows:readmapRows,action:'send',clientToken:readmapToken,confirmed:true});
+  if(response.status!=='sent'){T('Pengiriman belum berhasil. Periksa Riwayat dan Resend sebelum mencoba kembali.','warn');return;}
+  T('Provider menerima '+Number(response.accepted||0)+' email. Lihat riwayat untuk memantau hasil.','success');
+  readmapRows=[];readmapCheck=null;readmapToken=null;
+  const f=document.getElementById('readmap-mail-file');if(f)f.value='';
+  const summary=document.getElementById('readmap-mail-summary');if(summary)summary.textContent='Proses selesai. Kredensial sementara telah dibersihkan dari halaman.';
+  await loadEmailCenter(true);tab='history';render();
+ }catch(err){T(err.message||'Pengiriman gagal, periksa riwayat sebelum mencoba ulang.','error')}
+ finally{readmapBusy=false;if(button)button.disabled=!readmapCheck||!!readmapCheck.blocked}
+};
+
 ensure();templateModal();campaignModal();window.lucide?.createIcons?.();
 })();

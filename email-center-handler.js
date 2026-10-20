@@ -1,4 +1,5 @@
 const session=require('./server-session');
+const readmapMailer=require('./readmap-credential-mailer');
 
 function out(res,status,body){
   res.status(status);
@@ -312,6 +313,7 @@ module.exports=async function handler(req,res){
     else if(action==='save_rule')data=await saveRule(c,p);
     else if(action==='send_campaign')data=await campaign(c,p);
     else if(action==='campaign_detail')data=await campaignDetail(c,p);
+    else if(action==='readmap_preview'||action==='readmap_send')data=await readmapMailer.handle(c,{...p,action:action==='readmap_preview'?'preview':'send'},{q,settings,providerState,providerKey,resend});
     else return out(res,404,{success:false,error:'Aksi Email Center tidak ditemukan.'});
     return out(res,200,{success:true,data});
   }catch(e){

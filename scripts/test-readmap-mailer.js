@@ -1,0 +1,44 @@
+'use strict';
+const assert=require('node:assert/strict');
+const mailer=require('../readmap-credential-mailer');
+const row=n=>({name:'Test Awardee '+n,angkatan:'2023',username:'ETOS26-'+String(n).padStart(10,'0'),pin:String(9000000000+n)});
+async function run(){
+ const rows=Array.from({length:16},(_,i)=>row(i+1));
+ assert.equal(mailer.validate(rows).length,16);
+ assert.throws(()=>mailer.validate([row(1),row(1)]));
+ assert.throws(()=>mailer.validate([{...row(1),pin:'invalid'}]));
+ const members=rows.map((r,i)=>({username:r.username,awardee_id:'a'+i}));
+ const awards=rows.map((r,i)=>({id:'a'+i,name:r.name,angkatan:r.angkatan,status:'aktif'}));
+ const contacts=rows.map((r,i)=>({awardee_id:'a'+i,email:'test'+i+'@example.org'}));
+ const writes=[];let sends=[];
+ const q=async(path,_c,opt={})=>{
+  if(opt.body)writes.push(String(opt.body));
+  if(path.startsWith('/rest/v1/readmap_memberships'))return members;
+  if(path.startsWith('/rest/v1/awardees'))return awards;
+  if(path.startsWith('/rest/v1/awardee_contacts'))return contacts;
+  if(path.startsWith('/rest/v1/email_campaigns?client_token='))return [];
+  if(path.startsWith('/rest/v1/email_campaigns?select='))return[{id:'test-campaign'}];
+  if(path.startsWith('/rest/v1/email_deliveries'))return null;
+  if(path.startsWith('/rest/v1/email_campaigns?id='))return null;
+  throw Error('Unexpected URL');
+ };
+ const pr=await mailer.prepare({}, {rows},q);
+ assert.equal(pr.preview.ready,16);
+ assert.equal(pr.preview.blocked,0);
+ assert.equal(JSON.stringify(pr.preview).includes(rows[0].pin),false);
+ const deps={q,settings:async()=>({sender_name:'ETOS',sender_email:'info@example.org',is_enabled:true}),providerState:async()=>({ready:true}),providerKey:async()=>('mock-provider-key'),resend:async(_path,_key,opt)=>{sends=JSON.parse(opt.body);return{data:sends.map((_,i)=>({id:'mock-'+i}))}}};
+ const result=await mailer.handle({}, {action:'send',rows,confirmed:true,clientToken:'readmap-testing-20261020'},deps);
+ assert.equal(result.accepted,16);
+ assert.equal(sends.length,16);
+ assert.ok(sends.every(x=>x.to.length===1));
+ assert.ok(sends[0].text.includes(rows[0].pin));
+ assert.ok(sends[0].text.includes('Muhammad Shadiq Muntashir'));
+ assert.ok(writes.every(w=>rows.every(r=>!w.includes(r.pin))));
+ const badName=await mailer.prepare({},{rows:[{...row(1),name:'Wrong'}]},q);
+ assert.equal(badName.preview.blocked,1);
+ contacts[1].email=contacts[0].email;
+ const duplicateEmail=await mailer.prepare({},{rows:rows.slice(0,2)},q);
+ assert.equal(duplicateEmail.preview.blocked,1);
+ console.log('READMAP credential mailer tests passed (mock provider only).');
+}
+run().catch(e=>{console.error(e);process.exitCode=1});
