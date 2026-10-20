@@ -30,6 +30,7 @@ function mount(){
  });
  root.addEventListener('change',event=>{if(event.target.matches('#ki-kajian-period'))load(true)});
  root.addEventListener('click',event=>{if(event.target.matches('[data-ki-refresh]'))load(true)});
+ root.addEventListener('click',event=>{if(event.target.matches('[data-ki-murajaah-refresh]'))loadMurajaah()});
 }
 async function apiTahsin(){
  const r=await fetch('/api/secure',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({function:'readmapAdmin',params:{action:'tahsinOverview'}})});
@@ -57,8 +58,17 @@ function kajian(data){
  const content=paged(forms,x=>'<details class="card p-4"><summary class="cursor-pointer"><b class="text-[12px]">'+escK(x.agenda||'Kajian')+'</b><div class="text-[10px] mt-1 text-[#70849b]">'+escK(date(x.tanggal))+' · Hadir '+Number(x.eligibleCount||0)+' · Mengisi '+Number(x.responseCount||0)+' · Belum '+Number(x.pendingCount||0)+'</div></summary><div class="mt-4"><h4 class="text-[11px] font-extrabold mb-2">Jawaban Refleksi</h4>'+paged(x.responses||[],answered,'Belum ada jawaban.')+'</div></details>','Belum ada form Kajian pada periode ini.');
  return head+'<h3 class="section-title text-[17px] mb-3">Refleksi per Kajian</h3>'+content;
 }
+async function loadMurajaah(){
+ const el=$('ki-murajaah-status');if(!el)return;
+ el.textContent='Mengambil laporan Murajaah 2023…';
+ try{
+  const r=await fetch('/api/secure',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({function:'murajaah2023'})});
+  const j=await r.json();if(!r.ok||!j.success)throw Error(j.error||'Gagal memuat laporan');
+  el.innerHTML='<p class="text-[11px] mb-2">Awardee 2023: '+Number(j.awardees||0)+' · Laporan cocok: '+Number(j.records?.length||0)+' · Belum cocok: '+Number(j.unmatched_count||0)+'</p>'+(j.records?.length?paged(j.records,x=>'<details class="card-flat p-3"><summary class="font-bold">'+escK(x.record?.nama||x.record?.name||x.awardee_id)+'</summary><pre class="text-[10px] whitespace-pre-wrap break-words mt-2">'+escK(JSON.stringify(x.record,null,2))+'</pre></details>'):'<p class="text-[11px]">Belum ada laporan dengan ID awardee ETOS yang cocok. Data sumber tidak diubah.</p>');
+ }catch(e){el.textContent='Belum dapat membaca API Murajaah: '+String(e.message||e)}
+}
 function hafalan(){
- return '<div class="card p-6 md:p-8"><div class="eyebrow">TAHFIZ · AWARDEE ANGKATAN 2023</div><h3 class="section-title text-[23px] mt-2">Monitoring Hafalan Juz 30</h3><p class="text-[11px] text-[#617994] mt-3">Target penyelesaian 2027 · 9 Awardee angkatan 2023 terdaftar di Dashboard ETOS.</p><div class="grid sm:grid-cols-3 gap-3 mt-5">'+card('Peserta 2023',9)+card('Target',2027)+card('Data terverifikasi','—')+'</div><div class="card-flat p-5 mt-5"><div class="flex gap-3 items-start"><i data-lucide="clock" class="w-5 h-5 text-[#315f96]"></i><div><b class="text-[13px]">Menunggu integrasi Murojaahku</b><p class="text-[11px] text-[#617994] mt-2 leading-6">Pengambilan data Murojaahku (ruang ETOS23) akan dilanjutkan kemudian setelah tersedia akses API baca-saja yang sah. Tidak ada angka hafalan yang diimpor atau dibuat-buat.</p><a class="text-[11px] font-bold text-[#0e43ab] underline mt-3 inline-block" rel="noopener noreferrer" target="_blank" href="https://www.murojaahku.web.id">Buka Murojaahku ↗</a></div></div></div></div>';
+ return '<div class="card p-6 md:p-8"><div class="eyebrow">TAHFIZ · AWARDEE ANGKATAN 2023</div><h3 class="section-title text-[23px] mt-2">Monitoring Hafalan Juz 30</h3><p class="text-[11px] text-[#617994] mt-3">Target penyelesaian 2027 · 9 Awardee angkatan 2023 terdaftar di Dashboard ETOS.</p><div class="grid sm:grid-cols-3 gap-3 mt-5">'+card('Peserta 2023',9)+card('Target',2027)+card('Data terverifikasi','—')+'</div><div class="card-flat p-5 mt-5"><div class="flex gap-3 items-start"><i data-lucide="clock" class="w-5 h-5 text-[#315f96]"></i><div><b class="text-[13px]">Menunggu integrasi Murojaahku</b><p class="text-[11px] text-[#617994] mt-2 leading-6">Pengambilan data Murojaahku (ruang ETOS23) akan dilanjutkan kemudian setelah tersedia akses API baca-saja yang sah. Tidak ada angka hafalan yang diimpor atau dibuat-buat.</p><a class="text-[11px] font-bold text-[#0e43ab] underline mt-3 inline-block" rel="noopener noreferrer" target="_blank" href="https://www.murojaahku.web.id">Buka Murojaahku ↗</a></div></div></div><div class="mt-4"><button type="button" class="btn btn-soft" data-ki-murajaah-refresh>Ambil Laporan Murajaah 2023</button><div id="ki-murajaah-status" class="mt-3 text-[11px]">Laporan hanya untuk angkatan 2023 dan dibaca tanpa mengubah data.</div></div></div>';
 }
 function render(){
  const root=$('ki-content');if(!root)return;
