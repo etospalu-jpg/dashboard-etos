@@ -1,3 +1,4 @@
+const tahfidzHandler=require('../tahfidz-handler');
 const PROJECT_URL='https://weklmapqizeldfdalbgs.supabase.co';
 // Consolidated public article renderer: reuse this existing Vercel Function instead of adding a thirteenth.
 const articlePage=require('../gagasan-public/api/article');
@@ -31,6 +32,7 @@ module.exports=async function handler(req,res){
  if(req.method==='GET'&&typeof req.query?.ref==='string')return articlePage(req,res);
  if(!['GET','POST'].includes(req.method))return out(res,405,{success:false,error:'Method not allowed'},'no-store');
  if(req.method==='GET'&&String(req.query?.data_health||'')==='1')return dataHealth(res);
+ if(req.method==='POST'&&req.body?.action==='tahfidz2026')return tahfidzHandler(req,res);
  if(req.method==='POST'&&req.body?.action==='public_data')return publicData(req,res);
  if(req.method==='POST'&&req.body?.action==='public_batch')return publicBatch(req,res);
  if(req.method==='POST'&&req.body?.action==='reflection_data')return reflectionData(req,res);
