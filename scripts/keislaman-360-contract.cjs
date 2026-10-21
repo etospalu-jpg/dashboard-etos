@@ -20,7 +20,7 @@ assert.match(core,/window\.loadKeislaman\(force\)/);
 assert.match(boot,/app-keislaman\.js/);
 assert.match(boot,/app-awardee360-enhance\.js/);
 assert.match(ki,/tahsinOverview/);assert.match(ki,/getReflectionHub/);
-assert.match(ki,/Menunggu integrasi Murojaahku/);
+assert.match(ki,/ki-etos23-root/,'Monitoring angkatan 2023 kini memakai MurojaAku langsung');
 assert.match(ki,/Arsip Tahsin/);
 assert.match(ki,/Salin Link Refleksi/);
 const attendHandler=read('attendance-entry-handler.js'),adminHandler=read('ops/readmap-admin-handler.js');
