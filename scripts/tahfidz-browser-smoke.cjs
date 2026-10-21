@@ -68,6 +68,26 @@ const server=http.createServer((req,res)=>{
   }));
   console.log('TAHFIDZ_TAB',JSON.stringify(cohort));
   assert.ok(cohort.root&&cohort.tabs.length===2,'Tahfidz 2026 cohort panel missing');
+  await page.route('**/api/public-attendance',async route=>{
+    let body={};try{body=route.request().postDataJSON()||{}}catch{}
+    if(body.action!=='etos23_report')return route.continue();
+    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,data:{room:'ETOS23',fetched_at:new Date().toISOString(),peserta:[{id:'sample-1',nama:'Peserta Uji',total_ayat_lulus:42,target_surah:'An-Naba',target_ayat_awal:1,target_ayat_akhir:40}],setoran:[],feedback:[],kehadiran:[]}})});
+  });
+  await page.locator('[data-hafalan-cohort="2023"]').click();
+  await page.getByText('Peserta Uji').waitFor({timeout:6500});
+  const etos23=await page.locator('#ki-etos23-root').innerText();
+  assert.match(etos23,/42/);
+  assert.match(etos23,/MurojaAku/);
+  console.log('ETOS23_LIVE_MOCK','PASS');
+  await page.evaluate(()=>{
+    const base=window.etosAPI.call.bind(window.etosAPI);
+    window.etosAPI.call=async(name,params)=>name==='getReflectionHub'?
+      {success:true,data:{forms:[{agenda:'Kajian Keislaman',tanggal:'2026-10-11',eligibleCount:7,responseCount:0,pendingCount:7,responses:[]}],periods:[],period:null}}:
+      base(name,params);
+  });
+  await page.locator('[data-ki-tab="kajian"]').click();
+  await page.locator('a[href="/r/7DD1FACC"]').waitFor({timeout:6500});
+  console.log('KAJIAN_LINK_RENDER','PASS');
   console.log('END',JSON.stringify(end),'PAGE_ERRORS',JSON.stringify(errors.slice(0,15)));
   assert.ok(end.tabs.includes('Monitoring Hafalan'),'Tahfidz not reachable');
  }finally{await browser.close()}
