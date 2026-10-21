@@ -2,33 +2,26 @@
   "id": "/",
   "name": "ETOS ID Palu — Awardee Workspace",
   "short_name": "ETOS Palu",
-  "description": "Dashboard perkembangan Awardee ETOS ID Palu untuk monitoring akademik, pembinaan, mentoring, absensi, prestasi, dan intelligence fasilitator.",
+  "description": "Dashboard pembinaan, Tahfidz, akademik, dan perkembangan Awardee ETOS ID Palu.",
   "lang": "id-ID",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#f6f8fc",
   "theme_color": "#142c49",
-  "orientation": "any",
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/pwa-icon.svg",
+      "src": "/pwa-icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/pwa-icon.svg",
+      "src": "/pwa-icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "/pwa-icon.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

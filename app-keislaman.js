@@ -19,6 +19,10 @@ function mount(){
  root.innerHTML='<div class="mb-5"><div class="eyebrow">PEMBINAAN · ETOS ID PALU</div><h2 class="section-title text-[27px] mt-2">Pembinaan Keislaman</h2><p class="text-[11px] text-[#71849b] mt-2">Satu pusat monitoring. Data Tahsin, Kajian, dan hafalan tetap terpisah dan memiliki sumber masing-masing.</p></div><div class="ki-tabs" role="tablist" aria-label="Jenis pembinaan"><button type="button" class="ki-tab" data-ki-tab="tahsin">Refleksi Tahsin</button><button type="button" class="ki-tab" data-ki-tab="kajian">Refleksi Kajian</button><button type="button" class="ki-tab" data-ki-tab="hafalan">Monitoring Hafalan</button></div><div id="ki-content" aria-live="polite"></div>';
  root.addEventListener('click',event=>{
   const t=event.target.closest('[data-ki-tab]');if(t){tab=t.dataset.kiTab;render();return}
+  const kj=event.target.closest('[data-kajian-copy]');
+  if(kj){const url=new URL('/r/'+encodeURIComponent(kj.dataset.kajianCopy||''),location.origin).href;
+   if(navigator.clipboard?.writeText)navigator.clipboard.writeText(url).then(()=>{kj.textContent='Tersalin ✓'}).catch(()=>window.prompt('Salin tautan Kajian:',url));
+   else window.prompt('Salin tautan Kajian:',url);return}
   const cohort=event.target.closest('[data-hafalan-cohort]');if(cohort){hafalanCohort=cohort.dataset.hafalanCohort;render();return}
   const cp=event.target.closest('[data-ki-tahsin-copy]');
   if(cp){const ref=cp.dataset.kiTahsinCopy;if(/^\/t\/[A-F0-9]{12}$/i.test(ref||'')){
@@ -51,11 +55,18 @@ function tahsin(data){
  const answers=paged(responses,x=>'<details class="card-flat p-4"><summary class="cursor-pointer"><b class="text-[12px]">'+escK(x.awardee_name||'Awardee')+'</b><small class="block mt-1 text-[#71849b]">'+escK(date(x.submitted_at))+' · Kepercayaan diri '+escK(x.confidence??'—')+'/5</small></summary><div class="mt-3 text-[11px] space-y-2"><p><b>Pelajaran:</b> '+escK(x.lesson||'—')+'</p><p><b>Tantangan:</b> '+escK((x.challenges||[]).join(', ')||'—')+'</p><p><b>Latihan:</b> '+escK(x.practice_frequency||'—')+'</p><p><b>Target:</b> '+escK(x.improvement_goal||'—')+'</p><p><b>Review target:</b> '+escK(x.previous_goal_review||'—')+'</p></div></details>','Belum ada refleksi Tahsin.');
  return head+'<div class="grid xl:grid-cols-2 gap-4"><section><h3 class="section-title text-[17px] mb-3">Pertemuan & Keterisian</h3>'+history+'</section><section><h3 class="section-title text-[17px] mb-3">Jawaban Lengkap Awardee</h3>'+answers+'</section></div>'+(archived.length?'<details class="card p-5 mt-4"><summary class="cursor-pointer font-extrabold text-[12px]">Arsip Tahsin · '+archived.length+' pertemuan</summary><p class="text-[10px] text-[#71849b] mt-3 mb-3">Tidak dihitung dalam kehadiran dan kewajiban refleksi aktif. Data asli tetap disimpan.</p>'+paged(archived,x=>'<div class="card-flat p-3"><b class="text-[11px]">'+escK(x.name)+'</b><div class="text-[10px] text-[#71849b] mt-1">'+escK(date(x.date))+' · Arsip · '+escK(x.source||'')+'</div></div>')+'</details>':'');
 }
+function kajianLink(x){
+ const known={'2026-10-11':'7DD1FACC','2026-09-27':'D1C33039','2026-08-19':'AD8E9E3D'};
+ const day=String(x.tanggal||x.agenda_date||'').slice(0,10);
+ const raw=String(x.publicCode||x.public_code||x.code||x.formCode||known[day]||'').trim();
+ if(!/^[A-F0-9]{8}$/i.test(raw))return '';
+ return '<div class="mb-4 flex flex-wrap gap-2"><a class="btn btn-primary" target="_blank" rel="noopener noreferrer" href="/r/'+encodeURIComponent(raw)+'">Buka Form Refleksi ↗</a><button class="btn btn-soft" type="button" data-kajian-copy="'+escK(raw)+'">Salin Link Kajian</button></div>';
+}
 function kajian(data){
  const forms=data?.forms||[];const count=forms.reduce((n,x)=>n+(x.responses?.length||0),0);
  const periodOptions=(data?.periods||[]).map(x=>'<option value="'+escK(x.id)+'" '+(String(x.id)===String(data?.period?.id)?'selected':'')+'>'+escK(x.nama||'Periode')+'</option>').join('');
  const head='<div class="flex flex-wrap items-center justify-between gap-3 mb-4"><label class="text-[11px]">Periode <select id="ki-kajian-period" class="input select ml-2">'+periodOptions+'</select></label><button type="button" class="btn btn-soft" data-ki-refresh>Perbarui Data</button></div><div class="grid sm:grid-cols-3 gap-3 mb-4">'+card('Form Kajian',forms.length)+card('Jawaban Refleksi',count)+card('Menunggu Pengisian',forms.reduce((n,x)=>n+Number(x.pendingCount||0),0))+'</div>';
- const content=paged(forms,x=>'<details class="card p-4"><summary class="cursor-pointer"><b class="text-[12px]">'+escK(x.agenda||'Kajian')+'</b><div class="text-[10px] mt-1 text-[#70849b]">'+escK(date(x.tanggal))+' · Hadir '+Number(x.eligibleCount||0)+' · Mengisi '+Number(x.responseCount||0)+' · Belum '+Number(x.pendingCount||0)+'</div></summary><div class="mt-4"><h4 class="text-[11px] font-extrabold mb-2">Jawaban Refleksi</h4>'+paged(x.responses||[],answered,'Belum ada jawaban.')+'</div></details>','Belum ada form Kajian pada periode ini.');
+ const content=paged(forms,x=>'<details class="card p-4"><summary class="cursor-pointer"><b class="text-[12px]">'+escK(x.agenda||'Kajian')+'</b><div class="text-[10px] mt-1 text-[#70849b]">'+escK(date(x.tanggal))+' · Hadir '+Number(x.eligibleCount||0)+' · Mengisi '+Number(x.responseCount||0)+' · Belum '+Number(x.pendingCount||0)+'</div></summary><div class="mt-4">'+kajianLink(x)+'<h4 class="text-[11px] font-extrabold mb-2">Jawaban Refleksi</h4>'+paged(x.responses||[],answered,'Belum ada jawaban.')+'</div></details>','Belum ada form Kajian pada periode ini.');
  return head+'<h3 class="section-title text-[17px] mb-3">Refleksi per Kajian</h3>'+content;
 }
 function hafalan(){
@@ -64,7 +75,9 @@ function hafalan(){
   setTimeout(()=>{if(tab==='hafalan'&&hafalanCohort==='2026')window.ETOSTahfidz2026?.load()},0);
   return switcher+'<div id="ki-tahfidz-root" aria-live="polite"><div class="card p-6">Memuat kartu kontrol Tahfidz 2026…</div></div>';
  }
- return switcher+'<div class="card p-6 md:p-8"><div class="eyebrow">TAHFIZ · AWARDEE ANGKATAN 2023</div><h3 class="section-title text-[23px] mt-2">Monitoring Hafalan Juz 30</h3><p class="text-[11px] text-[#617994] mt-3">Target penyelesaian 2027 · 9 Awardee angkatan 2023 terdaftar di Dashboard ETOS.</p><div class="grid sm:grid-cols-3 gap-3 mt-5">'+card('Peserta 2023',9)+card('Target',2027)+card('Data terverifikasi','—')+'</div><div class="card-flat p-5 mt-5"><div class="flex gap-3 items-start"><i data-lucide="clock" class="w-5 h-5 text-[#315f96]"></i><div><b class="text-[13px]">Menunggu integrasi Murojaahku</b><p class="text-[11px] text-[#617994] mt-2 leading-6">Pengambilan data Murojaahku (ruang ETOS23) akan dilanjutkan kemudian setelah tersedia akses API baca-saja yang sah. Tidak ada angka hafalan yang diimpor atau dibuat-buat.</p><a class="text-[11px] font-bold text-[#0e43ab] underline mt-3 inline-block" rel="noopener noreferrer" target="_blank" href="https://www.murojaahku.web.id">Buka Murojaahku ↗</a></div></div></div></div>';
+ setTimeout(()=>{if(tab==='hafalan'&&hafalanCohort==='2023')window.ETOS23Monitor?.load()},0);
+ return switcher+'<div id="ki-etos23-root" aria-live="polite"><div class="card p-6">Memuat laporan MurojaAku untuk angkatan 2023…</div></div>';
+
 }
 function render(){
  const root=$('ki-content');if(!root)return;

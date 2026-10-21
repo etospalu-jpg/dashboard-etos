@@ -1,7 +1,7 @@
 name: ETOS Browser Regression
 on:
   push:
-    branches: [quality/tahfidz-v3810]
+    branches: [quality/tahfidz-v3810, feature/etos23-kajian-pwa-navy]
   workflow_dispatch:
 permissions:
   contents: read
