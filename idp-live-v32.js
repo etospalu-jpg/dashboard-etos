@@ -96,7 +96,7 @@ async function fetchText(url,timeout=6500){
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeout);
   try{
     const r=await fetch(url,{headers:{'User-Agent':'ETOS-ID-Palu-IDP/36.2'},signal:controller.signal,redirect:'follow'}),text=await r.text();
-    if(!r.ok){const e=new Error($Google Sheet HTTP ${r.status}`);e.status=r.status;throw e}
+    if(!r.ok){const e=new Error(`Google Sheet HTTP ${r.status}`);e.status=r.status;throw e}
     if(/<!doctype html|<html|accounts\.google\.com|servicelogin/i.test(text))throw new Error('Google Sheet IDP belum dapat dibaca oleh server.');
     return text;
   }finally{clearTimeout(timer)}

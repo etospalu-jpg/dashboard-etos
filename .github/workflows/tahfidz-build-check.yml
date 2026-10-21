@@ -1,0 +1,28 @@
+name: ETOS Build Verification
+on:
+  push:
+    branches:
+      - quality/tahfidz-v3810
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check critical runtime syntax
+        run: |
+          node --check idp-live-v32.js
+          node --check tahfidz-handler.js
+          node --check app-tahfidz-2026.js
+      - name: Build dashboard and run contracts
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
