@@ -27,7 +27,7 @@ assert.match(nav,/PIN_ONLY_VIEWS/);
 assert.doesNotMatch(nav,/ETOS_TAHFIDZ_ALLOWED/);
 assert.match(ki,/ki-tahfidz-root/);
 assert.match(ki,/data-hafalan-cohort/);
-assert.match(ki,/Murojaahku/);
+assert.match(ki,/ki-etos23-root/);
 assert.match(api,/tahfidzHandler/);
 assert.match(api,/publicData/);
 const migration=read('supabase/migrations/20261021_tahfidz2026_pin_superadmin.sql');
