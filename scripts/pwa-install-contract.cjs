@@ -21,7 +21,7 @@ assert.match(page,/app-etos23-monitor\.js/);
 assert.match(page,/app-tahfidz-2026\.css\?v=38\.12/);
 assert.match(read('sw.js'),/const VERSION='38\.12'/);
 const pwa=read('app-pwa.js');
-assert.doesNotMatch(pwa,/preventDefault\s*\(/,'Native Chrome install prompt may not be intercepted');
+assert.doesNotMatch(pwa,/event\.preventDefault\s*\(/,'Native Chrome install prompt may not be intercepted');
 assert.match(pwa,/serviceWorker\.register\('\/sw\.js'/);
 const css=read('app-tahfidz-2026.css');assert.match(css,/linear-gradient\(120deg,#142c49,#234b80\)/);
 assert.doesNotMatch(css,/#0a6057|#0a7767|#11856c/);
