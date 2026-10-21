@@ -15,7 +15,7 @@ function paged(rows,render,empty='Belum ada data.'){
 function card(title,metric){return '<div class="card-flat p-4"><div class="text-[10px] text-[#70849b]">'+escK(title)+'</div><div class="text-[24px] font-extrabold mt-2">'+escK(metric)+'</div></div>'}
 function emptyState(msg){return '<div class="card p-6 text-[#71849b] text-[12px]">'+escK(msg)+'</div>'}
 function mount(){
- const root=$('etos-keislaman-root');if(!root||initialized)return;initialized=true;
+ const root=$('etos-keislaman-root');if(!root)return;if(initialized&&root.querySelector('#ki-content'))return;initialized=true;
  root.innerHTML='<div class="mb-5"><div class="eyebrow">PEMBINAAN · ETOS ID PALU</div><h2 class="section-title text-[27px] mt-2">Pembinaan Keislaman</h2><p class="text-[11px] text-[#71849b] mt-2">Satu pusat monitoring. Data Tahsin, Kajian, dan hafalan tetap terpisah dan memiliki sumber masing-masing.</p></div><div class="ki-tabs" role="tablist" aria-label="Jenis pembinaan"><button type="button" class="ki-tab" data-ki-tab="tahsin">Refleksi Tahsin</button><button type="button" class="ki-tab" data-ki-tab="kajian">Refleksi Kajian</button><button type="button" class="ki-tab" data-ki-tab="hafalan">Monitoring Hafalan</button></div><div id="ki-content" aria-live="polite"></div>';
  root.addEventListener('click',event=>{
   const t=event.target.closest('[data-ki-tab]');if(t){tab=t.dataset.kiTab;render();return}

@@ -46,6 +46,28 @@ const server=http.createServer((req,res)=>{
    if(view==='ski')assert.ok((snap.skiContent||'').trim().length>30,'SKI Saya blank despite PIN');
   }
   const end=await page.evaluate(()=>({tabs:[...document.querySelectorAll('[data-ki-tab]')].map(x=>x.innerText),module:typeof window.ETOSTahfidz2026?.load,root:!!document.querySelector('#ki-content')}));
+  // Reproduce screenshots: active panels have empty markup after a stale route.
+  await page.evaluate(()=>document.getElementById('etos-keislaman-root')?.replaceChildren());
+  await page.waitForTimeout(1300);
+  const restoredKi=await page.evaluate(()=>document.getElementById('etos-keislaman-root')?.innerText?.length||0);
+  console.log('RECOVERY_KEISLAMAN',restoredKi);
+  assert.ok(restoredKi>40,'Keislaman remained blank after recovery watchdog');
+  await page.locator('#ski-nav').click();
+  await page.evaluate(()=>document.getElementById('view-ski')?.replaceChildren());
+  await page.waitForTimeout(1300);
+  const restoredSki=await page.evaluate(()=>document.getElementById('view-ski')?.innerText?.length||0);
+  console.log('RECOVERY_SKI',restoredSki);
+  assert.ok(restoredSki>25,'SKI remained blank after recovery watchdog');
+  await page.locator('.nav-btn[data-view="keislaman"]').click();
+  await page.locator('[data-ki-tab="hafalan"]').click();
+  await page.waitForTimeout(300);
+  const cohort=await page.evaluate(()=>({
+   root:!!document.getElementById('ki-tahfidz-root'),
+   tabs:[...document.querySelectorAll('[data-hafalan-cohort]')].map(x=>x.textContent),
+   message:document.getElementById('ki-content')?.innerText?.slice(0,160)
+  }));
+  console.log('TAHFIDZ_TAB',JSON.stringify(cohort));
+  assert.ok(cohort.root&&cohort.tabs.length===2,'Tahfidz 2026 cohort panel missing');
   console.log('END',JSON.stringify(end),'PAGE_ERRORS',JSON.stringify(errors.slice(0,15)));
   assert.ok(end.tabs.includes('Monitoring Hafalan'),'Tahfidz not reachable');
  }finally{await browser.close()}
