@@ -12,7 +12,7 @@ const server=http.createServer((req,res)=>{
   const buf=Buffer.from(JSON.stringify(status));res.writeHead(200,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(buf);return;
  }
  const fname=path.resolve(base,'.'+url.pathname);
- if(!fname.startsWith(base+path.sep)){res.writeHead(403);res.end();return}
+ if(fname!==base&&!fname.startsWith(base+path.sep)){res.writeHead(403);res.end();return}
  const target=fs.existsSync(fname)&&fs.statSync(fname).isFile()?fname:path.join(base,'index.html');
  res.writeHead(200,{'Content-Type':mime[path.extname(target)]||'application/octet-stream','Cache-Control':'no-store'});
  fs.createReadStream(target).pipe(res);
