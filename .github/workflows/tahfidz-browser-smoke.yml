@@ -21,3 +21,4 @@ jobs:
         run: |
           command -v google-chrome || true
           node scripts/tahfidz-browser-smoke.cjs
+          node scripts/etos-live-diagnostic.cjs
