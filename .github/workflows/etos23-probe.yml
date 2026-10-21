@@ -1,0 +1,16 @@
+name: ETOS23 Endpoint & Reflection Probe
+on:
+  push:
+    branches: [feature/etos23-kajian-pwa-navy]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: node scripts/etos23-endpoint-probe.cjs
