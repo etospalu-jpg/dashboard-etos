@@ -29,8 +29,9 @@ const server=http.createServer((req,res)=>{
   console.log('INITIAL',JSON.stringify(initial));
   await page.evaluate(()=>{state.auth=true;state.session={kind:'pin',role:'superadmin',scope:'etos-operational'};state.role='superadmin';window.updateAuthUI?.()});
   for(const view of ['keislaman','ski','dashboard','keislaman']){
-   await page.evaluate(v=>window.goView(v),view);
-   await page.waitForTimeout(350);
+   if(view==='ski') await page.locator('#ski-nav').click({timeout:15000});
+   else await page.locator('.nav-btn[data-view="'+view+'"]').click({timeout:15000});
+   await page.waitForTimeout(900);
    const snap=await page.evaluate(v=>({
     view:v,
     current:state.view,
